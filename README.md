@@ -34,10 +34,15 @@ L’idée est née dans une salle d’attente, où un patient a suggéré un sys
 ## 🧱 Structure du projet
 
 /client → Frontend React
+
 /server → Backend Express
+
 /public → Fichiers statiques & manifest PWA
+
 /models → Schémas MongoDB
+
 /routes → Endpoints API
+
 /utils → Fonctions partagées
 
 
