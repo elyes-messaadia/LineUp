@@ -1,0 +1,15 @@
+# Ignorer les variables d’environnement
+.env
+
+# Ignorer les dossiers node_modules
+node_modules/
+
+# Ignorer les fichiers de build éventuels
+dist/
+build/
+
+# Ignorer logs ou caches
+*.log
+.env.local
+.env.development
+.env.production
