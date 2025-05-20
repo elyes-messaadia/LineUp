@@ -1,31 +1,24 @@
-# ⛔ Ne pas versionner les fichiers sensibles
-.env
-.env.local
-.env.development
-.env.production
-
-# 📦 Node.js dependencies
-node_modules/
-
-# 🔧 Dossiers de build
-dist/
-build/
-
-# 🗑️ Logs
+# Logs
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# ⚙️ Configs spécifiques
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-.vscode/
-.idea/
-
-# 🔥 Cache
-.cache/
-.next/
-out/
-
-# 📂 OS generated
-Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
