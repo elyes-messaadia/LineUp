@@ -90,8 +90,39 @@ L’écran `/ticket` affiche :
 
 - Données conservées dans `localStorage` pour éviter la perte au rechargement
 
+
 ---
 
+## Fonctionnalité : Accès administrateur
+
+### Description
+
+Un accès spécial permet au médecin ou à la secrétaire de voir la file d’attente en temps réel et d’appeler le patient suivant.
+
+- Une page `/admin-login` permet de saisir un **code d’accès confidentiel**
+- Si le code est correct, l’accès à `/admin` est autorisé
+- Sinon, l’utilisateur est redirigé vers `/admin-login`
+
+### Fonctionnement
+
+- Le code est vérifié en front (valeur locale type `admin2024`)
+- Une fois connecté, le statut `isAdmin=true` est stocké dans `localStorage`
+- L’interface `/admin` permet de :
+  - Voir toute la file (avec les statuts)
+  - Appeler le patient suivant (`DELETE /next`)
+  - Actualisation toutes les 3 secondes
+
+### Statuts affichés
+
+| Statut            | Signification             |
+|-------------------|---------------------------|
+| en_attente        | Patient en file           |
+| en_consultation   | Patient appelé            |
+| desiste           | Patient désisté (rayé)    |
+
+### Routes API utilisées
+
+---
 
 ## 📋 Fonctionnalité : Annulation de ticket
 

@@ -52,4 +52,16 @@ app.delete('/ticket/:id', (req, res) => {
   }
 });
 
+// Appeler le patient suivant
+app.delete('/next', (req, res) => {
+  const next = queue.find((t) => t.status === 'en_attente');
+  if (next) {
+    next.status = 'en_consultation';
+    res.json({ called: next });
+  } else {
+    res.status(404).json({ message: 'Aucun ticket à appeler' });
+  }
+});
+
+
 

@@ -18,33 +18,40 @@ export default function Queue() {
     };
 
     fetchQueue();
-    const interval = setInterval(fetchQueue, 3000); // met à jour toutes les 3s
+    const interval = setInterval(fetchQueue, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col min-h-screen p-6">
       <h1 className="text-xl font-bold text-blue-600 mb-4">🕐 File d’attente</h1>
+
       <ul className="space-y-2">
         {queue.map((t, index) => (
           <li
-          key={t.id}
-          className={`p-3 rounded-lg shadow-sm ${
-            t.id === myId ? 'bg-yellow-100 font-semibold' : 'bg-white'
-          }`}
-        >
-          #{t.number} –{' '}
-          {t.status === 'desiste'
-            ? 'Désisté'
-            : index === 0
-            ? 'En consultation'
-            : 'En attente'}{' '}
-          {t.id === myId && '(vous)'}
-        </li>
-        
+            key={t.id}
+            className={`p-3 rounded-lg shadow-sm ${
+              t.id === myId ? 'bg-yellow-100 font-semibold' : 'bg-white'
+            }`}
+          >
+            #{t.number} –{' '}
+            {t.status === 'desiste'
+              ? 'Désisté'
+              : index === 0
+              ? 'En consultation'
+              : 'En attente'}{' '}
+            {t.id === myId && '(vous)'}
+          </li>
         ))}
       </ul>
+
+      <div className="mt-auto text-center text-sm text-gray-400 pt-6">
+        Accès personnel médical ?{' '}
+        <a href="/admin-login" className="underline hover:text-blue-500">
+          Connexion admin
+        </a>
+      </div>
     </div>
   );
 }

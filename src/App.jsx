@@ -2,6 +2,8 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Ticket from './pages/Ticket';
 import Queue from './pages/Queue';
+import AdminLogin from './pages/AdminLogin';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/ticket" element={<Ticket />} />
         <Route path="/queue" element={<Queue />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
   );
