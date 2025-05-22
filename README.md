@@ -90,7 +90,6 @@ L’écran `/ticket` affiche :
 
 - Données conservées dans `localStorage` pour éviter la perte au rechargement
 
-
 ---
 
 ## Fonctionnalité : Accès administrateur
@@ -122,11 +121,9 @@ Un accès spécial permet au médecin ou à la secrétaire de voir la file d’a
 
 ### Routes API utilisées
 
----
-
 ## 📋 Fonctionnalité : Annulation de ticket
 
-### Description:
+### Description
 
 Permet à l’utilisateur d’annuler son ticket depuis la page /ticket en cliquant sur un bouton "Annuler mon ticket".
 
@@ -145,17 +142,16 @@ L’utilisateur est redirigé vers l’accueil (/)
 Mise à jour de la file d’attente
 Dans la page /queue, les statuts s’affichent ainsi :
 
-Statut du ticket	Affichage
-en_attente	"En attente"
-desiste	"Désisté"
-Premier ticket	"En consultation"
+Statut du ticket Affichage
+en_attente "En attente"
+desiste "Désisté"
+Premier ticket "En consultation"
 
 API utilisée
 
 DELETE /ticket/:id
 
 ---
-
 
 ## 📋 Fonctionnalité : File d’attente
 
