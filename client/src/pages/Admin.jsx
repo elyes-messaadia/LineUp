@@ -43,6 +43,24 @@ export default function Admin() {
     fetchQueue();
   };
 
+  const handleFinish = async (id) => {
+    await fetch(`http://localhost:5000/ticket/${id}/finish`, {
+      method: "PATCH",
+    });
+    fetchQueue();
+  };
+
+  // 🎯 Tri des statuts
+  const sortedQueue = [...queue].sort((a, b) => {
+    const order = {
+      en_attente: 1,
+      en_consultation: 2,
+      desiste: 3,
+      termine: 4,
+    };
+    return order[a.status] - order[b.status];
+  });
+
   return (
     <Layout>
       <AnimatedPage>
@@ -67,7 +85,6 @@ export default function Admin() {
           ✅ Appeler le suivant
         </button>
 
-        {/* ✅ Bouton Réinitialiser */}
         <button
           onClick={handleResetQueue}
           className="mb-6 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
@@ -76,20 +93,60 @@ export default function Admin() {
         </button>
 
         <ul className="space-y-2">
-          {queue.map((t) => (
-            <li
-              key={t.id}
-              className={`p-3 rounded border ${
-                t.status === "en_consultation"
-                  ? "bg-blue-100 border-blue-400"
-                  : t.status === "desiste"
-                  ? "bg-red-100 border-red-400 line-through italic"
-                  : "bg-white"
-              }`}
-            >
-              🎫 {t.number} • {t.status.replace("_", " ")}
-            </li>
-          ))}
+          {sortedQueue.map((t) => {
+            let badge;
+            if (t.status === "en_attente") {
+              badge = (
+                <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  En attente
+                </span>
+              );
+            } else if (t.status === "en_consultation") {
+              badge = (
+                <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
+                  En consultation
+                </span>
+              );
+            } else if (t.status === "desiste") {
+              badge = (
+                <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  Désisté
+                </span>
+              );
+            } else if (t.status === "termine") {
+              badge = (
+                <span className="inline-block bg-gray-200 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  Terminé
+                </span>
+              );
+            }
+
+            return (
+              <li
+                key={t.id}
+                className={`p-3 rounded border flex justify-between items-center ${
+                  t.status === "desiste"
+                    ? "line-through italic bg-red-50 border-red-300"
+                    : t.status === "termine"
+                    ? "bg-gray-100 border-gray-400 text-gray-600"
+                    : "bg-white"
+                }`}
+              >
+                <span>
+                  🎫 {t.number} • {badge}
+                </span>
+
+                {t.status === "en_consultation" && (
+                  <button
+                    onClick={() => handleFinish(t.id)}
+                    className="text-xs bg-gray-300 hover:bg-gray-400 text-black px-2 py-1 rounded ml-2"
+                  >
+                    Terminer
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </AnimatedPage>
     </Layout>

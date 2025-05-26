@@ -6,11 +6,38 @@ import AnimatedPage from '../components/AnimatedPage';
 export default function LoginPatient() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Connexion patient :', { email, password });
+    setError('');
+
+    try {
+      const res = await fetch('http://localhost:5000/patient/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // ✅ Connexion réussie → stocker en localStorage
+        localStorage.setItem('isPatient', 'true');
+        localStorage.setItem('patientId', data.patientId);
+        localStorage.setItem('patientEmail', data.email);
+
+        // Redirection vers la file patient
+        navigate('/file-patient');
+      } else {
+        setError(data.message || 'Erreur lors de la connexion.');
+      }
+    } catch (err) {
+      setError('Erreur réseau ou serveur.');
+    }
   };
 
   return (
@@ -18,7 +45,7 @@ export default function LoginPatient() {
       <AnimatedPage>
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-lg shadow w-full"
+          className="bg-white p-6 rounded-lg shadow w-full max-w-sm mx-auto"
         >
           <h2 className="text-lg font-semibold mb-4 text-blue-600 text-center">
             Connexion patient
@@ -30,6 +57,7 @@ export default function LoginPatient() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
+            required
           />
 
           <input
@@ -37,8 +65,13 @@ export default function LoginPatient() {
             placeholder="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-300 rounded px-4 py-2 mb-6"
+            className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
+            required
           />
+
+          {error && (
+            <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+          )}
 
           <button
             type="submit"
