@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Title from '../components/Title';
 
 export default function Ticket() {
   const [ticket, setTicket] = useState(null);
@@ -29,9 +30,8 @@ export default function Ticket() {
 
   return (
     <div className="p-6 text-center">
-      <h1 className="text-2xl font-bold text-blue-600 mb-4">
-        🎫 Ticket n°{ticket.number}
-      </h1>
+      <Title left="Votre ticket est enregistré :" right={`n°${ticket.number}`} emoji="🎫" />
+
       <p>Heure d’enregistrement : {new Date(ticket.createdAt).toLocaleTimeString()}</p>
 
       <button
