@@ -1,21 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 
-// Fonction utilitaire pour estimer le temps par patient
-function getEstimationPerPatient() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 5;
-  if (hour < 17) return 8;
-  return 10;
+// Génère une estimation aléatoire en minutes (entre 10 et 20 par défaut)
+function generateRandomEstimation(min = 10, max = 20) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export default function Queue() {
   const [queue, setQueue] = useState([]);
   const [myId, setMyId] = useState(null);
-  const [currentTime, setCurrentTime] = useState(Date.now()); // ✅ compteur en temps réel
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [estimations, setEstimations] = useState([]);
+  const hasAlerted = useRef(false); // 🔔 pour bloquer les alertes répétées
 
-  // Mise à jour du temps toutes les secondes
+  // ⏱️ Mise à jour du temps en temps réel
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
@@ -23,6 +22,7 @@ export default function Queue() {
     return () => clearInterval(interval);
   }, []);
 
+  // 📥 Récupération du ticket + file d’attente depuis le back
   useEffect(() => {
     const ticket = localStorage.getItem("lineup_ticket");
     if (ticket) {
@@ -34,6 +34,7 @@ export default function Queue() {
       const res = await fetch("http://localhost:5000/queue");
       const data = await res.json();
       setQueue(data);
+      setEstimations(data.map(() => generateRandomEstimation(10, 20)));
     };
 
     fetchQueue();
@@ -41,22 +42,79 @@ export default function Queue() {
     return () => clearInterval(interval);
   }, []);
 
+  // Reset l'alerte si la queue change
+  useEffect(() => {
+    hasAlerted.current = false;
+  }, [queue]);
+
+  // ✅ Calcule une estimation réaliste en cumulant uniquement les tickets valides
+  const getCumulativeDelay = (index) => {
+    let total = 0;
+
+    for (let i = 0; i < index; i++) {
+      const t = queue[i];
+      const estimation = estimations[i] || 15;
+      if (t.status !== "desiste") {
+        total += estimation;
+      }
+    }
+
+    return total * 60 * 1000; // converti en ms
+  };
+
   return (
     <Layout>
       <AnimatedPage>
-        <ul className="space-y-2">
+        <ul className="space-y-2 w-full overflow-x-hidden">
           {queue.map((t, index) => {
-            const estimationMin = getEstimationPerPatient();
-            const remainingMs = estimationMin * 60 * 1000 * index;
+            const estimationMin = estimations[index] || 15;
+            const remainingMs = getCumulativeDelay(index);
             const targetTime = new Date(t.createdAt).getTime() + remainingMs;
             const timeLeftMs = targetTime - currentTime;
 
+            const isUserTurn = t.id === myId && timeLeftMs <= 0;
+
+            // ✅ Alerte son + vibration une seule fois
+            if (isUserTurn && !hasAlerted.current) {
+              hasAlerted.current = true;
+
+              const audio = new Audio("/notify.mp3");
+              audio.play().catch(() => {});
+              if ("vibrate" in navigator) {
+                navigator.vibrate([300, 100, 300]);
+              }
+            }
+
             const minutes = Math.floor(timeLeftMs / 60000);
             const seconds = Math.floor((timeLeftMs % 60000) / 1000);
-            const displayTime =
-              timeLeftMs > 0
-                ? `${minutes} min ${seconds.toString().padStart(2, "0")} s`
-                : "À vous bientôt";
+            const displayTime = isUserTurn ? (
+              <span className="animate-blink font-semibold text-black">
+                À vous bientôt
+              </span>
+            ) : (
+              `${minutes} min ${seconds.toString().padStart(2, "0")} s`
+            );
+
+            let statusDisplay;
+            if (t.status === "desiste") {
+              statusDisplay = (
+                <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  Désisté
+                </span>
+              );
+            } else if (index === 0) {
+              statusDisplay = (
+                <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
+                  En consultation
+                </span>
+              );
+            } else {
+              statusDisplay = (
+                <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  En attente
+                </span>
+              );
+            }
 
             return (
               <li
@@ -65,23 +123,22 @@ export default function Queue() {
                   t.id === myId ? "bg-yellow-100 font-semibold" : "bg-white"
                 }`}
               >
-                #{t.number} –{" "}
-                {t.status === "desiste"
-                  ? "Désisté"
-                  : index === 0
-                  ? "En consultation"
-                  : "En attente"}{" "}
-                {t.id === myId && "(vous)"}
+                🎫 {t.number} • {statusDisplay}{" "}
+                {t.id === myId && <span className="text-black">(vous)</span>}
                 <div className="text-sm text-gray-500 mt-1">⏳ {displayTime}</div>
               </li>
             );
           })}
         </ul>
 
-        <div className="mt-10 text-center text-sm text-gray-400">
-          Accès personnel médical ?{" "}
-          <a href="/admin-login" className="underline hover:text-blue-500">
-            Connexion admin
+        {/* Bouton admin discret en bas à droite */}
+        <div className="fixed bottom-20 right-4 z-50">
+          <a
+            href="/admin-login"
+            className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow hover:bg-blue-700 transition"
+            title="Connexion admin"
+          >
+            Admin
           </a>
         </div>
       </AnimatedPage>

@@ -5,6 +5,8 @@ import Queue from "./pages/Queue";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 import RegisterAdmin from "./pages/RegisterAdmin";
+import RegisterPatient from "./pages/RegisterPatient";
+import LoginPatient from "./pages/LoginPatient";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/register-admin" element={<RegisterAdmin />} />
+        <Route path="/register-patient" element={<RegisterPatient />} />
+        <Route path="/login-patient" element={<LoginPatient />} />
       </Routes>
     </div>
   );

@@ -1,9 +1,18 @@
-import { useNavigate } from "react-router-dom"; // Librairie externe
-import Layout from "../components/Layout"; // Composant interne
-import AnimatedPage from "../components/AnimatedPage"; // Nouveau composant interne
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Layout from "../components/Layout";
+import AnimatedPage from "../components/AnimatedPage";
 
 export default function Home() {
   const navigate = useNavigate();
+  const [isPatientConnected, setIsPatientConnected] = useState(false);
+
+  useEffect(() => {
+    const patientStatus = localStorage.getItem("isPatient");
+    if (patientStatus === "true") {
+      setIsPatientConnected(true);
+    }
+  }, []);
 
   const handleTicket = async () => {
     const res = await fetch("http://localhost:5000/ticket", {
@@ -35,6 +44,25 @@ export default function Home() {
         >
           Voir la file d’attente
         </a>
+
+        {/* 👇 Affichage conditionnel des boutons si le patient N’EST PAS connecté */}
+        {!isPatientConnected && (
+          <div className="mt-8 flex flex-col gap-3 w-full">
+            <button
+              onClick={() => navigate("/login-patient")}
+              className="w-full border border-blue-600 text-blue-600 py-2 rounded hover:bg-blue-50 transition"
+            >
+              Se connecter
+            </button>
+
+            <button
+              onClick={() => navigate("/register-patient")}
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            >
+              S'inscrire
+            </button>
+          </div>
+        )}
       </AnimatedPage>
     </Layout>
   );
