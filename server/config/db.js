@@ -1,11 +1,17 @@
-import mongoose from 'mongoose';
+// db.js
+const mongoose = require('mongoose');
+
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB connecté ✅");
+    await mongoose.connect('mongodb://127.0.0.1:27017/lineup', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('✅ Connexion MongoDB réussie');
   } catch (err) {
-    console.error("Erreur de connexion MongoDB ❌", err.message);
+    console.error('❌ Erreur de connexion MongoDB :', err.message);
     process.exit(1);
   }
 };
-export default connectDB;
+
+module.exports = connectDB;

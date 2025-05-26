@@ -3,15 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import AnimatedPage from '../components/AnimatedPage';
 
-export default function LoginAdmin() {
+export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // À connecter plus tard avec le backend
-    console.log('Connexion avec :', { email, password });
+
+    try {
+      const res = await fetch('http://localhost:5000/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('adminId', data.adminId);
+        navigate('/admin');
+      } else {
+        setError(data.message || 'Identifiants incorrects.');
+      }
+    } catch (err) {
+      setError('Erreur serveur. Veuillez réessayer.');
+    }
   };
 
   return (
@@ -19,9 +40,9 @@ export default function LoginAdmin() {
       <AnimatedPage>
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-lg shadow w-full"
+          className="bg-white p-6 rounded-lg shadow w-full max-w-sm mx-auto"
         >
-          <h2 className="text-lg font-semibold mb-4 text-blue-600 text-center">
+          <h2 className="text-lg font-bold mb-4 text-center text-blue-700">
             Connexion Admin
           </h2>
 
@@ -38,8 +59,10 @@ export default function LoginAdmin() {
             placeholder="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-300 rounded px-4 py-2 mb-6"
+            className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
           />
+
+          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
           <button
             type="submit"
@@ -47,16 +70,6 @@ export default function LoginAdmin() {
           >
             Se connecter
           </button>
-
-          <p className="text-sm text-center mt-4 text-gray-500">
-            Pas encore de compte ?{' '}
-            <a
-              href="/register-admin"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              Inscrivez-vous ici
-            </a>
-          </p>
         </form>
       </AnimatedPage>
     </Layout>
