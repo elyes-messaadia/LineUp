@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
+import AnimatedPage from "../components/AnimatedPage";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ export default function Admin() {
     fetchQueue();
     const interval = setInterval(fetchQueue, 3000);
     return () => clearInterval(interval);
-  }, [navigate]); // ✅ navigate ajouté ici
+  }, [navigate]);
 
   const fetchQueue = async () => {
     const res = await fetch("http://localhost:5000/queue");
@@ -30,10 +32,12 @@ export default function Admin() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-blue-700 text-center">
-        Tableau de bord médecin
-      </h1>
+    <Layout>
+      <AnimatedPage>
+        <h2 className="text-lg font-semibold mb-6 text-blue-700 text-center">
+          Tableau de bord médecin
+        </h2>
+
       <button
         onClick={() => {
           localStorage.removeItem("isAdmin");
@@ -65,8 +69,9 @@ export default function Admin() {
           >
             #{t.number} – {t.status.replace("_", " ")}
           </li>
-        ))}
-      </ul>
-    </div>
+          ))}
+        </ul>
+      </AnimatedPage>
+    </Layout>
   );
 }

@@ -1,9 +1,10 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import Ticket from './pages/Ticket';
-import Queue from './pages/Queue';
-import AdminLogin from './pages/AdminLogin';
-import Admin from './pages/Admin';
+import { Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/Home";
+import Ticket from "./pages/Ticket";
+import Queue from "./pages/Queue";
+import AdminLogin from "./pages/AdminLogin";
+import Admin from "./pages/Admin";
+import RegisterAdmin from "./pages/RegisterAdmin";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/queue" element={<Queue />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/register-admin" element={<RegisterAdmin />} />
       </Routes>
     </div>
   );

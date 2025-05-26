@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import AnimatedPage from '../components/AnimatedPage';
 
-export default function LoginAdmin() {
+export default function RegisterAdmin() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function LoginAdmin() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // À connecter plus tard avec le backend
-    console.log('Connexion avec :', { email, password });
+    console.log('Inscription :', { name, email, password });
   };
 
   return (
@@ -22,8 +23,16 @@ export default function LoginAdmin() {
           className="bg-white p-6 rounded-lg shadow w-full"
         >
           <h2 className="text-lg font-semibold mb-4 text-blue-600 text-center">
-            Connexion Admin
+            Créer un compte admin
           </h2>
+
+          <input
+            type="text"
+            placeholder="Nom complet"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
+          />
 
           <input
             type="email"
@@ -43,18 +52,18 @@ export default function LoginAdmin() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
           >
-            Se connecter
+            Créer mon compte
           </button>
 
           <p className="text-sm text-center mt-4 text-gray-500">
-            Pas encore de compte ?{' '}
+            Déjà un compte ?{' '}
             <a
-              href="/register-admin"
+              href="/login-admin"
               className="text-blue-600 underline hover:text-blue-800"
             >
-              Inscrivez-vous ici
+              Connectez-vous ici
             </a>
           </p>
         </form>

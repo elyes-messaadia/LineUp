@@ -1,11 +1,11 @@
-export default function Title({ left, right, emoji }) {
+export default function Title({ left, emoji }) {
     return (
       <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-4 text-center">
-        <span className="text-black">{left}</span>{' '}
-        <span className="text-blue-600">
+        <span className="text-black">
           {emoji ? `${emoji} ` : ''}
-          {right}
-        </span>
+          {left}
+        </span>{' '}
+        <span className="text-blue-600">LineUp</span>
       </h1>
     );
   }
