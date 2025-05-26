@@ -17,42 +17,31 @@ app.post('/ticket', (req, res) => {
     id: Date.now(),
     number: queue.length + 1,
     createdAt: new Date(),
-    status: 'en_attente' // ✅ ajout du statut ici
+    status: 'en_attente'
   };
   queue.push(ticket);
   res.status(201).json(ticket);
 });
 
-
-// GET /queue → liste des tickets en attente
+// GET /queue → liste des tickets
 app.get('/queue', (req, res) => {
   res.json(queue);
 });
 
-// DELETE /next → retire le prochain de la file
-app.delete('/next', (req, res) => {
-  const next = queue.shift();
-  res.json({ called: next });
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
-});
-
-// Supprimer un ticket spécifique (via ID)
+// DELETE /ticket/:id → marquer un ticket comme "désisté"
 app.delete('/ticket/:id', (req, res) => {
   const ticketId = req.params.id;
   const ticket = queue.find((t) => String(t.id) === ticketId);
 
   if (ticket) {
-    ticket.status = 'desiste'; // 🟨 On ne supprime plus, on change l'état
+    ticket.status = 'desiste';
     res.json({ updated: ticket });
   } else {
     res.status(404).json({ message: 'Ticket non trouvé' });
   }
 });
 
-// Appeler le patient suivant
+// DELETE /next → appeler le prochain ticket
 app.delete('/next', (req, res) => {
   const next = queue.find((t) => t.status === 'en_attente');
   if (next) {
@@ -63,5 +52,12 @@ app.delete('/next', (req, res) => {
   }
 });
 
+// ✅ DELETE /reset → vider toute la file (en dev uniquement)
+app.delete('/reset', (req, res) => {
+  queue = [];
+  res.sendStatus(200);
+});
 
-
+app.listen(PORT, () => {
+  console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
+});
