@@ -1,24 +1,23 @@
-const connectDB = require("./config/db");
-
-const adminRoutes = require("./routes/admin");
-
-const patientRoutes = require("./routes/patient");
-
-
-/* eslint-env node */
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
+const adminRoutes = require("./routes/admin");
+const patientRoutes = require("./routes/patient");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-  
+
+// 🌐 Middleware
 app.use(cors());
 app.use(express.json());
 
-// Base de données temporaire en mémoire
+// 📦 Connexion MongoDB
+connectDB();
+
+// 📥 File d’attente (temporaire en mémoire)
 let queue = [];
 
-// POST /ticket → création d’un nouveau ticket
+// 🎫 Créer un ticket
 app.post("/ticket", (req, res) => {
   const ticket = {
     id: Date.now(),
@@ -30,12 +29,12 @@ app.post("/ticket", (req, res) => {
   res.status(201).json(ticket);
 });
 
-// GET /queue → liste des tickets
+// 📋 Obtenir la file d'attente
 app.get("/queue", (req, res) => {
   res.json(queue);
 });
 
-// DELETE /ticket/:id → marquer un ticket comme "désisté"
+// 🗑️ Désister un ticket
 app.delete("/ticket/:id", (req, res) => {
   const ticketId = req.params.id;
   const ticket = queue.find((t) => String(t.id) === ticketId);
@@ -48,7 +47,7 @@ app.delete("/ticket/:id", (req, res) => {
   }
 });
 
-// DELETE /next → appeler le prochain ticket
+// 📣 Appeler le patient suivant
 app.delete("/next", (req, res) => {
   const next = queue.find((t) => t.status === "en_attente");
   if (next) {
@@ -59,18 +58,13 @@ app.delete("/next", (req, res) => {
   }
 });
 
-// ✅ DELETE /reset → vider toute la file (en dev uniquement)
+// ✅ Réinitialiser la file (dev uniquement)
 app.delete("/reset", (req, res) => {
   queue = [];
   res.sendStatus(200);
 });
 
-app.use("/admin", adminRoutes);
-app.use("/patient", patientRoutes);
-
-connectDB();
-
-// PATCH /ticket/:id/finish → marquer un ticket comme terminé
+// 🟣 Marquer un ticket comme terminé
 app.patch("/ticket/:id/finish", (req, res) => {
   const ticketId = req.params.id;
   const ticket = queue.find((t) => String(t.id) === ticketId);
@@ -83,6 +77,11 @@ app.patch("/ticket/:id/finish", (req, res) => {
   }
 });
 
+// 🔐 Routes API externes
+app.use("/admin", adminRoutes);
+app.use("/patient", patientRoutes);
+
+// 🚀 Démarrage serveur (nécessaire pour Render)
 app.listen(PORT, () => {
   console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
 });
