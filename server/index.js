@@ -3,6 +3,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const adminRoutes = require("./routes/admin");
 const patientRoutes = require("./routes/patient");
+const Ticket = require("./models/Ticket"); // ✅ Import modèle Ticket
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,66 +15,80 @@ app.use(express.json());
 // 📦 Connexion MongoDB
 connectDB();
 
-// 📥 File d’attente (temporaire en mémoire)
-let queue = [];
-
-// 🎫 Créer un ticket
-app.post("/ticket", (req, res) => {
-  const ticket = {
-    id: Date.now(),
-    number: queue.length + 1,
-    createdAt: new Date(),
-    status: "en_attente",
-  };
-  queue.push(ticket);
-  res.status(201).json(ticket);
+// 🎫 Créer un ticket (en base MongoDB)
+app.post("/ticket", async (req, res) => {
+  try {
+    const count = await Ticket.countDocuments();
+    const ticket = new Ticket({ number: count + 1 });
+    await ticket.save();
+    res.status(201).json(ticket);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur" });
+  }
 });
 
 // 📋 Obtenir la file d'attente
-app.get("/queue", (req, res) => {
-  res.json(queue);
+app.get("/queue", async (req, res) => {
+  try {
+    const queue = await Ticket.find().sort({ createdAt: 1 });
+    res.json(queue);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur de récupération" });
+  }
 });
 
 // 🗑️ Désister un ticket
-app.delete("/ticket/:id", (req, res) => {
-  const ticketId = req.params.id;
-  const ticket = queue.find((t) => String(t.id) === ticketId);
-
-  if (ticket) {
+app.delete("/ticket/:id", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: "Ticket non trouvé" });
     ticket.status = "desiste";
+    await ticket.save();
     res.json({ updated: ticket });
-  } else {
-    res.status(404).json({ message: "Ticket non trouvé" });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur lors de l'annulation" });
   }
 });
 
 // 📣 Appeler le patient suivant
-app.delete("/next", (req, res) => {
-  const next = queue.find((t) => t.status === "en_attente");
-  if (next) {
-    next.status = "en_consultation";
-    res.json({ called: next });
-  } else {
-    res.status(404).json({ message: "Aucun ticket à appeler" });
+app.delete("/next", async (req, res) => {
+  try {
+    const next = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
+    if (next) {
+      next.status = "en_consultation";
+      await next.save();
+      res.json({ called: next });
+    } else {
+      res.status(404).json({ message: "Aucun ticket à appeler" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Erreur lors de l'appel" });
   }
 });
 
 // ✅ Réinitialiser la file (dev uniquement)
-app.delete("/reset", (req, res) => {
-  queue = [];
-  res.sendStatus(200);
+app.delete("/reset", async (req, res) => {
+  try {
+    await Ticket.deleteMany();
+    res.sendStatus(200);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur lors de la réinitialisation" });
+  }
 });
 
 // 🟣 Marquer un ticket comme terminé
-app.patch("/ticket/:id/finish", (req, res) => {
-  const ticketId = req.params.id;
-  const ticket = queue.find((t) => String(t.id) === ticketId);
-
-  if (ticket && ticket.status === "en_consultation") {
-    ticket.status = "termine";
-    res.json({ updated: ticket });
-  } else {
-    res.status(404).json({ message: "Ticket non trouvé ou statut invalide" });
+app.patch("/ticket/:id/finish", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (ticket && ticket.status === "en_consultation") {
+      ticket.status = "termine";
+      await ticket.save();
+      res.json({ updated: ticket });
+    } else {
+      res.status(404).json({ message: "Ticket non trouvé ou statut invalide" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur" });
   }
 });
 
