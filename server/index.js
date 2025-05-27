@@ -8,21 +8,20 @@ const Ticket = require("./models/Ticket"); // ✅ Import modèle Ticket
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
-
-// 🌐 Middleware
+// 🌐 Middleware CORS placé tout en haut
 app.use(cors({
-  origin: "https://ligneup.netlify.app", // 🔥 ton front en ligne
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], // 🔁 inclu OPTIONS !
-  allowedHeaders: ["Content-Type"], // 🧠 pour les requêtes JSON
+  origin: "https://ligneup.netlify.app",
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
 }));
 
+// 🧠 Middleware JSON
 app.use(express.json());
 
 // 📦 Connexion MongoDB
 connectDB();
 
-// 🎫 Créer un ticket (en base MongoDB)
+// 🎫 Créer un ticket
 app.post("/ticket", async (req, res) => {
   try {
     const count = await Ticket.countDocuments();
@@ -60,9 +59,7 @@ app.delete("/ticket/:id", async (req, res) => {
 // 📣 Appeler le patient suivant
 app.delete("/next", async (req, res) => {
   try {
-    const next = await Ticket.findOne({ status: "en_attente" }).sort({
-      createdAt: 1,
-    });
+    const next = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
     if (next) {
       next.status = "en_consultation";
       await next.save();
@@ -75,7 +72,7 @@ app.delete("/next", async (req, res) => {
   }
 });
 
-// ✅ Réinitialiser la file (dev uniquement)
+// ✅ Réinitialiser la file
 app.delete("/reset", async (req, res) => {
   try {
     await Ticket.deleteMany();
@@ -105,7 +102,7 @@ app.patch("/ticket/:id/finish", async (req, res) => {
 app.use("/admin", adminRoutes);
 app.use("/patient", patientRoutes);
 
-// 🚀 Démarrage serveur (nécessaire pour Render)
+// 🚀 Démarrage serveur
 app.listen(PORT, () => {
   console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
 });
