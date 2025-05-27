@@ -3,22 +3,24 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const adminRoutes = require("./routes/admin");
 const patientRoutes = require("./routes/patient");
-const Ticket = require("./models/Ticket"); // ✅ Import modèle Ticket
+const Ticket = require("./models/Ticket");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 🌐 Middleware CORS placé tout en haut
+// ✅ CORS configuré pour autoriser le front local ET Netlify
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ligneup.netlify.app"
+];
+
 app.use(cors({
-  origin: "https://ligneup.netlify.app",
+  origin: allowedOrigins,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
 
-// 🧠 Middleware JSON
 app.use(express.json());
-
-// 📦 Connexion MongoDB
 connectDB();
 
 // 🎫 Créer un ticket
@@ -102,7 +104,7 @@ app.patch("/ticket/:id/finish", async (req, res) => {
 app.use("/admin", adminRoutes);
 app.use("/patient", patientRoutes);
 
-// 🚀 Démarrage serveur
+// 🚀 Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
 });
