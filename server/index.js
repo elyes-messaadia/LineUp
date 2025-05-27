@@ -8,17 +8,14 @@ const Ticket = require("./models/Ticket"); // ✅ Import modèle Ticket
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "https://ligneup.netlify.app", // ✅ front Netlify
-];
+
 
 // 🌐 Middleware
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "DELETE", "PATCH"],
-  })
-);
+app.use(cors({
+  origin: "https://ligneup.netlify.app", // 🔥 ton front en ligne
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], // 🔁 inclu OPTIONS !
+  allowedHeaders: ["Content-Type"], // 🧠 pour les requêtes JSON
+}));
 
 app.use(express.json());
 
