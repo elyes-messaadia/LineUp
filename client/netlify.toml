@@ -1,0 +1,25 @@
+[build]
+  # Répertoire de sortie après build
+  publish = "dist"
+  
+  # Commande de build
+  command = "npm run build:prod"
+
+# Règles de redirection pour React Router (SPA)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Variables d'environnement pour la production
+[build.environment]
+  VITE_API_URL = "https://lineup-nby9.onrender.com"
+
+# Configuration des headers de sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin" 

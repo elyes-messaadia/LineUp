@@ -28,8 +28,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# env
-*.env
+# env files (garde .env.example pour la doc)
+.env
+.env.local
+.env.production
+server/.env
 
 # build
 dist/
