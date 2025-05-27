@@ -17,7 +17,6 @@ app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "DELETE", "PATCH"],
-    credentials: false,
   })
 );
 
