@@ -25,7 +25,7 @@ export default function Admin() {
   };
 
   const handleCallNext = async () => {
-    await fetch("http://localhost:5000/next", {
+    await fetch(`${import.meta.env.VITE_API_URL}/next`, {
       method: "DELETE",
     });
     fetchQueue();

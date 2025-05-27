@@ -31,7 +31,7 @@ export default function Queue() {
     }
 
     const fetchQueue = async () => {
-      const res = await fetch("http://localhost:5000/queue");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
       const data = await res.json();
       setQueue(data);
       setEstimations(data.map(() => generateRandomEstimation(10, 20)));
@@ -125,7 +125,9 @@ export default function Queue() {
               >
                 🎫 {t.number} • {statusDisplay}{" "}
                 {t.id === myId && <span className="text-black">(vous)</span>}
-                <div className="text-sm text-gray-500 mt-1">⏳ {displayTime}</div>
+                <div className="text-sm text-gray-500 mt-1">
+                  ⏳ {displayTime}
+                </div>
               </li>
             );
           })}
