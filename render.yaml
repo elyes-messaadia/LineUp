@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: lineup-backend
+    env: node
+    region: frankfurt # ou oregon
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # ⚠️ À configurer manuellement dans Render Dashboard
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://ligneup.netlify.app
+    # 🔧 Configuration avancée
+    autoDeploy: true
+    branch: main
+    rootDir: server 

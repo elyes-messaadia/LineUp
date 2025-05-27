@@ -8,26 +8,60 @@ const Ticket = require("./models/Ticket");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS dynamique (fonction) — compatible Render
+// 🌐 Configuration CORS robuste pour production
 const allowedOrigins = [
   "https://ligneup.netlify.app",
-  "http://localhost:5173"
+  "https://lineup.netlify.app", 
+  "http://localhost:5173",
+  "http://localhost:3000"
 ];
 
+// Configuration CORS complète
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // autorise Postman ou tests
+    // Autoriser les requêtes sans origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Autoriser les domaines dans la liste
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
     }
+    
+    // En production, autoriser aussi les subdomaines netlify
+    if (origin && origin.includes('.netlify.app')) {
+      return callback(null, true);
+    }
+    
+    console.log('❌ CORS blocked origin:', origin);
+    return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 200 // Pour les anciens navigateurs
 }));
 
 app.use(express.json());
+
+// 🏥 Route de santé pour Render
+app.get('/', (req, res) => {
+  res.json({ 
+    message: '✅ API LineUp opérationnelle',
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// 🔍 Route de test CORS
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK',
+    cors: 'enabled',
+    origin: req.headers.origin || 'no-origin'
+  });
+});
+
 connectDB();
 
 // 🎫 Créer un ticket
@@ -112,6 +146,8 @@ app.use("/admin", adminRoutes);
 app.use("/patient", patientRoutes);
 
 // 🚀 Démarrage du serveur
-app.listen(PORT, () => {
-  console.log(`✅ API LineUp en ligne sur http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ API LineUp en ligne sur port ${PORT}`);
+  console.log(`🌐 Environnement: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 MongoDB: ${process.env.MONGO_URI ? 'Configuré' : 'Non configuré'}`);
 });
