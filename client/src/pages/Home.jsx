@@ -45,7 +45,6 @@ export default function Home() {
           Voir la file d’attente
         </a>
 
-        {/* 👇 Affichage conditionnel des boutons si le patient N’EST PAS connecté */}
         {!isPatientConnected && (
           <div className="mt-8 flex flex-col gap-3 w-full">
             <button
