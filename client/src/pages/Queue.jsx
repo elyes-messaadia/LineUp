@@ -27,7 +27,7 @@ export default function Queue() {
     const ticket = localStorage.getItem("lineup_ticket");
     if (ticket) {
       const parsed = JSON.parse(ticket);
-      setMyId(parsed.id);
+      setMyId(parsed._id);
     }
 
     const fetchQueue = async () => {
@@ -72,7 +72,7 @@ export default function Queue() {
             const targetTime = new Date(t.createdAt).getTime() + remainingMs;
             const timeLeftMs = targetTime - currentTime;
 
-            const isUserTurn = t.id === myId && timeLeftMs <= 0;
+            const isUserTurn = t._id === myId && timeLeftMs <= 0;
 
             // ✅ Alerte son + vibration une seule fois
             if (isUserTurn && !hasAlerted.current) {
@@ -118,13 +118,13 @@ export default function Queue() {
 
             return (
               <li
-                key={t.id}
+                key={t._id}
                 className={`p-3 rounded-lg shadow-sm ${
-                  t.id === myId ? "bg-yellow-100 font-semibold" : "bg-white"
+                  t._id === myId ? "bg-yellow-100 font-semibold" : "bg-white"
                 }`}
               >
                 🎫 {t.number} • {statusDisplay}{" "}
-                {t.id === myId && <span className="text-black">(vous)</span>}
+                {t._id === myId && <span className="text-black">(vous)</span>}
                 <div className="text-sm text-gray-500 mt-1">
                   ⏳ {displayTime}
                 </div>

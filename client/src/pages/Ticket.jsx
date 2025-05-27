@@ -17,7 +17,7 @@ export default function Ticket() {
   const handleCancel = async () => {
     if (!ticket) return;
 
-    await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticket.id}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticket._id}`, {
       method: "DELETE",
     });
 
