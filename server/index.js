@@ -8,9 +8,21 @@ const Ticket = require("./models/Ticket");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 🔓 CORS OUVERT TEMPORAIREMENT POUR TEST
+// ✅ CORS dynamique (fonction) — compatible Render
+const allowedOrigins = [
+  "https://ligneup.netlify.app",
+  "http://localhost:5173"
+];
+
 app.use(cors({
-  origin: "*", // ⚠️ OUVERT TEMPORAIREMENT
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // autorise Postman ou tests
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
