@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: lineup-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # À configurer manuellement sur Render
+      - key: PORT
+        value: 10000 
