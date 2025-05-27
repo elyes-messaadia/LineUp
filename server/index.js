@@ -8,8 +8,19 @@ const Ticket = require("./models/Ticket"); // ✅ Import modèle Ticket
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  "https://ligneup.netlify.app", // ✅ front Netlify
+];
+
 // 🌐 Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "DELETE", "PATCH"],
+    credentials: false,
+  })
+);
+
 app.use(express.json());
 
 // 📦 Connexion MongoDB
@@ -53,7 +64,9 @@ app.delete("/ticket/:id", async (req, res) => {
 // 📣 Appeler le patient suivant
 app.delete("/next", async (req, res) => {
   try {
-    const next = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
+    const next = await Ticket.findOne({ status: "en_attente" }).sort({
+      createdAt: 1,
+    });
     if (next) {
       next.status = "en_consultation";
       await next.save();
