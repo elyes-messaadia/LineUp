@@ -8,14 +8,9 @@ const Ticket = require("./models/Ticket");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS configuré pour autoriser le front local ET Netlify
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ligneup.netlify.app"
-];
-
+// 🔓 CORS OUVERT TEMPORAIREMENT POUR TEST
 app.use(cors({
-  origin: allowedOrigins,
+  origin: "*", // ⚠️ OUVERT TEMPORAIREMENT
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
