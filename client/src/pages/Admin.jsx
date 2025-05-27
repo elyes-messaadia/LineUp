@@ -19,7 +19,7 @@ export default function Admin() {
   }, [navigate]);
 
   const fetchQueue = async () => {
-    const res = await fetch("http://localhost:5000/queue");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
     const data = await res.json();
     setQueue(data);
   };
@@ -35,7 +35,7 @@ export default function Admin() {
     const confirm = window.confirm("Voulez-vous vraiment réinitialiser la file ?");
     if (!confirm) return;
 
-    await fetch("http://localhost:5000/reset", {
+    await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
       method: "DELETE",
     });
 
@@ -44,7 +44,7 @@ export default function Admin() {
   };
 
   const handleFinish = async (id) => {
-    await fetch(`http://localhost:5000/ticket/${id}/finish`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/ticket/${id}/finish`, {
       method: "PATCH",
     });
     fetchQueue();
