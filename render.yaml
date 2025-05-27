@@ -4,8 +4,8 @@ services:
     env: node
     region: frankfurt # ou oregon
     plan: free
-    buildCommand: cd server && npm install
-    startCommand: cd server && npm start
+    buildCommand: npm run build
+    startCommand: npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -19,4 +19,4 @@ services:
     # 🔧 Configuration avancée
     autoDeploy: true
     branch: main
-    rootDir: server 
+    # rootDir laissé vide pour utiliser la racine 
