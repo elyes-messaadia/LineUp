@@ -32,7 +32,10 @@ export default function Queue() {
   // Fonction de notification sonore
   const playNotificationSound = useCallback(() => {
     const audio = new Audio("/notify.mp3");
+    audio.volume = 1.0; // Volume maximum
     audio.play().catch(() => {});
+    
+    // Vibration
     if ("vibrate" in navigator) {
       navigator.vibrate([300, 100, 300]);
     }
@@ -55,7 +58,7 @@ export default function Queue() {
       // Si c'est moi le prochain et que je n'ai pas encore été alerté
       if (nextPatient && nextPatient._id === myId && !nextInLineAlerted.current) {
         playNotificationSound();
-        showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 8000);
+        showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 10000);
         nextInLineAlerted.current = true;
       }
     } else {
@@ -63,7 +66,7 @@ export default function Queue() {
       const firstInLine = currentQueue.find(t => t.status === "en_attente");
       if (firstInLine && firstInLine._id === myId && !nextInLineAlerted.current) {
         playNotificationSound();
-        showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 8000);
+        showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 10000);
         nextInLineAlerted.current = true;
       }
     }
@@ -85,62 +88,64 @@ export default function Queue() {
         data.forEach((ticket) => {
           const prevTicket = prevQueue.find(t => t._id === ticket._id);
           
-          // Si le ticket est passé à "en_consultation"
-          if (prevTicket && 
-              ticket.status === "en_consultation" && 
-              prevTicket.status !== "en_consultation") {
-            
-            // Notification pour le patient appelé
-            if (ticket._id === myId) {
-              // Jouer le son de notification
-              playNotificationSound();
-              
-              // Vibrer si possible
-              if ("vibrate" in navigator) {
-                navigator.vibrate([300, 100, 300]);
-              }
-              
-              // Afficher une notification système si autorisé
-              if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("C'est votre tour !", {
-                  body: "Veuillez vous présenter au cabinet médical",
-                  icon: "/favicon.ico"
-                });
-              }
-              
-              showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
-              nextInLineAlerted.current = false; // Reset pour la prochaine fois
-            } else {
-              // Notification pour les autres patients
-              showWarning(`Patient n°${ticket.number} appelé`, 5000);
-            }
-          }
-          
-          // Notifications pour d'autres changements de statut
-          if (ticket._id === myId) {
-            if (prevTicket && prevTicket.status !== ticket.status) {
-              switch (ticket.status) {
-                case "termine":
+          if (prevTicket && prevTicket.status !== ticket.status) {
+            // Notification pour changement de statut
+            switch (ticket.status) {
+              case "en_consultation":
+                if (ticket._id === myId) {
                   playNotificationSound();
-                  showSuccess("✅ Votre consultation est terminée", 5000);
-                  nextInLineAlerted.current = false; // Reset pour la prochaine fois
-                  break;
-                case "desiste":
-                  showError("❌ Votre ticket a été annulé", 5000);
-                  nextInLineAlerted.current = false; // Reset pour la prochaine fois
-                  break;
-              }
+                  showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
+                  
+                  // Notification système
+                  if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification("C'est votre tour !", {
+                      body: "Veuillez vous présenter au cabinet médical",
+                      icon: "/favicon.ico"
+                    });
+                  }
+                } else {
+                  // Notifier les autres patients
+                  playNotificationSound();
+                  showWarning(`Le patient n°${ticket.number} est appelé en consultation`, 8000);
+                }
+                break;
+                
+              case "termine":
+                if (ticket._id === myId) {
+                  playNotificationSound();
+                  showSuccess("✅ Votre consultation est terminée", 8000);
+                } else {
+                  showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
+                  // Vérifier si je suis le prochain
+                  const nextPatient = data.find(t => t.status === "en_attente");
+                  if (nextPatient && nextPatient._id === myId) {
+                    playNotificationSound();
+                    showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
+                  }
+                }
+                break;
+                
+              case "desiste":
+                if (ticket._id === myId) {
+                  playNotificationSound();
+                  showError("❌ Votre ticket a été annulé", 8000);
+                }
+                break;
+            }
+            
+            // Reset les alertes après un changement de statut
+            if (ticket._id === myId) {
+              nextInLineAlerted.current = false;
+              hasAlerted.current = false;
             }
           }
         });
 
         setQueue(data);
         lastQueueState.current = data;
-        
-        // Vérifier si le patient est le prochain
         checkNextInLine(data);
         
-        // Mettre à jour les estimations uniquement si nécessaire
+        // Mettre à jour les estimations
         if (data.length !== estimations.length) {
           setEstimations(data.map(() => generateRandomEstimation(10, 20)));
         }
@@ -170,8 +175,8 @@ export default function Queue() {
     fetchQueue();
     setIsLoading(false);
 
-    // Mise à jour toutes les secondes
-    const interval = setInterval(fetchQueue, 1000);
+    // Mise à jour toutes les 500ms pour plus de réactivité
+    const interval = setInterval(fetchQueue, 500);
     return () => clearInterval(interval);
   }, [fetchQueue]);
 
