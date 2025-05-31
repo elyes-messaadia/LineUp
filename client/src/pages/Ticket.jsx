@@ -152,6 +152,35 @@ export default function Ticket() {
     }
   };
 
+  const handleResumeTicket = async () => {
+    if (!ticket) return;
+
+    setIsLoading(true);
+
+    try {
+      showInfo("Reprise de votre ticket en cours...");
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticket._id}/resume`, {
+        method: "PATCH",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+      }
+
+      const updatedTicket = await res.json();
+      setTicket(updatedTicket.updated);
+      localStorage.setItem("lineup_ticket", JSON.stringify(updatedTicket.updated));
+      showSuccess("Ticket repris avec succès !", 4000);
+
+    } catch (error) {
+      console.error("Erreur lors de la reprise:", error);
+      showError("Impossible de reprendre le ticket. Veuillez réessayer.", 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // État de chargement
   if (isLoading) {
     return (
@@ -236,78 +265,85 @@ export default function Ticket() {
     <Layout>
       <AnimatedPage>
         <div className="text-center">
-          <h2 className="text-lg sm:text-xl font-semibold mb-2 text-blue-600 px-2">
-            🎫 Ticket n°{ticket.number}
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600 mb-4 px-2 leading-relaxed">
-            Créé le {new Date(ticket.createdAt).toLocaleDateString()} à{" "}
-            {new Date(ticket.createdAt).toLocaleTimeString()}
-          </p>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 max-w-md mx-auto">
+            <div className="text-4xl sm:text-5xl mb-4">🎫</div>
+            <h1 className="text-xl sm:text-2xl font-bold mb-2">
+              Ticket n°{ticket.number}
+            </h1>
+            
+            {/* Affichage du statut */}
+            <div className="mb-6">
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                ticket.status === "en_attente" ? "bg-yellow-100 text-yellow-800" :
+                ticket.status === "en_consultation" ? "bg-green-100 text-green-800" :
+                ticket.status === "termine" ? "bg-gray-100 text-gray-800" :
+                "bg-red-100 text-red-800"
+              }`}>
+                {getStatusDisplay()}
+              </span>
+            </div>
 
-          {getStatusDisplay()}
+            {/* Actions */}
+            <div className="space-y-3">
+              {ticket.status === "en_attente" && (
+                <button
+                  onClick={handleCancelRequest}
+                  disabled={isLoading}
+                  className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  ❌ Annuler mon ticket
+                </button>
+              )}
 
-          <div className="flex flex-col gap-3 px-2 sm:px-0">
-            <button
-              onClick={() => navigate("/queue")}
-              className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition text-sm sm:text-base font-medium w-full"
-            >
-              📋 Voir ma position dans la file
-            </button>
+              {ticket.status === "desiste" && (
+                <button
+                  onClick={handleResumeTicket}
+                  disabled={isLoading}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+                >
+                  🔄 Reprendre mon ticket
+                </button>
+              )}
 
-            {ticket.status === "en_attente" && (
               <button
-                onClick={handleCancelRequest}
-                disabled={isLoading}
-                className={`px-4 py-3 rounded-lg transition text-sm sm:text-base font-medium w-full ${
-                  isLoading 
-                    ? "bg-gray-400 cursor-not-allowed" 
-                    : "bg-red-600 hover:bg-red-700"
-                } text-white`}
+                onClick={() => navigate("/queue")}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
               >
-                {isLoading ? (
-                  <>
-                    <span className="animate-spin inline-block mr-2">⏳</span>
-                    Annulation en cours...
-                  </>
-                ) : (
-                  "❌ Annuler mon ticket"
-                )}
+                📋 Voir la file d'attente
               </button>
-            )}
+            </div>
 
-            {(ticket.status === "termine" || ticket.status === "desiste") && (
-              <button
-                onClick={() => navigate("/")}
-                className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base font-medium w-full"
-              >
-                🎟️ Prendre un nouveau ticket
-              </button>
-            )}
+            {/* Conseil */}
+            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💡 Gardez cette page ouverte pour suivre votre position
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Modal de confirmation d'annulation */}
-        <ConfirmModal
-          isOpen={showCancelModal}
-          title="Annuler le ticket"
-          message={`Êtes-vous sûr de vouloir annuler votre ticket n°${ticket?.number} ? Cette action est irréversible et vous devrez reprendre un nouveau ticket.`}
-          confirmText="Oui, annuler"
-          cancelText="Non, garder mon ticket"
-          type="danger"
-          onConfirm={handleCancelConfirm}
-          onCancel={() => setShowCancelModal(false)}
-        />
-
-        {/* Notifications Toast */}
-        {toasts.map(toast => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={() => removeToast(toast.id)}
+          {/* Modal de confirmation d'annulation */}
+          <ConfirmModal
+            isOpen={showCancelModal}
+            title="Annuler le ticket"
+            message="Êtes-vous sûr de vouloir annuler votre ticket ? Vous perdrez votre place dans la file d'attente."
+            confirmText="Oui, annuler"
+            cancelText="Non, garder"
+            type="warning"
+            onConfirm={handleCancelConfirm}
+            onCancel={() => setShowCancelModal(false)}
           />
-        ))}
+
+          {/* Notifications Toast */}
+          {toasts.map(toast => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              type={toast.type}
+              duration={toast.duration}
+              onClose={() => removeToast(toast.id)}
+            />
+          ))}
+        </div>
       </AnimatedPage>
     </Layout>
   );

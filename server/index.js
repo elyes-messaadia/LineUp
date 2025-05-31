@@ -15,6 +15,7 @@ const allowedOrigins = [
   "https://ligneup.netlify.app",
   "https://lineup.netlify.app", 
   "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:3000"
 ];
 
@@ -164,6 +165,24 @@ app.delete("/ticket/:id", async (req, res) => {
     res.json({ updated: ticket });
   } catch (err) {
     res.status(500).json({ message: "Erreur lors de l'annulation" });
+  }
+});
+
+// 🔄 Reprendre un ticket désisté
+app.patch("/ticket/:id/resume", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket non trouvé" });
+    }
+    if (ticket.status !== "desiste") {
+      return res.status(400).json({ message: "Le ticket n'est pas désisté" });
+    }
+    ticket.status = "en_attente";
+    await ticket.save();
+    res.json({ updated: ticket });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur lors de la reprise du ticket" });
   }
 });
 

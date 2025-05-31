@@ -83,10 +83,10 @@ export default function Home() {
   };
 
   return (
-    <Layout>
+    <Layout hideTitle={true}>
       <AnimatedPage>
         <div className="text-center">
-          <Title>🏥 LineUp</Title>
+          <Title>🏥 Bienvenue sur LineUp</Title>
           <p className="text-base sm:text-lg text-gray-600 mb-8 px-4 leading-relaxed">
             Système de gestion de file d'attente médicale intelligente
           </p>
