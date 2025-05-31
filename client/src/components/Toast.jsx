@@ -13,10 +13,10 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = "fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform";
+    const baseStyles = "fixed top-4 left-4 right-4 sm:top-4 sm:right-4 sm:left-auto sm:max-w-sm z-50 p-3 sm:p-4 rounded-lg shadow-lg transition-all duration-300 transform";
     
     if (!isVisible) {
-      return `${baseStyles} translate-x-full opacity-0`;
+      return `${baseStyles} translate-y-[-100%] sm:translate-y-0 sm:translate-x-full opacity-0`;
     }
 
     switch (type) {
@@ -49,14 +49,14 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
   return (
     <div className={getToastStyles()}>
       <div className="flex items-center gap-2">
-        <span className="text-lg">{getIcon()}</span>
-        <span className="font-medium">{message}</span>
+        <span className="text-base sm:text-lg flex-shrink-0">{getIcon()}</span>
+        <span className="font-medium text-sm sm:text-base leading-tight flex-1">{message}</span>
         <button
           onClick={() => {
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="ml-2 text-white hover:text-gray-200 font-bold"
+          className="ml-2 text-white hover:text-gray-200 font-bold text-lg flex-shrink-0"
         >
           ×
         </button>

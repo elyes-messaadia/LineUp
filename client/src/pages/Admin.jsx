@@ -147,20 +147,20 @@ export default function Admin() {
   return (
     <Layout>
       <AnimatedPage>
-        <h1 className="text-2xl font-bold mb-4 text-blue-700 text-center">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-blue-700 text-center px-2">
           Tableau de bord médecin
         </h1>
 
         {/* Statistiques */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-2 gap-4 text-center">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 mx-2 sm:mx-0">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-blue-600">{waitingCount}</p>
-              <p className="text-sm text-blue-800">En attente</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">{waitingCount}</p>
+              <p className="text-xs sm:text-sm text-blue-800">En attente</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{inConsultationCount}</p>
-              <p className="text-sm text-green-800">En consultation</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{inConsultationCount}</p>
+              <p className="text-xs sm:text-sm text-green-800">En consultation</p>
             </div>
           </div>
         </div>
@@ -171,43 +171,61 @@ export default function Admin() {
             showInfo("Déconnexion réussie");
             navigate("/admin-login");
           }}
-          className="mb-4 text-sm text-red-600 underline hover:text-red-800"
+          className="mb-3 sm:mb-4 text-xs sm:text-sm text-red-600 underline hover:text-red-800 block mx-auto"
         >
           🔒 Se déconnecter
         </button>
 
-        <button
-          onClick={handleCallNextRequest}
-          disabled={isLoading || waitingCount === 0}
-          className={`mb-4 w-full py-2 rounded transition ${
-            isLoading || waitingCount === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          } text-white`}
-        >
-          {isLoading ? (
-            <>
-              <span className="animate-spin inline-block mr-2">⏳</span>
-              Traitement...
-            </>
-          ) : (
-            `✅ Appeler le suivant ${waitingCount > 0 ? `(${waitingCount} en attente)` : "(aucun patient)"}`
-          )}
-        </button>
+        <div className="space-y-3 px-2 sm:px-0">
+          <button
+            onClick={handleCallNextRequest}
+            disabled={isLoading || waitingCount === 0}
+            className={`w-full py-3 rounded-lg transition text-sm sm:text-base font-medium ${
+              isLoading || waitingCount === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+            } text-white`}
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Traitement...
+              </>
+            ) : (
+              <span className="block sm:inline">
+                ✅ Appeler le suivant{" "}
+                <span className="block sm:inline text-xs sm:text-sm opacity-90">
+                  {waitingCount > 0 ? `(${waitingCount} en attente)` : "(aucun patient)"}
+                </span>
+              </span>
+            )}
+          </button>
 
-        <button
-          onClick={handleResetRequest}
-          disabled={isLoading}
-          className={`mb-6 w-full py-2 rounded transition ${
-            isLoading 
-              ? "bg-gray-400 cursor-not-allowed" 
-              : "bg-red-600 hover:bg-red-700"
-          } text-white`}
-        >
-          🗑️ Réinitialiser la file
-        </button>
+          <button
+            onClick={handleResetRequest}
+            disabled={isLoading}
+            className={`w-full py-3 rounded-lg transition text-sm sm:text-base font-medium ${
+              isLoading 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-red-600 hover:bg-red-700"
+            } text-white`}
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Traitement...
+              </>
+            ) : (
+              "🗑️ Réinitialiser la file"
+            )}
+          </button>
+        </div>
 
-        <ul className="space-y-2">
+        <h2 className="text-base sm:text-lg font-semibold mt-6 mb-3 text-center px-2">
+          📋 File d'attente ({queue.length} tickets)
+        </h2>
+
+        <ul className="space-y-2 sm:space-y-3 px-2 sm:px-0">
           {sortedQueue.map((t) => {
             let badge;
             if (t.status === "en_attente") {
@@ -239,7 +257,7 @@ export default function Admin() {
             return (
               <li
                 key={t._id}
-                className={`p-3 rounded border flex justify-between items-center ${
+                className={`p-3 sm:p-4 rounded-lg border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 ${
                   t.status === "desiste"
                     ? "line-through italic bg-red-50 border-red-300"
                     : t.status === "termine"
@@ -247,21 +265,21 @@ export default function Admin() {
                     : "bg-white"
                 }`}
               >
-                <span>
+                <div className="flex items-center gap-2 text-sm sm:text-base">
                   🎫 {t.number} • {badge}
-                </span>
-
+                </div>
+                
                 {t.status === "en_consultation" && (
                   <button
                     onClick={() => handleFinishRequest(t._id, t.number)}
                     disabled={isLoading}
-                    className={`text-xs px-2 py-1 rounded ml-2 transition ${
+                    className={`px-3 py-2 rounded-lg transition text-xs sm:text-sm font-medium w-full sm:w-auto ${
                       isLoading 
-                        ? "bg-gray-200 cursor-not-allowed" 
-                        : "bg-gray-300 hover:bg-gray-400"
-                    } text-black`}
+                        ? "bg-gray-400 cursor-not-allowed" 
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } text-white`}
                   >
-                    Terminer
+                    {isLoading ? "⏳" : "✅ Terminer"}
                   </button>
                 )}
               </li>

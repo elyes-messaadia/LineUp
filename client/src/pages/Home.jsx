@@ -75,14 +75,14 @@ export default function Home() {
   return (
     <Layout>
       <AnimatedPage>
-        <p className="text-gray-600 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 mb-6 px-2 leading-relaxed">
           Prenez un ticket pour voir le docteur
         </p>
 
         <button
           onClick={handleTicketRequest}
           disabled={isLoading}
-          className={`px-6 py-3 rounded-lg shadow-lg transition ${
+          className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-lg transition text-sm sm:text-base font-medium ${
             isLoading 
               ? "bg-gray-400 cursor-not-allowed" 
               : "bg-blue-600 hover:bg-blue-700"
@@ -100,23 +100,23 @@ export default function Home() {
 
         <a
           href="/queue"
-          className="mt-4 text-blue-500 hover:underline text-sm block"
+          className="mt-4 text-blue-500 hover:underline text-sm sm:text-base block py-2"
         >
           Voir la file d'attente
         </a>
 
         {!isPatientConnected && (
-          <div className="mt-8 flex flex-col gap-3 w-full">
+          <div className="mt-6 sm:mt-8 flex flex-col gap-3 w-full">
             <button
               onClick={() => navigate("/login-patient")}
-              className="w-full border border-blue-600 text-blue-600 py-2 rounded hover:bg-blue-50 transition"
+              className="w-full border border-blue-600 text-blue-600 py-2 sm:py-3 rounded-lg hover:bg-blue-50 transition text-sm sm:text-base font-medium"
             >
               Se connecter
             </button>
 
             <button
               onClick={() => navigate("/register-patient")}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base font-medium"
             >
               S'inscrire
             </button>

@@ -73,10 +73,10 @@ export default function Ticket() {
       <Layout>
         <AnimatedPage>
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Aucun ticket trouvé.</p>
+            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">Aucun ticket trouvé.</p>
             <button
               onClick={() => navigate("/")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              className="bg-blue-600 text-white px-4 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base font-medium w-full sm:w-auto"
             >
               Prendre un ticket
             </button>
@@ -90,24 +90,24 @@ export default function Ticket() {
     <Layout>
       <AnimatedPage>
         <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2 text-blue-600">
+          <h2 className="text-lg sm:text-xl font-semibold mb-2 text-blue-600 px-2">
             🎫 Ticket n°{ticket.number}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-sm sm:text-base text-gray-600 mb-4 px-2 leading-relaxed">
             Heure d'enregistrement :{" "}
             {new Date(ticket.createdAt).toLocaleTimeString()}
           </p>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-blue-800 text-sm">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6 mx-2 sm:mx-0">
+            <p className="text-blue-800 text-xs sm:text-sm leading-relaxed">
               💡 <strong>Conseil :</strong> Surveillez la file d'attente pour connaître votre position.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 px-2 sm:px-0">
             <button
               onClick={() => navigate("/queue")}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition text-sm sm:text-base font-medium w-full"
             >
               📋 Voir ma position dans la file
             </button>
@@ -115,7 +115,7 @@ export default function Ticket() {
             <button
               onClick={handleCancelRequest}
               disabled={isLoading}
-              className={`px-4 py-2 rounded-lg transition ${
+              className={`px-4 py-3 rounded-lg transition text-sm sm:text-base font-medium w-full ${
                 isLoading 
                   ? "bg-gray-400 cursor-not-allowed" 
                   : "bg-red-600 hover:bg-red-700"

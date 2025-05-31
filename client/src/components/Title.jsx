@@ -1,6 +1,6 @@
 export default function Title({ left, emoji }) {
     return (
-      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-4 text-center">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 sm:mb-4 text-center px-2">
         <span className="text-black">
           {emoji ? `${emoji} ` : ''}
           {left}

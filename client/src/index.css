@@ -10,4 +10,62 @@
   .animate-blink {
     animation: blink 1s step-start infinite;
   }
+
+/* Améliorations pour mobile */
+@layer base {
+  /* Améliorer la lisibilité sur mobile */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Améliorer les interactions tactiles */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Améliorer le scroll sur mobile */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+}
+
+@layer utilities {
+  /* Classe pour améliorer les zones de touch sur mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Améliorer la lisibilité des petits textes */
+  .text-mobile-readable {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 640px) {
+    .text-mobile-readable {
+      font-size: inherit;
+      line-height: inherit;
+    }
+  }
+
+  /* Animation douce pour les transitions */
+  .smooth-transition {
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Améliorer les ombres sur mobile */
+  .mobile-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (min-width: 640px) {
+    .mobile-shadow {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
       

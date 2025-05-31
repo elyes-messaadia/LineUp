@@ -22,7 +22,7 @@ export default function Queue() {
     return () => clearInterval(interval);
   }, []);
 
-  // 📥 Récupération du ticket + file d’attente depuis le back
+  // 📥 Récupération du ticket + file d'attente depuis le back
   useEffect(() => {
     const ticket = localStorage.getItem("lineup_ticket");
     if (ticket) {
@@ -65,7 +65,7 @@ export default function Queue() {
   return (
     <Layout>
       <AnimatedPage>
-        <ul className="space-y-2 w-full overflow-x-hidden">
+        <ul className="space-y-2 sm:space-y-3 w-full overflow-x-hidden px-2 sm:px-0">
           {queue.map((t, index) => {
             const estimationMin = estimations[index] || 15;
             const remainingMs = getCumulativeDelay(index);
@@ -88,7 +88,7 @@ export default function Queue() {
             const minutes = Math.floor(timeLeftMs / 60000);
             const seconds = Math.floor((timeLeftMs % 60000) / 1000);
             const displayTime = isUserTurn ? (
-              <span className="animate-blink font-semibold text-black">
+              <span className="animate-blink font-semibold text-black text-sm sm:text-base">
                 À vous bientôt
               </span>
             ) : (
@@ -119,14 +119,18 @@ export default function Queue() {
             return (
               <li
                 key={t._id}
-                className={`p-3 rounded-lg shadow-sm ${
+                className={`p-3 sm:p-4 rounded-lg shadow-sm ${
                   t._id === myId ? "bg-yellow-100 font-semibold" : "bg-white"
                 }`}
               >
-                🎫 {t.number} • {statusDisplay}{" "}
-                {t._id === myId && <span className="text-black">(vous)</span>}
-                <div className="text-sm text-gray-500 mt-1">
-                  ⏳ {displayTime}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                  <div className="flex items-center gap-2 text-sm sm:text-base">
+                    🎫 {t.number} • {statusDisplay}{" "}
+                    {t._id === myId && <span className="text-black font-semibold">(vous)</span>}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-500">
+                    ⏳ {displayTime}
+                  </div>
                 </div>
               </li>
             );
@@ -134,10 +138,10 @@ export default function Queue() {
         </ul>
 
         {/* Bouton admin discret en bas à droite */}
-        <div className="fixed bottom-20 right-4 z-50">
+        <div className="fixed bottom-16 sm:bottom-20 right-4 z-50">
           <a
             href="/admin-login"
-            className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white text-xs px-3 py-2 rounded-full shadow hover:bg-blue-700 transition"
             title="Connexion admin"
           >
             Admin
