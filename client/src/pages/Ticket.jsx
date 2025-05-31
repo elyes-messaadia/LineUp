@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
+import QRCodeTicket from "../components/QRCodeTicket";
 import { useToast } from "../hooks/useToast";
 
 export default function Ticket() {
@@ -281,6 +282,11 @@ export default function Ticket() {
               }`}>
                 {getStatusDisplay()}
               </span>
+            </div>
+
+            {/* QR Code */}
+            <div className="mb-6">
+              <QRCodeTicket ticketNumber={ticket.number} />
             </div>
 
             {/* Actions */}
