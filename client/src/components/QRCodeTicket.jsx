@@ -1,42 +1,94 @@
 import { QRCodeSVG } from 'qrcode.react';
+import { renderToString } from 'react-dom/server';
 
-export default function QRCodeTicket({ ticketNumber }) {
+export default function QRCodeTicket() {
   const handlePrint = () => {
-    // Créer le QR code temporairement pour l'impression
-    const printContent = document.createElement('div');
-    
-    // Créer le QR code
-    const qrCode = document.createElement('div');
-    qrCode.innerHTML = `
-      <div style="display: flex; justify-content: center;">
-        ${new QRCodeSVG({
-          value: "https://ligneup.netlify.app/",
-          size: 200,
-          level: "H",
-          includeMargin: true,
-        }).outerHTML}
-      </div>
+    // Créer un iframe caché pour l'impression
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Générer le QR code
+    const qrCodeString = renderToString(
+      <QRCodeSVG
+        value="https://ligneup.netlify.app"
+        size={200}
+        level="H"
+        includeMargin={true}
+      />
+    );
+
+    // Contenu à imprimer
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>LineUp - QR Code</title>
+          <style>
+            @page {
+              size: 80mm 120mm;
+              margin: 0;
+            }
+            body {
+              margin: 10mm;
+              font-family: system-ui, -apple-system, sans-serif;
+              text-align: center;
+            }
+            .qr-container {
+              display: flex;
+              justify-content: center;
+              margin: 10mm 0;
+            }
+            .info-box {
+              margin-top: 10mm;
+              padding: 5mm;
+              background-color: #f0f9ff;
+              border-radius: 3mm;
+              border: 0.5mm solid #bfdbfe;
+            }
+            .title {
+              color: #1e40af;
+              font-size: 16pt;
+              margin-bottom: 5mm;
+            }
+            .instruction {
+              color: #1e40af;
+              margin: 0;
+              font-size: 10pt;
+            }
+            .url {
+              color: #3b82f6;
+              margin-top: 2mm;
+              font-size: 8pt;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="title">LineUp</div>
+          <div class="qr-container">${qrCodeString}</div>
+          <div class="info-box">
+            <p class="instruction">Scannez ce QR code pour suivre votre position</p>
+            <p class="url">https://ligneup.netlify.app</p>
+          </div>
+        </body>
+      </html>
     `;
 
-    // Contenu complet pour l'impression
-    printContent.innerHTML = `
-      <div style="text-align: center; padding: 20px; font-family: system-ui, -apple-system, sans-serif;">
-        <h2 style="margin-bottom: 20px; color: #1e40af;">LineUp - Ticket n°${ticketNumber}</h2>
-        ${qrCode.innerHTML}
-        <div style="margin-top: 20px; padding: 15px; background-color: #f0f9ff; border-radius: 8px; border: 1px solid #bfdbfe;">
-          <p style="color: #1e40af; margin: 0;">Scannez ce QR code pour suivre votre position dans la file d'attente</p>
-          <p style="color: #3b82f6; margin-top: 8px; font-size: 14px;">https://ligneup.netlify.app/</p>
-        </div>
-      </div>
-    `;
+    // Écrire le contenu dans l'iframe
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(printContent);
+    iframe.contentWindow.document.close();
 
-    const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write('<html><head><title>LineUp - QR Code</title>');
-    printWindow.document.write('</head><body>');
-    printWindow.document.write(printContent.innerHTML);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
+    // Attendre que le contenu soit chargé
+    iframe.onload = () => {
+      // Imprimer
+      iframe.contentWindow.print();
+      
+      // Supprimer l'iframe après l'impression
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    };
   };
 
   return (
