@@ -252,13 +252,7 @@ export default function Ticket() {
           </div>
         );
       default:
-        return (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6 mx-2 sm:mx-0">
-            <p className="text-blue-800 text-xs sm:text-sm leading-relaxed">
-              💡 <strong>Conseil :</strong> Surveillez la file d'attente pour connaître votre position.
-            </p>
-          </div>
-        );
+        return null;
     }
   };
 
@@ -291,15 +285,14 @@ export default function Ticket() {
 
             {/* Conseil */}
             <div className="relative mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/50 to-yellow-400/50 rounded-2xl transform rotate-1"></div>
-              <div className="relative bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-2xl border border-yellow-200 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 bg-yellow-200 rounded-full p-2">
+              <div className="bg-yellow-300 rounded-[32px] p-1">
+                <div className="bg-white rounded-[28px] p-4">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-xl">💡</span>
+                    <p className="text-blue-700 text-sm sm:text-base font-medium">
+                      <span className="text-blue-800 font-semibold">Conseil :</span> Surveillez la file d'attente pour connaître votre position.
+                    </p>
                   </div>
-                  <p className="text-yellow-900 text-sm font-medium">
-                    Surveillez la file d'attente pour connaître votre position
-                  </p>
                 </div>
               </div>
             </div>
