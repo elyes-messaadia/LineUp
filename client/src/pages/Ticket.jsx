@@ -265,37 +265,54 @@ export default function Ticket() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="text-center">
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 max-w-md mx-auto">
-            <div className="text-4xl sm:text-5xl mb-4">🎫</div>
-            <h1 className="text-xl sm:text-2xl font-bold mb-2">
+        <div className="text-center max-w-2xl mx-auto px-4">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg border border-blue-100 p-6 sm:p-8">
+            <div className="relative mb-6">
+              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-500 rounded-full p-4 shadow-lg">
+                <div className="text-4xl sm:text-5xl">🎫</div>
+              </div>
+            </div>
+            
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mt-8 mb-4">
               Ticket n°{ticket.number}
             </h1>
             
             {/* Affichage du statut */}
-            <div className="mb-6">
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                ticket.status === "en_attente" ? "bg-yellow-100 text-yellow-800" :
-                ticket.status === "en_consultation" ? "bg-green-100 text-green-800" :
-                ticket.status === "termine" ? "bg-gray-100 text-gray-800" :
-                "bg-red-100 text-red-800"
-              }`}>
+            <div className="mb-8">
+              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                ticket.status === "en_attente" ? "bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900" :
+                ticket.status === "en_consultation" ? "bg-gradient-to-r from-green-400 to-green-300 text-green-900" :
+                ticket.status === "termine" ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-800" :
+                "bg-gradient-to-r from-red-400 to-red-300 text-red-900"
+              } shadow-sm`}>
                 {getStatusDisplay()}
               </span>
             </div>
 
-            {/* QR Code */}
-            <div className="mb-6">
-              <QRCodeTicket ticketNumber={ticket.number} />
+            {/* Conseil */}
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/50 to-yellow-400/50 rounded-2xl transform rotate-1"></div>
+              <div className="relative bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-2xl border border-yellow-200 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 bg-yellow-200 rounded-full p-2">
+                    <span className="text-xl">💡</span>
+                  </div>
+                  <p className="text-yellow-900 text-sm font-medium">
+                    Surveillez la file d'attente pour connaître votre position
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Actions */}
             <div className="space-y-3">
+              <QRCodeTicket ticketNumber={ticket.number} />
+
               {ticket.status === "en_attente" && (
                 <button
                   onClick={handleCancelRequest}
                   disabled={isLoading}
-                  className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-600 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 font-medium shadow-sm"
                 >
                   ❌ Annuler mon ticket
                 </button>
@@ -305,7 +322,7 @@ export default function Ticket() {
                 <button
                   onClick={handleResumeTicket}
                   disabled={isLoading}
-                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 font-medium shadow-sm"
                 >
                   🔄 Reprendre mon ticket
                 </button>
@@ -313,21 +330,14 @@ export default function Ticket() {
 
               <button
                 onClick={() => navigate("/queue")}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all transform hover:scale-[1.02] font-medium shadow-sm"
               >
                 📋 Voir la file d'attente
               </button>
             </div>
-
-            {/* Conseil */}
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                💡 Gardez cette page ouverte pour suivre votre position
-              </p>
-            </div>
           </div>
 
-          {/* Modal de confirmation d'annulation */}
+          {/* Modal et Toasts */}
           <ConfirmModal
             isOpen={showCancelModal}
             title="Annuler le ticket"
@@ -339,7 +349,6 @@ export default function Ticket() {
             onCancel={() => setShowCancelModal(false)}
           />
 
-          {/* Notifications Toast */}
           {toasts.map(toast => (
             <Toast
               key={toast.id}
