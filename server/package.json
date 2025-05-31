@@ -12,7 +12,12 @@
     "list:users": "node scripts/listUsers.js",
     "create:user": "node scripts/createUser.js",
     "check:db": "node scripts/checkDatabase.js",
-    "list:collections": "node scripts/listCollections.js"
+    "list:collections": "node scripts/listCollections.js",
+    "migrate": "node scripts/migrateToNewStructure.js",
+    "list:new-users": "node scripts/listNewUsers.js",
+    "db:clean": "node scripts/migrateToNewStructure.js",
+    "cleanup:users": "node scripts/cleanupUsers.js",
+    "update:roles": "node scripts/updateRoles.js"
   },
   "keywords": [],
   "author": "",
