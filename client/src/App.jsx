@@ -11,13 +11,6 @@ import VisiteurDashboard from "./pages/dashboards/VisiteurDashboard";
 import MedecinDashboard from "./pages/dashboards/MedecinDashboard";
 import SecretaireDashboard from "./pages/dashboards/SecretaireDashboard";
 
-// Pages admin existantes (à conserver pour compatibilité)
-import AdminLogin from "./pages/AdminLogin";
-import Admin from "./pages/Admin";
-import RegisterAdmin from "./pages/RegisterAdmin";
-import RegisterPatient from "./pages/RegisterPatient";
-import LoginPatient from "./pages/LoginPatient";
-
 function App() {
   const isAuthenticated = localStorage.getItem("isAuthenticated");
   const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
@@ -76,13 +69,6 @@ function App() {
         <Route path="/dashboard/visiteur" element={<VisiteurDashboard />} />
         <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
         <Route path="/dashboard/secretaire" element={<SecretaireDashboard />} />
-        
-        {/* Pages admin existantes (compatibilité) */}
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/register-admin" element={<RegisterAdmin />} />
-        <Route path="/register-patient" element={<RegisterPatient />} />
-        <Route path="/login-patient" element={<LoginPatient />} />
       </Routes>
     </div>
   );

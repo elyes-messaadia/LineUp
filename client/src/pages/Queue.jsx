@@ -370,17 +370,6 @@ export default function Queue() {
             </div>
           )}
 
-          {/* Bouton admin */}
-          <div className="fixed bottom-16 sm:bottom-20 right-4 z-50">
-            <a
-              href="/admin-login"
-              className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs px-4 py-2 rounded-full shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all transform hover:scale-105"
-              title="Connexion admin"
-            >
-              👨‍⚕️ Admin
-            </a>
-          </div>
-
           {/* Notifications Toast */}
           {toasts.map((toast) => (
             <Toast

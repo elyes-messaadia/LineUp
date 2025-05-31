@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const adminRoutes = require("./routes/admin");
 const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
 const Ticket = require("./models/Ticket");
@@ -253,7 +252,6 @@ app.patch("/ticket/:id/finish", async (req, res) => {
 });
 
 // 🟣 Routes API externes
-app.use("/admin", adminRoutes);
 app.use("/patient", patientRoutes);
 
 // 🚀 Démarrage du serveur
