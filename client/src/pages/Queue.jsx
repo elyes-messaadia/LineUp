@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
+import Toast from "../components/Toast";
+import { useToast } from "../hooks/useToast";
 
 // Génère une estimation aléatoire en minutes (entre 10 et 20 par défaut)
 function generateRandomEstimation(min = 10, max = 20) {
@@ -16,6 +18,7 @@ export default function Queue() {
   const [error, setError] = useState(null);
   const hasAlerted = useRef(false);
   const lastQueueState = useRef([]);
+  const { toasts, showSuccess, showWarning, showError, removeToast } = useToast();
 
   // ⏱️ Mise à jour du temps en temps réel
   useEffect(() => {
@@ -23,6 +26,15 @@ export default function Queue() {
       setCurrentTime(Date.now());
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fonction de notification sonore
+  const playNotificationSound = useCallback(() => {
+    const audio = new Audio("/notify.mp3");
+    audio.play().catch(() => {});
+    if ("vibrate" in navigator) {
+      navigator.vibrate([300, 100, 300]);
+    }
   }, []);
 
   // 🔄 Fonction de récupération de la file d'attente
@@ -38,25 +50,35 @@ export default function Queue() {
 
       if (hasChanges) {
         // Vérifier les changements de statut
-        const statusChanges = data.filter((ticket, index) => {
+        data.forEach((ticket, index) => {
           const prevTicket = prevQueue[index];
-          return prevTicket && prevTicket.status !== ticket.status;
-        });
-
-        // Notifications pour les changements importants
-        statusChanges.forEach(ticket => {
+          
+          // Si le ticket est passé à "en_consultation"
+          if (prevTicket && 
+              ticket.status === "en_consultation" && 
+              prevTicket.status !== "en_consultation") {
+            
+            // Notification pour le patient appelé
+            if (ticket._id === myId) {
+              playNotificationSound();
+              showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
+            } else {
+              // Notification pour les autres patients
+              showWarning(`Patient n°${ticket.number} appelé`, 5000);
+            }
+          }
+          
+          // Notifications pour d'autres changements de statut
           if (ticket._id === myId) {
-            switch (ticket.status) {
-              case "en_consultation":
-                playNotificationSound();
-                showNotification("C'est votre tour !");
-                break;
-              case "termine":
-                showNotification("Votre consultation est terminée");
-                break;
-              case "desiste":
-                showNotification("Votre ticket a été annulé");
-                break;
+            if (prevTicket && prevTicket.status !== ticket.status) {
+              switch (ticket.status) {
+                case "termine":
+                  showSuccess("✅ Votre consultation est terminée", 5000);
+                  break;
+                case "desiste":
+                  showError("❌ Votre ticket a été annulé", 5000);
+                  break;
+              }
             }
           }
         });
@@ -75,23 +97,7 @@ export default function Queue() {
       console.error("Erreur lors de la récupération de la file:", err);
       setError("Impossible de charger la file d'attente");
     }
-  }, [estimations.length, myId]);
-
-  // Fonction de notification sonore
-  const playNotificationSound = useCallback(() => {
-    const audio = new Audio("/notify.mp3");
-    audio.play().catch(() => {});
-    if ("vibrate" in navigator) {
-      navigator.vibrate([300, 100, 300]);
-    }
-  }, []);
-
-  // Fonction de notification visuelle
-  const showNotification = useCallback((message) => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("LineUp", { body: message });
-    }
-  }, []);
+  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError]);
 
   // 📥 Initialisation et mise à jour périodique
   useEffect(() => {
@@ -168,7 +174,6 @@ export default function Queue() {
         ) : (
           <ul className="space-y-2 sm:space-y-3 w-full overflow-x-hidden px-2 sm:px-0">
             {queue.map((t, index) => {
-              const estimationMin = estimations[index] || 15;
               const remainingMs = getCumulativeDelay(index);
               const targetTime = new Date(t.createdAt).getTime() + remainingMs;
               const timeLeftMs = targetTime - currentTime;
@@ -248,6 +253,17 @@ export default function Queue() {
             Admin
           </a>
         </div>
+
+        {/* Affichage des notifications Toast */}
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            duration={toast.duration}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
       </AnimatedPage>
     </Layout>
   );
