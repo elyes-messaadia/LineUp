@@ -150,7 +150,8 @@ app.get("/queue", async (req, res) => {
   try {
     const queue = await Ticket.find().sort({ createdAt: 1 });
     res.json(queue);
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la file:", error);
     res.status(500).json({ message: "Erreur de récupération" });
   }
 });
@@ -163,7 +164,8 @@ app.delete("/ticket/:id", async (req, res) => {
     ticket.status = "desiste";
     await ticket.save();
     res.json({ updated: ticket });
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de l'annulation:", error);
     res.status(500).json({ message: "Erreur lors de l'annulation" });
   }
 });
@@ -181,7 +183,8 @@ app.patch("/ticket/:id/resume", async (req, res) => {
     ticket.status = "en_attente";
     await ticket.save();
     res.json({ updated: ticket });
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de la reprise:", error);
     res.status(500).json({ message: "Erreur lors de la reprise du ticket" });
   }
 });
@@ -197,7 +200,8 @@ app.delete("/next", async (req, res) => {
     } else {
       res.status(404).json({ message: "Aucun ticket à appeler" });
     }
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de l'appel du prochain ticket:", error);
     res.status(500).json({ message: "Erreur lors de l'appel" });
   }
 });
@@ -207,7 +211,8 @@ app.delete("/reset", async (req, res) => {
   try {
     await Ticket.deleteMany();
     res.sendStatus(200);
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de la réinitialisation:", error);
     res.status(500).json({ message: "Erreur lors de la réinitialisation" });
   }
 });
@@ -223,7 +228,8 @@ app.patch("/ticket/:id/finish", async (req, res) => {
     } else {
       res.status(404).json({ message: "Ticket non trouvé ou statut invalide" });
     }
-  } catch (err) {
+  } catch (error) {
+    console.error("Erreur lors de la finalisation:", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
