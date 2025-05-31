@@ -3,6 +3,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const adminRoutes = require("./routes/admin");
 const patientRoutes = require("./routes/patient");
+const authRoutes = require("./routes/auth");
 const Ticket = require("./models/Ticket");
 require("dotenv").config();
 
@@ -50,7 +51,7 @@ app.get('/', (req, res) => {
     message: '✅ API LineUp opérationnelle',
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '2.0.0'
   });
 });
 
@@ -64,6 +65,9 @@ app.get('/health', (req, res) => {
 });
 
 connectDB();
+
+// 🔐 Routes d'authentification centralisées
+app.use("/auth", authRoutes);
 
 // 🎫 Créer un ticket (version améliorée)
 app.post("/ticket", async (req, res) => {
@@ -205,7 +209,7 @@ app.patch("/ticket/:id/finish", async (req, res) => {
   }
 });
 
-// 🔐 Routes API externes
+// 🟣 Routes API externes
 app.use("/admin", adminRoutes);
 app.use("/patient", patientRoutes);
 
