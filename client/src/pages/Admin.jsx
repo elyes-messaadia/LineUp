@@ -2,10 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
+import Toast from "../components/Toast";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "../hooks/useToast";
 
 export default function Admin() {
   const navigate = useNavigate();
   const [queue, setQueue] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
   useEffect(() => {
     const isAdmin = localStorage.getItem("isAdmin");
@@ -19,35 +28,106 @@ export default function Admin() {
   }, [navigate]);
 
   const fetchQueue = async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
-    const data = await res.json();
-    setQueue(data);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      if (!res.ok) throw new Error("Erreur de récupération");
+      const data = await res.json();
+      setQueue(data);
+    } catch (error) {
+      showError("Impossible de charger la file d'attente");
+    }
   };
 
-  const handleCallNext = async () => {
-    await fetch(`${import.meta.env.VITE_API_URL}/next`, {
-      method: "DELETE",
-    });
-    fetchQueue();
+  const handleCallNextRequest = () => {
+    const nextPatient = queue.find(t => t.status === "en_attente");
+    if (!nextPatient) {
+      showWarning("Aucun patient en attente");
+      return;
+    }
+    setShowCallModal(true);
   };
 
-  const handleResetQueue = async () => {
-    const confirm = window.confirm("Voulez-vous vraiment réinitialiser la file ?");
-    if (!confirm) return;
+  const handleCallNextConfirm = async () => {
+    setShowCallModal(false);
+    setIsLoading(true);
 
-    await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
-      method: "DELETE",
-    });
+    try {
+      showInfo("Appel du patient suivant...");
+      
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/next`, {
+        method: "DELETE",
+      });
 
-    alert("File d’attente réinitialisée.");
-    fetchQueue();
+      if (!res.ok) throw new Error("Erreur lors de l'appel");
+
+      const data = await res.json();
+      showSuccess(`Patient n°${data.called?.number} appelé en consultation !`, 4000);
+      fetchQueue();
+    } catch (error) {
+      showError("Impossible d'appeler le patient suivant");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleFinish = async (id) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/ticket/${id}/finish`, {
-      method: "PATCH",
-    });
-    fetchQueue();
+  const handleResetRequest = () => {
+    if (queue.length === 0) {
+      showInfo("La file d'attente est déjà vide");
+      return;
+    }
+    setShowResetModal(true);
+  };
+
+  const handleResetConfirm = async () => {
+    setShowResetModal(false);
+    setIsLoading(true);
+
+    try {
+      showWarning("Réinitialisation de la file d'attente...");
+      
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Erreur lors de la réinitialisation");
+
+      showSuccess("File d'attente réinitialisée avec succès !", 4000);
+      fetchQueue();
+    } catch (error) {
+      showError("Impossible de réinitialiser la file d'attente");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFinishRequest = (ticketId, ticketNumber) => {
+    setSelectedTicketId({ id: ticketId, number: ticketNumber });
+    setShowFinishModal(true);
+  };
+
+  const handleFinishConfirm = async () => {
+    if (!selectedTicketId) return;
+
+    setShowFinishModal(false);
+    setIsLoading(true);
+
+    try {
+      showInfo("Finalisation de la consultation...");
+      
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${selectedTicketId.id}/finish`, {
+        method: "PATCH",
+      });
+
+      if (!res.ok) throw new Error("Erreur lors de la finalisation");
+
+      showSuccess(`Consultation du patient n°${selectedTicketId.number} terminée !`, 4000);
+      fetchQueue();
+    } catch (error) {
+      showError("Impossible de terminer la consultation");
+    } finally {
+      setIsLoading(false);
+      setSelectedTicketId(null);
+    }
   };
 
   // 🎯 Tri des statuts
@@ -61,6 +141,9 @@ export default function Admin() {
     return order[a.status] - order[b.status];
   });
 
+  const waitingCount = queue.filter(t => t.status === "en_attente").length;
+  const inConsultationCount = queue.filter(t => t.status === "en_consultation").length;
+
   return (
     <Layout>
       <AnimatedPage>
@@ -68,9 +151,24 @@ export default function Admin() {
           Tableau de bord médecin
         </h1>
 
+        {/* Statistiques */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-blue-600">{waitingCount}</p>
+              <p className="text-sm text-blue-800">En attente</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-green-600">{inConsultationCount}</p>
+              <p className="text-sm text-green-800">En consultation</p>
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={() => {
             localStorage.removeItem("isAdmin");
+            showInfo("Déconnexion réussie");
             navigate("/admin-login");
           }}
           className="mb-4 text-sm text-red-600 underline hover:text-red-800"
@@ -79,15 +177,32 @@ export default function Admin() {
         </button>
 
         <button
-          onClick={handleCallNext}
-          className="mb-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          onClick={handleCallNextRequest}
+          disabled={isLoading || waitingCount === 0}
+          className={`mb-4 w-full py-2 rounded transition ${
+            isLoading || waitingCount === 0
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          } text-white`}
         >
-          ✅ Appeler le suivant
+          {isLoading ? (
+            <>
+              <span className="animate-spin inline-block mr-2">⏳</span>
+              Traitement...
+            </>
+          ) : (
+            `✅ Appeler le suivant ${waitingCount > 0 ? `(${waitingCount} en attente)` : "(aucun patient)"}`
+          )}
         </button>
 
         <button
-          onClick={handleResetQueue}
-          className="mb-6 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+          onClick={handleResetRequest}
+          disabled={isLoading}
+          className={`mb-6 w-full py-2 rounded transition ${
+            isLoading 
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-red-600 hover:bg-red-700"
+          } text-white`}
         >
           🗑️ Réinitialiser la file
         </button>
@@ -123,7 +238,7 @@ export default function Admin() {
 
             return (
               <li
-                key={t.id}
+                key={t._id}
                 className={`p-3 rounded border flex justify-between items-center ${
                   t.status === "desiste"
                     ? "line-through italic bg-red-50 border-red-300"
@@ -138,8 +253,13 @@ export default function Admin() {
 
                 {t.status === "en_consultation" && (
                   <button
-                    onClick={() => handleFinish(t.id)}
-                    className="text-xs bg-gray-300 hover:bg-gray-400 text-black px-2 py-1 rounded ml-2"
+                    onClick={() => handleFinishRequest(t._id, t.number)}
+                    disabled={isLoading}
+                    className={`text-xs px-2 py-1 rounded ml-2 transition ${
+                      isLoading 
+                        ? "bg-gray-200 cursor-not-allowed" 
+                        : "bg-gray-300 hover:bg-gray-400"
+                    } text-black`}
                   >
                     Terminer
                   </button>
@@ -148,6 +268,56 @@ export default function Admin() {
             );
           })}
         </ul>
+
+        {/* Modal appeler suivant */}
+        <ConfirmModal
+          isOpen={showCallModal}
+          title="Appeler le patient suivant"
+          message="Voulez-vous appeler le patient suivant en consultation ?"
+          confirmText="Oui, appeler"
+          cancelText="Annuler"
+          type="info"
+          onConfirm={handleCallNextConfirm}
+          onCancel={() => setShowCallModal(false)}
+        />
+
+        {/* Modal réinitialiser */}
+        <ConfirmModal
+          isOpen={showResetModal}
+          title="Réinitialiser la file d'attente"
+          message={`Voulez-vous vraiment supprimer tous les ${queue.length} tickets de la file d'attente ? Cette action est irréversible.`}
+          confirmText="Oui, réinitialiser"
+          cancelText="Annuler"
+          type="danger"
+          onConfirm={handleResetConfirm}
+          onCancel={() => setShowResetModal(false)}
+        />
+
+        {/* Modal terminer consultation */}
+        <ConfirmModal
+          isOpen={showFinishModal}
+          title="Terminer la consultation"
+          message={`Voulez-vous marquer la consultation du patient n°${selectedTicketId?.number} comme terminée ?`}
+          confirmText="Oui, terminer"
+          cancelText="Annuler"
+          type="info"
+          onConfirm={handleFinishConfirm}
+          onCancel={() => {
+            setShowFinishModal(false);
+            setSelectedTicketId(null);
+          }}
+        />
+
+        {/* Notifications Toast */}
+        {toasts.map(toast => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            duration={toast.duration}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
       </AnimatedPage>
     </Layout>
   );
