@@ -34,7 +34,7 @@ app.use(cors({
     }
     
     console.log('❌ CORS blocked origin:', origin);
-    return callback(new Error("Not allowed by CORS"));
+      return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],
