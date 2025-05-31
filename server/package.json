@@ -18,7 +18,8 @@
     "db:clean": "node scripts/migrateToNewStructure.js",
     "cleanup:users": "node scripts/cleanupUsers.js",
     "update:roles": "node scripts/updateRoles.js",
-    "fix:tickets": "node scripts/fixTickets.js"
+    "fix:tickets": "node scripts/fixTickets.js",
+    "create:test-users": "node scripts/createTestUsers.js"
   },
   "keywords": [],
   "author": "",
