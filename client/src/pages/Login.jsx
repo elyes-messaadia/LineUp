@@ -81,6 +81,61 @@ export default function Login() {
             🔐 Connexion
           </h2>
 
+          {/* Boutons de connexion rapide */}
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setFormData({
+                    email: "medecin@lineup.com",
+                    password: "medecin123"
+                  });
+                  handleSubmit({ preventDefault: () => {} });
+                }}
+                className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
+              >
+                👨‍⚕️ Médecin
+              </button>
+              <button
+                onClick={() => {
+                  setFormData({
+                    email: "secretaire@lineup.com",
+                    password: "secretaire123"
+                  });
+                  handleSubmit({ preventDefault: () => {} });
+                }}
+                className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
+              >
+                👩‍💼 Secrétaire
+              </button>
+              <button
+                onClick={() => {
+                  setFormData({
+                    email: "patient@lineup.com",
+                    password: "patient123"
+                  });
+                  handleSubmit({ preventDefault: () => {} });
+                }}
+                className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
+              >
+                🏥 Patient
+              </button>
+              <button
+                onClick={() => {
+                  setFormData({
+                    email: "visiteur@lineup.com",
+                    password: "visiteur123"
+                  });
+                  handleSubmit({ preventDefault: () => {} });
+                }}
+                className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
+              >
+                👁️ Visiteur
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
