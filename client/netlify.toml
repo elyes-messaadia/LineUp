@@ -13,7 +13,7 @@
 
 # Variables d'environnement pour la production
 [build.environment]
-  VITE_API_URL = "https://lineup-nby9.onrender.com"
+  VITE_API_URL = "https://lineup-backend-xxak.onrender.com"
 
 # Configuration des headers de sécurité
 [[headers]]
