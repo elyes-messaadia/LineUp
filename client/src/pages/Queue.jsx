@@ -198,6 +198,14 @@ export default function Queue() {
     return total * 60 * 1000; // converti en ms
   };
 
+  // Fonction pour formater le temps d'attente
+  const formatWaitingTime = (minutes, seconds) => {
+    if (minutes < 0 || seconds < 0) return "Bientôt votre tour";
+    if (minutes === 0) return `${seconds} secondes`;
+    if (minutes === 1) return "1 minute";
+    return `${minutes} minutes`;
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -226,103 +234,164 @@ export default function Queue() {
   return (
     <Layout>
       <AnimatedPage>
-        {queue.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Aucun patient dans la file d'attente</p>
+        <div className="max-w-4xl mx-auto px-4">
+          {/* En-tête avec statistiques */}
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <h3 className="text-blue-800 font-semibold mb-1">En attente</h3>
+              <p className="text-2xl font-bold text-blue-600">
+                {queue.filter(t => t.status === "en_attente").length}
+              </p>
+            </div>
+            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+              <h3 className="text-green-800 font-semibold mb-1">En consultation</h3>
+              <p className="text-2xl font-bold text-green-600">
+                {queue.filter(t => t.status === "en_consultation").length}
+              </p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+              <h3 className="text-purple-800 font-semibold mb-1">Terminés</h3>
+              <p className="text-2xl font-bold text-purple-600">
+                {queue.filter(t => t.status === "termine").length}
+              </p>
+            </div>
           </div>
-        ) : (
-          <ul className="space-y-2 sm:space-y-3 w-full overflow-x-hidden px-2 sm:px-0">
-            {queue.map((t, index) => {
-              const remainingMs = getCumulativeDelay(index);
-              const targetTime = new Date(t.createdAt).getTime() + remainingMs;
-              const timeLeftMs = targetTime - currentTime;
 
-              const isUserTurn = t._id === myId && timeLeftMs <= 0;
+          {/* Patient en cours */}
+          {queue.find(t => t.status === "en_consultation") && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+              <h2 className="text-green-800 font-semibold mb-2 flex items-center gap-2">
+                <span className="text-xl">🩺</span>
+                En consultation
+              </h2>
+              <div className="flex items-center justify-between">
+                <p className="text-green-700">
+                  Patient n°{queue.find(t => t.status === "en_consultation").number}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="text-sm text-green-600">En cours</span>
+                </div>
+              </div>
+            </div>
+          )}
 
-              // ✅ Alerte son + vibration une seule fois
-              if (isUserTurn && !hasAlerted.current) {
-                hasAlerted.current = true;
-                const audio = new Audio("/notify.mp3");
-                audio.play().catch(() => {});
-                if ("vibrate" in navigator) {
-                  navigator.vibrate([300, 100, 300]);
+          {/* File d'attente */}
+          {queue.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="text-4xl mb-3">🎯</div>
+              <p className="text-gray-600">Aucun patient dans la file d'attente</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {queue.map((t, index) => {
+                const remainingMs = getCumulativeDelay(index);
+                const targetTime = new Date(t.createdAt).getTime() + remainingMs;
+                const timeLeftMs = targetTime - currentTime;
+                const minutes = Math.floor(timeLeftMs / 60000);
+                const seconds = Math.floor((timeLeftMs % 60000) / 1000);
+
+                // Déterminer le style en fonction du statut
+                let cardStyle = "";
+                let statusBadge = "";
+                let timeDisplay = "";
+
+                switch (t.status) {
+                  case "en_consultation":
+                    cardStyle = "bg-green-50 border-green-200";
+                    statusBadge = "bg-green-100 text-green-700";
+                    timeDisplay = "En consultation";
+                    break;
+                  case "termine":
+                    cardStyle = "bg-gray-50 border-gray-200";
+                    statusBadge = "bg-gray-100 text-gray-700";
+                    timeDisplay = "Terminé";
+                    break;
+                  case "desiste":
+                    cardStyle = "bg-red-50 border-red-200";
+                    statusBadge = "bg-red-100 text-red-700";
+                    timeDisplay = "Désisté";
+                    break;
+                  default:
+                    cardStyle = t._id === myId ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-200";
+                    statusBadge = "bg-blue-100 text-blue-700";
+                    timeDisplay = formatWaitingTime(minutes, seconds);
                 }
-              }
 
-              const minutes = Math.floor(timeLeftMs / 60000);
-              const seconds = Math.floor((timeLeftMs % 60000) / 1000);
-              const displayTime = isUserTurn ? (
-                <span className="animate-blink font-semibold text-black text-sm sm:text-base">
-                  Bientôt votre tour
-                </span>
-              ) : (
-                `${minutes} min ${seconds.toString().padStart(2, "0")} s`
-              );
+                // Alerte sonore pour le patient actuel
+                const isUserTurn = t._id === myId && timeLeftMs <= 0 && t.status === "en_attente";
+                if (isUserTurn && !hasAlerted.current) {
+                  hasAlerted.current = true;
+                  playNotificationSound();
+                }
 
-              let statusDisplay;
-              if (t.status === "desiste") {
-                statusDisplay = (
-                  <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
-                    Désisté
-                  </span>
-                );
-              } else if (index === 0) {
-                statusDisplay = (
-                  <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
-                    En consultation
-                  </span>
-                );
-              } else {
-                statusDisplay = (
-                  <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">
-                    En attente
-                  </span>
-                );
-              }
-
-              return (
-                <li
-                  key={t._id}
-                  className={`p-3 sm:p-4 rounded-lg shadow-sm ${
-                    t._id === myId ? "bg-yellow-100 font-semibold" : "bg-white"
-                  } transition-all duration-300 ease-in-out`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                    <div className="flex items-center gap-2 text-sm sm:text-base">
-                      🎫 {t.number} • {statusDisplay}{" "}
-                      {t._id === myId && <span className="text-black font-semibold">(vous)</span>}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-500">
-                      ⏳ {displayTime}
+                return (
+                  <div
+                    key={t._id}
+                    className={`p-4 rounded-xl border transition-all duration-300 ${cardStyle} ${
+                      t._id === myId ? "shadow-md" : "shadow-sm"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🎫</span>
+                          <span className="font-semibold">N°{t.number}</span>
+                          {t._id === myId && (
+                            <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
+                              Vous
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${statusBadge}`}>
+                          {t.status === "en_attente" ? `Position ${
+                            queue.filter(qt => qt.status === "en_attente").findIndex(qt => qt._id === t._id) + 1
+                          }` : timeDisplay}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-sm">
+                        <div className="text-gray-500">
+                          Arrivée : {new Date(t.createdAt).toLocaleTimeString()}
+                        </div>
+                        {t.status === "en_attente" && (
+                          <div className={`flex items-center gap-2 ${
+                            minutes <= 5 ? "text-orange-600" : "text-blue-600"
+                          }`}>
+                            <span className="w-2 h-2 rounded-full animate-pulse bg-current"></span>
+                            {timeDisplay}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                );
+              })}
+            </div>
+          )}
 
-        {/* Bouton admin discret en bas à droite */}
-        <div className="fixed bottom-16 sm:bottom-20 right-4 z-50">
-          <a
-            href="/admin-login"
-            className="bg-blue-600 text-white text-xs px-3 py-2 rounded-full shadow hover:bg-blue-700 transition"
-            title="Connexion admin"
-          >
-            Admin
-          </a>
+          {/* Bouton admin */}
+          <div className="fixed bottom-16 sm:bottom-20 right-4 z-50">
+            <a
+              href="/admin-login"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs px-4 py-2 rounded-full shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all transform hover:scale-105"
+              title="Connexion admin"
+            >
+              👨‍⚕️ Admin
+            </a>
+          </div>
+
+          {/* Notifications Toast */}
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              type={toast.type}
+              duration={toast.duration}
+              onClose={() => removeToast(toast.id)}
+            />
+          ))}
         </div>
-
-        {/* Affichage des notifications Toast */}
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={() => removeToast(toast.id)}
-          />
-        ))}
       </AnimatedPage>
     </Layout>
   );
