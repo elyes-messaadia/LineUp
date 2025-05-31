@@ -17,7 +17,8 @@
     "list:new-users": "node scripts/listNewUsers.js",
     "db:clean": "node scripts/migrateToNewStructure.js",
     "cleanup:users": "node scripts/cleanupUsers.js",
-    "update:roles": "node scripts/updateRoles.js"
+    "update:roles": "node scripts/updateRoles.js",
+    "fix:tickets": "node scripts/fixTickets.js"
   },
   "keywords": [],
   "author": "",

@@ -65,14 +65,77 @@ app.get('/health', (req, res) => {
 
 connectDB();
 
-// 🎫 Créer un ticket
+// 🎫 Créer un ticket (version améliorée)
 app.post("/ticket", async (req, res) => {
   try {
-    const count = await Ticket.countDocuments();
-    const ticket = new Ticket({ number: count + 1 });
-    await ticket.save();
+    // Générer un sessionId unique pour identifier l'utilisateur anonyme
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Capturer les métadonnées de la requête
+    const metadata = {
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.headers['user-agent'],
+      device: req.headers['sec-ch-ua-platform'] || 'unknown'
+    };
+
+    // Méthode robuste pour éviter les race conditions
+    let ticket;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (attempts < maxAttempts) {
+      try {
+        // Obtenir le prochain numéro de manière atomique
+        const lastTicket = await Ticket.findOne().sort({ number: -1 });
+        const nextNumber = lastTicket ? lastTicket.number + 1 : 1;
+        
+        ticket = new Ticket({ 
+          number: nextNumber,
+          sessionId: sessionId,
+          userId: req.body.userId || null,
+          metadata: metadata
+        });
+        
+        await ticket.save();
+        break; // Succès, sortir de la boucle
+        
+      } catch (error) {
+        if (error.code === 11000 && attempts < maxAttempts - 1) {
+          // Erreur de duplicata, réessayer
+          attempts++;
+          await new Promise(resolve => setTimeout(resolve, 100)); // Attendre 100ms
+          continue;
+        }
+        throw error; // Autre erreur, propager
+      }
+    }
+
+    if (!ticket) {
+      throw new Error("Impossible de créer le ticket après plusieurs tentatives");
+    }
+
+    console.log(`✅ Ticket n°${ticket.number} créé (Session: ${sessionId})`);
     res.status(201).json(ticket);
+    
   } catch (err) {
+    console.error("❌ Erreur création ticket:", err);
+    res.status(500).json({ 
+      message: "Erreur lors de la création du ticket",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// 🔍 Vérifier l'existence d'un ticket
+app.get("/ticket/:id", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket non trouvé" });
+    }
+    res.json(ticket);
+  } catch (err) {
+    console.error("❌ Erreur vérification ticket:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
