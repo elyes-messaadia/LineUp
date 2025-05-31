@@ -37,6 +37,30 @@ export default function Queue() {
       const hasChanges = JSON.stringify(data) !== JSON.stringify(prevQueue);
 
       if (hasChanges) {
+        // Vérifier les changements de statut
+        const statusChanges = data.filter((ticket, index) => {
+          const prevTicket = prevQueue[index];
+          return prevTicket && prevTicket.status !== ticket.status;
+        });
+
+        // Notifications pour les changements importants
+        statusChanges.forEach(ticket => {
+          if (ticket._id === myId) {
+            switch (ticket.status) {
+              case "en_consultation":
+                playNotificationSound();
+                showNotification("C'est votre tour !");
+                break;
+              case "termine":
+                showNotification("Votre consultation est terminée");
+                break;
+              case "desiste":
+                showNotification("Votre ticket a été annulé");
+                break;
+            }
+          }
+        });
+
         setQueue(data);
         lastQueueState.current = data;
         
@@ -51,7 +75,23 @@ export default function Queue() {
       console.error("Erreur lors de la récupération de la file:", err);
       setError("Impossible de charger la file d'attente");
     }
-  }, [estimations.length]);
+  }, [estimations.length, myId]);
+
+  // Fonction de notification sonore
+  const playNotificationSound = useCallback(() => {
+    const audio = new Audio("/notify.mp3");
+    audio.play().catch(() => {});
+    if ("vibrate" in navigator) {
+      navigator.vibrate([300, 100, 300]);
+    }
+  }, []);
+
+  // Fonction de notification visuelle
+  const showNotification = useCallback((message) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("LineUp", { body: message });
+    }
+  }, []);
 
   // 📥 Initialisation et mise à jour périodique
   useEffect(() => {
@@ -61,12 +101,17 @@ export default function Queue() {
       setMyId(parsed._id);
     }
 
+    // Demander la permission pour les notifications
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
     // Premier chargement
     fetchQueue();
     setIsLoading(false);
 
-    // Mise à jour toutes les 2 secondes
-    const interval = setInterval(fetchQueue, 2000);
+    // Mise à jour toutes les secondes
+    const interval = setInterval(fetchQueue, 1000);
     return () => clearInterval(interval);
   }, [fetchQueue]);
 

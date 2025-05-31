@@ -192,13 +192,31 @@ app.patch("/ticket/:id/resume", async (req, res) => {
 // 📣 Appeler le patient suivant
 app.delete("/next", async (req, res) => {
   try {
-    const next = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
-    if (next) {
-      next.status = "en_consultation";
-      await next.save();
-      res.json({ called: next });
+    // 1. Trouver le ticket en consultation actuel s'il existe
+    const currentTicket = await Ticket.findOne({ status: "en_consultation" });
+    if (currentTicket) {
+      // Marquer le ticket actuel comme terminé
+      currentTicket.status = "termine";
+      await currentTicket.save();
+    }
+
+    // 2. Trouver et appeler le prochain patient
+    const nextTicket = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
+    if (nextTicket) {
+      nextTicket.status = "en_consultation";
+      await nextTicket.save();
+      
+      // Envoyer les deux tickets mis à jour
+      res.json({ 
+        previous: currentTicket,
+        called: nextTicket,
+        message: "Patient suivant appelé avec succès"
+      });
     } else {
-      res.status(404).json({ message: "Aucun ticket à appeler" });
+      res.status(404).json({ 
+        previous: currentTicket,
+        message: "Aucun patient en attente" 
+      });
     }
   } catch (error) {
     console.error("Erreur lors de l'appel du prochain ticket:", error);
