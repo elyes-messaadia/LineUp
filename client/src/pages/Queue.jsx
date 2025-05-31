@@ -18,6 +18,7 @@ export default function Queue() {
   const [error, setError] = useState(null);
   const hasAlerted = useRef(false);
   const lastQueueState = useRef([]);
+  const nextInLineAlerted = useRef(false);
   const { toasts, showSuccess, showWarning, showError, removeToast } = useToast();
 
   // ⏱️ Mise à jour du temps en temps réel
@@ -36,6 +37,37 @@ export default function Queue() {
       navigator.vibrate([300, 100, 300]);
     }
   }, []);
+
+  // Fonction pour vérifier si un patient est le prochain
+  const checkNextInLine = useCallback((currentQueue) => {
+    if (!myId || currentQueue.length < 2) return;
+
+    // Trouver l'index du patient actuel
+    const currentPatientIndex = currentQueue.findIndex(t => t.status === "en_consultation");
+    
+    // Si un patient est en consultation
+    if (currentPatientIndex !== -1) {
+      // Trouver le prochain patient en attente
+      const nextPatient = currentQueue.find((t, index) => 
+        index > currentPatientIndex && t.status === "en_attente"
+      );
+
+      // Si c'est moi le prochain et que je n'ai pas encore été alerté
+      if (nextPatient && nextPatient._id === myId && !nextInLineAlerted.current) {
+        playNotificationSound();
+        showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 8000);
+        nextInLineAlerted.current = true;
+      }
+    } else {
+      // Si personne n'est en consultation, vérifier si je suis le premier en attente
+      const firstInLine = currentQueue.find(t => t.status === "en_attente");
+      if (firstInLine && firstInLine._id === myId && !nextInLineAlerted.current) {
+        playNotificationSound();
+        showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 8000);
+        nextInLineAlerted.current = true;
+      }
+    }
+  }, [myId, playNotificationSound, showWarning, showSuccess]);
 
   // 🔄 Fonction de récupération de la file d'attente
   const fetchQueue = useCallback(async () => {
@@ -62,6 +94,7 @@ export default function Queue() {
             if (ticket._id === myId) {
               playNotificationSound();
               showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
+              nextInLineAlerted.current = false; // Reset pour la prochaine fois
             } else {
               // Notification pour les autres patients
               showWarning(`Patient n°${ticket.number} appelé`, 5000);
@@ -74,9 +107,11 @@ export default function Queue() {
               switch (ticket.status) {
                 case "termine":
                   showSuccess("✅ Votre consultation est terminée", 5000);
+                  nextInLineAlerted.current = false; // Reset pour la prochaine fois
                   break;
                 case "desiste":
                   showError("❌ Votre ticket a été annulé", 5000);
+                  nextInLineAlerted.current = false; // Reset pour la prochaine fois
                   break;
               }
             }
@@ -85,6 +120,9 @@ export default function Queue() {
 
         setQueue(data);
         lastQueueState.current = data;
+        
+        // Vérifier si le patient est le prochain
+        checkNextInLine(data);
         
         // Mettre à jour les estimations uniquement si nécessaire
         if (data.length !== estimations.length) {
@@ -97,7 +135,7 @@ export default function Queue() {
       console.error("Erreur lors de la récupération de la file:", err);
       setError("Impossible de charger la file d'attente");
     }
-  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError]);
+  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, checkNextInLine]);
 
   // 📥 Initialisation et mise à jour périodique
   useEffect(() => {
@@ -194,7 +232,7 @@ export default function Queue() {
               const seconds = Math.floor((timeLeftMs % 60000) / 1000);
               const displayTime = isUserTurn ? (
                 <span className="animate-blink font-semibold text-black text-sm sm:text-base">
-                  À vous bientôt
+                  Bientôt votre tour
                 </span>
               ) : (
                 `${minutes} min ${seconds.toString().padStart(2, "0")} s`
