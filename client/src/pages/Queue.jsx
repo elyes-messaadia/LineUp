@@ -100,7 +100,7 @@ export default function Queue() {
                   if ("Notification" in window && Notification.permission === "granted") {
                     new Notification("C'est votre tour !", {
                       body: "Veuillez vous présenter au cabinet médical",
-                      icon: "/favicon.ico"
+                      icon: "/icon-192x192.png"
                     });
                   }
                 } else {
