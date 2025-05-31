@@ -37,11 +37,11 @@ export default function MedecinDashboard() {
     fetchQueue();
     fetchStats();
 
-    // Actualiser toutes les 3 secondes
+    // Actualiser toutes les secondes
     const interval = setInterval(() => {
       fetchQueue();
       fetchStats();
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [navigate]);
@@ -96,6 +96,12 @@ export default function MedecinDashboard() {
     setShowCallModal(true);
   };
 
+  // Fonction pour jouer le son de notification
+  const playNotificationSound = () => {
+    const audio = new Audio("/notify.mp3");
+    audio.play().catch(() => {});
+  };
+
   const confirmCallNext = async () => {
     setShowCallModal(false);
     setIsLoading(true);
@@ -115,6 +121,7 @@ export default function MedecinDashboard() {
       }
 
       const data = await res.json();
+      playNotificationSound(); // Jouer le son quand on appelle un patient
       showSuccess(`Patient n°${data.called.number} appelé en consultation !`, 4000);
       fetchQueue();
 

@@ -82,8 +82,8 @@ export default function Queue() {
 
       if (hasChanges) {
         // Vérifier les changements de statut
-        data.forEach((ticket, index) => {
-          const prevTicket = prevQueue[index];
+        data.forEach((ticket) => {
+          const prevTicket = prevQueue.find(t => t._id === ticket._id);
           
           // Si le ticket est passé à "en_consultation"
           if (prevTicket && 
@@ -92,7 +92,22 @@ export default function Queue() {
             
             // Notification pour le patient appelé
             if (ticket._id === myId) {
+              // Jouer le son de notification
               playNotificationSound();
+              
+              // Vibrer si possible
+              if ("vibrate" in navigator) {
+                navigator.vibrate([300, 100, 300]);
+              }
+              
+              // Afficher une notification système si autorisé
+              if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("C'est votre tour !", {
+                  body: "Veuillez vous présenter au cabinet médical",
+                  icon: "/favicon.ico"
+                });
+              }
+              
               showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
               nextInLineAlerted.current = false; // Reset pour la prochaine fois
             } else {
@@ -106,6 +121,7 @@ export default function Queue() {
             if (prevTicket && prevTicket.status !== ticket.status) {
               switch (ticket.status) {
                 case "termine":
+                  playNotificationSound();
                   showSuccess("✅ Votre consultation est terminée", 5000);
                   nextInLineAlerted.current = false; // Reset pour la prochaine fois
                   break;
