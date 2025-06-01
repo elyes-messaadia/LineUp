@@ -1,1 +1,19 @@
 /*  /index.html  200
+
+# Redirection SPA
+/*  /index.html  200
+
+# Force HTTPS
+http://*  https://:splat  301!
+
+# Redirection des anciennes URLs vers les nouvelles
+/file-attente  /queue  301
+/mon-ticket    /ticket 301
+
+# Gestion des erreurs
+/404.html  /index.html  404
+/500.html  /index.html  500
+
+# Cache-Control pour les assets statiques
+/assets/*  /assets/:splat  200
+/static/*  /static/:splat  200

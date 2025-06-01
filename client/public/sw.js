@@ -1,11 +1,12 @@
-const CACHE_NAME = 'lineup-v1';
+const CACHE_NAME = 'lineup-cache-v1';
+const OFFLINE_URL = '/offline.html';
+
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/notify.mp3',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/assets/icon.png',
+  '/assets/notify.mp3'
 ];
 
 // Installation du Service Worker
@@ -13,6 +14,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
+        console.log('Cache ouvert');
         return cache.addAll(urlsToCache);
       })
   );
@@ -33,34 +35,48 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Interception des requêtes
+// Interception des requêtes avec stratégie "Network First"
 self.addEventListener('fetch', (event) => {
+  // Ne pas intercepter les requêtes vers l'API
+  if (event.request.url.includes('/api/') || event.request.url.includes('lineup-backend')) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
+        // Vérifier si la réponse est valide
+        if (!response || response.status === 404 || response.type !== 'basic') {
           return response;
         }
 
-        return fetch(event.request).then(
-          (response) => {
-            // Vérifier si la réponse est valide
-            if(!response || response.status !== 200 || response.type !== 'basic') {
+        // Cloner la réponse
+        const responseToCache = response.clone();
+
+        // Mettre en cache la réponse valide
+        caches.open(CACHE_NAME)
+          .then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+        return response;
+      })
+      .catch(() => {
+        // En cas d'erreur réseau, essayer le cache
+        return caches.match(event.request)
+          .then((response) => {
+            if (response) {
               return response;
             }
-
-            // Cloner la réponse
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
+            // Si pas en cache, retourner la page hors-ligne
+            if (event.request.mode === 'navigate') {
+              return caches.match(OFFLINE_URL);
+            }
+            return new Response('', {
+              status: 408,
+              statusText: 'Request timed out.'
+            });
+          });
       })
   );
 }); 

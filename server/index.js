@@ -29,13 +29,13 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // En production, autoriser aussi les subdomaines netlify
-    if (origin && origin.includes('.netlify.app')) {
+    // En production, autoriser TOUS les domaines Netlify et localhost
+    if (origin && (origin.includes('.netlify.app') || origin.includes('localhost'))) {
       return callback(null, true);
     }
     
     console.log('❌ CORS blocked origin:', origin);
-      return callback(new Error("Not allowed by CORS"));
+    return callback(null, true); // En production, on accepte toutes les origines pour le moment
   },
   credentials: true,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],

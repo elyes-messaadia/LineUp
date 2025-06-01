@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -20,7 +21,7 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/assets/icon.png',
+            src: '/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
@@ -32,6 +33,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -39,5 +41,15 @@ export default defineConfig({
         }
       }
     }
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+    host: true
+  },
+  preview: {
+    port: 5173,
+    strictPort: true,
+    host: true
   }
 });
