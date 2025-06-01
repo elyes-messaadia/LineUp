@@ -66,7 +66,11 @@ export default function Home() {
       }
 
       const data = await res.json();
-      localStorage.setItem("lineup_ticket", JSON.stringify(data));
+      // S'assurer que le sessionId est inclus dans les données stockées
+      localStorage.setItem("lineup_ticket", JSON.stringify({
+        ...data,
+        isAnonymous: true // Marquer le ticket comme anonyme
+      }));
       
       showSuccess(`Ticket n°${data.number} créé avec succès !`, 4000);
       

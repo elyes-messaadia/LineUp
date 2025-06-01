@@ -117,6 +117,36 @@ export default function Queue() {
     }
   }, [myId, playNotificationSound, showWarning, showSuccess]);
 
+  // 📥 Initialisation et mise à jour périodique
+  useEffect(() => {
+    // Récupérer l'ID du ticket depuis le localStorage
+    const ticket = localStorage.getItem("lineup_ticket");
+    if (ticket) {
+      const parsed = JSON.parse(ticket);
+      // Pour les tickets anonymes, utiliser le sessionId comme identifiant
+      setMyId(parsed.userId || parsed.sessionId);
+    }
+
+    // Demander la permission pour les notifications dès le chargement
+    if ("Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+      // Redemander la permission si elle a été refusée
+      else if (Notification.permission === "denied") {
+        showWarning("Activez les notifications pour être alerté quand c'est votre tour", 10000);
+      }
+    }
+
+    // Premier chargement
+    fetchQueue();
+    setIsLoading(false);
+
+    // Mise à jour toutes les 500ms pour plus de réactivité
+    const interval = setInterval(fetchQueue, 500);
+    return () => clearInterval(interval);
+  }, [fetchQueue]);
+
   // 🔄 Fonction de récupération de la file d'attente
   const fetchQueue = useCallback(async () => {
     try {
@@ -135,13 +165,20 @@ export default function Queue() {
         // Vérifier les changements de statut uniquement si nous avons un état précédent
         if (prevQueue.length > 0) {
           data.forEach((ticket) => {
-            const prevTicket = prevQueue.find(t => t._id === ticket._id);
+            const prevTicket = prevQueue.find(t => 
+              // Comparer soit par userId soit par sessionId pour les tickets anonymes
+              t._id === ticket._id || 
+              (t.sessionId && t.sessionId === ticket.sessionId)
+            );
             
             if (prevTicket && prevTicket.status !== ticket.status) {
+              // Vérifier si c'est mon ticket (connecté ou anonyme)
+              const isMyTicket = ticket._id === myId || ticket.sessionId === myId;
+
               // Notification pour changement de statut
               switch (ticket.status) {
                 case "en_consultation":
-                  if (ticket._id === myId) {
+                  if (isMyTicket) {
                     // Jouer le son plusieurs fois pour être sûr qu'il soit entendu
                     playNotificationSound();
                     setTimeout(playNotificationSound, 1500);
@@ -161,14 +198,16 @@ export default function Queue() {
                   break;
                   
                 case "termine":
-                  if (ticket._id === myId) {
+                  if (isMyTicket) {
                     playNotificationSound();
                     showSuccess("✅ Votre consultation est terminée", 8000);
+                    // Supprimer le ticket du localStorage une fois terminé
+                    localStorage.removeItem("lineup_ticket");
                   } else {
                     showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
                     // Vérifier si je suis le prochain
                     const nextPatient = data.find(t => t.status === "en_attente");
-                    if (nextPatient && nextPatient._id === myId) {
+                    if (nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId)) {
                       playNotificationSound();
                       showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
                     }
@@ -176,15 +215,17 @@ export default function Queue() {
                   break;
                   
                 case "desiste":
-                  if (ticket._id === myId) {
+                  if (isMyTicket) {
                     playNotificationSound();
                     showError("❌ Votre ticket a été annulé", 8000);
+                    // Supprimer le ticket du localStorage une fois annulé
+                    localStorage.removeItem("lineup_ticket");
                   }
                   break;
               }
               
               // Reset les alertes après un changement de statut
-              if (ticket._id === myId) {
+              if (isMyTicket) {
                 nextInLineAlerted.current = false;
                 hasAlerted.current = false;
               }
@@ -209,34 +250,6 @@ export default function Queue() {
       setError("Impossible de charger la file d'attente");
     }
   }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine]);
-
-  // 📥 Initialisation et mise à jour périodique
-  useEffect(() => {
-    const ticket = localStorage.getItem("lineup_ticket");
-    if (ticket) {
-      const parsed = JSON.parse(ticket);
-      setMyId(parsed._id);
-    }
-
-    // Demander la permission pour les notifications dès le chargement
-    if ("Notification" in window) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-      // Redemander la permission si elle a été refusée
-      else if (Notification.permission === "denied") {
-        showWarning("Activez les notifications pour être alerté quand c'est votre tour", 10000);
-      }
-    }
-
-    // Premier chargement
-    fetchQueue();
-    setIsLoading(false);
-
-    // Mise à jour toutes les 500ms pour plus de réactivité
-    const interval = setInterval(fetchQueue, 500);
-    return () => clearInterval(interval);
-  }, [fetchQueue]);
 
   // Reset l'alerte si la queue change
   useEffect(() => {
