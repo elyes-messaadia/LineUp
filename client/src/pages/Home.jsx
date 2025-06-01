@@ -53,6 +53,11 @@ export default function Home() {
   };
 
   const confirmTakeTicket = async () => {
+    if (!selectedDoctor) {
+      showError("Veuillez sélectionner un docteur");
+      return;
+    }
+
     setShowTicketModal(false);
     setIsLoading(true);
 
@@ -62,6 +67,7 @@ export default function Home() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ docteur: selectedDoctor })
       });
 
       if (!res.ok) {
@@ -319,7 +325,28 @@ export default function Home() {
           <ConfirmModal
             isOpen={showTicketModal}
             title="Prendre un ticket anonyme"
-            message="Voulez-vous prendre un ticket en mode anonyme ? Pour une meilleure expérience, nous recommandons de créer un compte."
+            message={
+              <div>
+                <p className="mb-4">Pour une meilleure expérience, nous recommandons de créer un compte.</p>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Choisissez un docteur :
+                  </label>
+                  <select
+                    value={selectedDoctor || ""}
+                    onChange={(e) => setSelectedDoctor(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Sélectionnez un docteur</option>
+                    {DOCTEURS.map((docteur) => (
+                      <option key={docteur} value={docteur}>
+                        {docteur}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            }
             confirmText="Oui, continuer en anonyme"
             cancelText="Créer un compte"
             type="info"
