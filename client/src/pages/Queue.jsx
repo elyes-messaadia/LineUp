@@ -7,13 +7,9 @@ import { useToast } from "../hooks/useToast";
 // Constantes
 const API_URL = import.meta.env.VITE_API_URL;
 const POLL_INTERVAL = 2000;
-
 const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
 
 // Utilitaires
-const generateRandomEstimation = (min = 10, max = 20) => 
-  Math.floor(Math.random() * (max - min + 1)) + min;
-
 const formatWaitingTime = (minutes, seconds) => {
   if (minutes < 0 || seconds < 0) return "Bientôt votre tour";
   if (minutes === 0) return `${seconds} secondes`;
@@ -21,21 +17,52 @@ const formatWaitingTime = (minutes, seconds) => {
   return `${minutes} minutes`;
 };
 
-// Composant pour la file d'attente d'un docteur
-const DoctorQueue = ({ tickets, currentTime, myId, onNotification }) => {
-  const getQueueStats = useCallback(() => {
-    return {
-      waiting: tickets.filter(t => t.status === "en_attente").length,
-      inConsultation: tickets.filter(t => t.status === "en_consultation").length,
-      finished: tickets.filter(t => t.status === "termine").length
-    };
-  }, [tickets]);
+// Hook personnalisé pour la gestion des notifications
+const useNotifications = () => {
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audio = new Audio("/notify.mp3");
+      audio.volume = 1.0;
+      audio.play().catch(console.warn);
+    } catch (error) {
+      console.warn('Erreur audio:', error);
+    }
+  }, []);
 
-  const stats = getQueueStats();
+  const showSystemNotification = useCallback((title, body) => {
+    if (!("Notification" in window)) return;
+    
+    const showNotif = () => {
+      new Notification(title, {
+        body,
+        icon: "/icon-192x192.png",
+        badge: "/icon-192x192.png",
+        vibrate: [300, 100, 300]
+      });
+    };
+
+    if (Notification.permission === "granted") {
+      showNotif();
+    } else if (Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") showNotif();
+      });
+    }
+  }, []);
+
+  return { playNotificationSound, showSystemNotification };
+};
+
+// Composant pour la file d'attente d'un docteur
+const DoctorQueue = React.memo(({ tickets, currentTime, myId, onNotification }) => {
+  const stats = {
+    waiting: tickets.filter(t => t.status === "en_attente").length,
+    inConsultation: tickets.filter(t => t.status === "en_consultation").length,
+    finished: tickets.filter(t => t.status === "termine").length
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-      {/* En-tête avec statistiques */}
       <div className="mb-6 grid grid-cols-3 gap-4">
         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
           <h3 className="text-blue-800 font-semibold mb-1">En attente</h3>
@@ -51,99 +78,73 @@ const DoctorQueue = ({ tickets, currentTime, myId, onNotification }) => {
         </div>
       </div>
 
-      {/* Patient en cours */}
-      {tickets.find(t => t.status === "en_consultation") && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-          <h2 className="text-green-800 font-semibold mb-2 flex items-center gap-2">
-            <span className="text-xl">🩺</span>
-            En consultation
-          </h2>
-          <div className="flex items-center justify-between">
-            <p className="text-green-700">
-              Patient n°{tickets.find(t => t.status === "en_consultation").number}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-sm text-green-600">En cours</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {tickets.map((ticket) => {
+        const isMyTicket = ticket._id === myId;
+        let cardStyle = "";
+        let statusBadge = "";
+        let timeDisplay = "";
 
-      {/* Liste des tickets */}
-      <div className="space-y-3">
-        {tickets.map((ticket, index) => {
-          const isMyTicket = ticket._id === myId || ticket.sessionId === myId;
-          let cardStyle = "";
-          let statusBadge = "";
-          let timeDisplay = "";
+        switch (ticket.status) {
+          case "en_consultation":
+            cardStyle = "bg-green-50 border-green-200";
+            statusBadge = "bg-green-100 text-green-700";
+            timeDisplay = "En consultation";
+            break;
+          case "termine":
+            cardStyle = "bg-gray-50 border-gray-200";
+            statusBadge = "bg-gray-100 text-gray-700";
+            timeDisplay = "Terminé";
+            break;
+          case "desiste":
+            cardStyle = "bg-red-50 border-red-200";
+            statusBadge = "bg-red-100 text-red-700";
+            timeDisplay = "Désisté";
+            break;
+          default:
+            cardStyle = isMyTicket ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-200";
+            statusBadge = "bg-blue-100 text-blue-700";
+            const position = tickets.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1;
+            timeDisplay = `Position ${position}`;
+        }
 
-          switch (ticket.status) {
-            case "en_consultation":
-              cardStyle = "bg-green-50 border-green-200";
-              statusBadge = "bg-green-100 text-green-700";
-              timeDisplay = "En consultation";
-              break;
-            case "termine":
-              cardStyle = "bg-gray-50 border-gray-200";
-              statusBadge = "bg-gray-100 text-gray-700";
-              timeDisplay = "Terminé";
-              break;
-            case "desiste":
-              cardStyle = "bg-red-50 border-red-200";
-              statusBadge = "bg-red-100 text-red-700";
-              timeDisplay = "Désisté";
-              break;
-            default:
-              cardStyle = isMyTicket ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-200";
-              statusBadge = "bg-blue-100 text-blue-700";
-              const position = tickets.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1;
-              timeDisplay = `Position ${position}`;
-          }
-
-          return (
-            <div
-              key={ticket._id}
-              className={`p-4 rounded-xl border ${cardStyle} ${isMyTicket ? "shadow-md" : "shadow-sm"}`}
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🎫</span>
-                  <span className="font-semibold">N°{ticket.number}</span>
-                  {isMyTicket && (
-                    <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
-                      Vous
-                    </span>
-                  )}
-                  <span className={`text-xs px-2 py-1 rounded-full ${statusBadge}`}>
-                    {timeDisplay}
+        return (
+          <div
+            key={ticket._id}
+            className={`p-4 rounded-xl border ${cardStyle} ${isMyTicket ? "shadow-md" : "shadow-sm"} mb-3`}
+          >
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🎫</span>
+                <span className="font-semibold">N°{ticket.number}</span>
+                {isMyTicket && (
+                  <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
+                    Vous
                   </span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(ticket.createdAt).toLocaleTimeString()}
-                </div>
+                )}
+                <span className={`text-xs px-2 py-1 rounded-full ${statusBadge}`}>
+                  {timeDisplay}
+                </span>
+              </div>
+              <div className="text-sm text-gray-500">
+                {new Date(ticket.createdAt).toLocaleTimeString()}
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
-};
+});
 
 // Composant principal
 const Queue = () => {
   const [state, setState] = useState({
-    queues: {
-      'Docteur 1': [],
-      'Docteur 2': [],
-      'Docteur 3': []
-    },
+    queues: Object.fromEntries(DOCTEURS.map(d => [d, []])),
     myId: null,
     currentTime: Date.now(),
     isLoading: true,
     error: null,
-    selectedDoctor: null // Pour les secrétaires qui peuvent choisir un docteur
+    selectedDoctor: null
   });
 
   const refs = {
@@ -152,26 +153,9 @@ const Queue = () => {
   };
 
   const toast = useToast();
+  const { playNotificationSound, showSystemNotification } = useNotifications();
   const isSecretary = true; // À remplacer par la vraie logique d'authentification
 
-  // Gestionnaires d'événements
-  const handleNotification = useCallback((type, message, duration = 5000) => {
-    switch (type) {
-      case 'success':
-        toast.showSuccess(message, duration);
-        break;
-      case 'warning':
-        toast.showWarning(message, duration);
-        break;
-      case 'error':
-        toast.showError(message, duration);
-        break;
-      default:
-        toast.showInfo(message, duration);
-    }
-  }, [toast]);
-
-  // Effet pour la mise à jour périodique
   useEffect(() => {
     const fetchQueues = async () => {
       try {
@@ -207,7 +191,7 @@ const Queue = () => {
             ...prev,
             error: "Impossible de charger les files d'attente. Veuillez rafraîchir la page."
           }));
-          handleNotification('error', "Erreur de connexion au serveur. Veuillez rafraîchir la page.", 0);
+          toast.showError("Erreur de connexion au serveur. Veuillez rafraîchir la page.", 0);
         }
       }
     };
@@ -240,9 +224,8 @@ const Queue = () => {
       clearInterval(refs.pollInterval.current);
       clearInterval(timeInterval);
     };
-  }, [handleNotification]);
+  }, [toast]);
 
-  // Rendu conditionnel pour chargement et erreurs
   if (state.isLoading) {
     return (
       <Layout>
@@ -272,7 +255,6 @@ const Queue = () => {
     <Layout>
       <AnimatedPage>
         <div className="max-w-7xl mx-auto px-4">
-          {/* Sélecteur de docteur pour les secrétaires */}
           {isSecretary && (
             <div className="mb-8">
               <div className="flex gap-4">
@@ -301,7 +283,6 @@ const Queue = () => {
             </div>
           )}
 
-          {/* Files d'attente */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {(state.selectedDoctor ? [state.selectedDoctor] : DOCTEURS).map(docteur => (
               <div key={docteur} className="col-span-1">
@@ -310,13 +291,12 @@ const Queue = () => {
                   tickets={state.queues[docteur]}
                   currentTime={state.currentTime}
                   myId={state.myId}
-                  onNotification={handleNotification}
+                  onNotification={toast.showSuccess}
                 />
               </div>
             ))}
           </div>
 
-          {/* Notifications Toast */}
           {toast.toasts.map((t) => (
             <Toast
               key={t.id}
