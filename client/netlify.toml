@@ -4,4 +4,5 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_URL = "https://lineup-backend-xxak.onrender.com" 
+  VITE_API_URL = "https://lineup-backend-xxak.onrender.com"
+  # Force rebuild 2025-01-27 
