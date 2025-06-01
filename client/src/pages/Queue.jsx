@@ -31,13 +31,58 @@ export default function Queue() {
 
   // Fonction de notification sonore
   const playNotificationSound = useCallback(() => {
-    const audio = new Audio("/notify.mp3");
-    audio.volume = 1.0; // Volume maximum
-    audio.play().catch(() => {});
+    // Créer plusieurs instances audio pour éviter les problèmes de lecture simultanée
+    const audioPool = [
+      new Audio("/notify.mp3"),
+      new Audio("/notify.mp3"),
+      new Audio("/notify.mp3")
+    ];
+
+    // Trouver une instance audio disponible
+    const availableAudio = audioPool.find(audio => audio.paused);
+    if (availableAudio) {
+      availableAudio.volume = 1.0;
+      availableAudio.play().catch(() => {
+        // Fallback : essayer de jouer le son après une interaction utilisateur
+        document.addEventListener('click', () => {
+          availableAudio.play().catch(() => {});
+        }, { once: true });
+      });
+    }
     
-    // Vibration
+    // Vibration sur les appareils mobiles
     if ("vibrate" in navigator) {
-      navigator.vibrate([300, 100, 300]);
+      navigator.vibrate([300, 100, 300, 100, 300]);
+    }
+  }, []);
+
+  // Fonction pour envoyer une notification système
+  const sendSystemNotification = useCallback((title, body) => {
+    if (!("Notification" in window)) return;
+
+    // Si la permission n'est pas accordée, la demander
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          new Notification(title, {
+            body,
+            icon: "/icon-192x192.png",
+            badge: "/icon-192x192.png",
+            vibrate: [300, 100, 300, 100, 300],
+            requireInteraction: true // La notification reste jusqu'à ce que l'utilisateur interagisse avec
+          });
+        }
+      });
+    } 
+    // Si la permission est déjà accordée
+    else if (Notification.permission === "granted") {
+      new Notification(title, {
+        body,
+        icon: "/icon-192x192.png",
+        badge: "/icon-192x192.png",
+        vibrate: [300, 100, 300, 100, 300],
+        requireInteraction: true
+      });
     }
   }, []);
 
@@ -97,16 +142,17 @@ export default function Queue() {
               switch (ticket.status) {
                 case "en_consultation":
                   if (ticket._id === myId) {
+                    // Jouer le son plusieurs fois pour être sûr qu'il soit entendu
                     playNotificationSound();
-                    showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
+                    setTimeout(playNotificationSound, 1500);
+                    
+                    showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 15000);
                     
                     // Notification système
-                    if ("Notification" in window && Notification.permission === "granted") {
-                      new Notification("C'est votre tour !", {
-                        body: "Veuillez vous présenter au cabinet médical",
-                        icon: "/icon-192x192.png"
-                      });
-                    }
+                    sendSystemNotification(
+                      "🏥 C'est votre tour !",
+                      "Veuillez vous présenter immédiatement au cabinet médical"
+                    );
                   } else {
                     // Notifier les autres patients
                     playNotificationSound();
@@ -172,9 +218,15 @@ export default function Queue() {
       setMyId(parsed._id);
     }
 
-    // Demander la permission pour les notifications
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
+    // Demander la permission pour les notifications dès le chargement
+    if ("Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+      // Redemander la permission si elle a été refusée
+      else if (Notification.permission === "denied") {
+        showWarning("Activez les notifications pour être alerté quand c'est votre tour", 10000);
+      }
     }
 
     // Premier chargement
