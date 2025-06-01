@@ -1,12 +1,16 @@
 [build]
-  base = "client/"
-  command = "rm -rf node_modules/.vite && rm -rf dist && npm ci && npm run build"
-  publish = "dist/"
+  base = "client"
+  publish = "dist"
+  command = "npm install && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_URL = "https://lineup-backend-xxak.onrender.com"
-  # Force rebuild 2025-01-27
+  VITE_API_URL = "https://[votre-nouveau-backend].onrender.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
