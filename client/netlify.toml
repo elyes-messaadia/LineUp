@@ -2,12 +2,12 @@
   # Répertoire de sortie après build
   publish = "dist"
   
-  # Commande de build
-  command = "npm run build"
+  # Commande de build avec installation des dépendances
+  command = "npm ci && npm run build"
 
   # Configuration de l'environnement
   [build.environment]
-    NODE_VERSION = "18"
+    NODE_VERSION = "20"
     NODE_ENV = "production"
     VITE_API_URL = "https://lineup-nby9.onrender.com"
 
