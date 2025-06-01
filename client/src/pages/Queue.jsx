@@ -19,7 +19,7 @@ export default function Queue() {
   const hasAlerted = useRef(false);
   const lastQueueState = useRef([]);
   const nextInLineAlerted = useRef(false);
-  const { toasts, showSuccess, showWarning, showError, removeToast } = useToast();
+  const { toasts, showSuccess, showWarning, showError, showInfo, removeToast } = useToast();
 
   // ⏱️ Mise à jour du temps en temps réel
   useEffect(() => {
@@ -79,84 +79,90 @@ export default function Queue() {
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
       const data = await res.json();
 
+      // Toujours mettre à jour l'état avec les nouvelles données
+      setQueue(data);
+
       // Comparer avec l'état précédent pour détecter les changements
       const prevQueue = lastQueueState.current;
       const hasChanges = JSON.stringify(data) !== JSON.stringify(prevQueue);
 
       if (hasChanges) {
-        // Vérifier les changements de statut
-        data.forEach((ticket) => {
-          const prevTicket = prevQueue.find(t => t._id === ticket._id);
-          
-          if (prevTicket && prevTicket.status !== ticket.status) {
-            // Notification pour changement de statut
-            switch (ticket.status) {
-              case "en_consultation":
-                if (ticket._id === myId) {
-                  playNotificationSound();
-                  showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
-                  
-                  // Notification système
-                  if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification("C'est votre tour !", {
-                      body: "Veuillez vous présenter au cabinet médical",
-                      icon: "/icon-192x192.png"
-                    });
-                  }
-                } else {
-                  // Notifier les autres patients
-                  playNotificationSound();
-                  showWarning(`Le patient n°${ticket.number} est appelé en consultation`, 8000);
-                }
-                break;
-                
-              case "termine":
-                if (ticket._id === myId) {
-                  playNotificationSound();
-                  showSuccess("✅ Votre consultation est terminée", 8000);
-                } else {
-                  showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
-                  // Vérifier si je suis le prochain
-                  const nextPatient = data.find(t => t.status === "en_attente");
-                  if (nextPatient && nextPatient._id === myId) {
-                    playNotificationSound();
-                    showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
-                  }
-                }
-                break;
-                
-              case "desiste":
-                if (ticket._id === myId) {
-                  playNotificationSound();
-                  showError("❌ Votre ticket a été annulé", 8000);
-                }
-                break;
-            }
+        // Vérifier les changements de statut uniquement si nous avons un état précédent
+        if (prevQueue.length > 0) {
+          data.forEach((ticket) => {
+            const prevTicket = prevQueue.find(t => t._id === ticket._id);
             
-            // Reset les alertes après un changement de statut
-            if (ticket._id === myId) {
-              nextInLineAlerted.current = false;
-              hasAlerted.current = false;
+            if (prevTicket && prevTicket.status !== ticket.status) {
+              // Notification pour changement de statut
+              switch (ticket.status) {
+                case "en_consultation":
+                  if (ticket._id === myId) {
+                    playNotificationSound();
+                    showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 10000);
+                    
+                    // Notification système
+                    if ("Notification" in window && Notification.permission === "granted") {
+                      new Notification("C'est votre tour !", {
+                        body: "Veuillez vous présenter au cabinet médical",
+                        icon: "/icon-192x192.png"
+                      });
+                    }
+                  } else {
+                    // Notifier les autres patients
+                    playNotificationSound();
+                    showWarning(`Le patient n°${ticket.number} est appelé en consultation`, 8000);
+                  }
+                  break;
+                  
+                case "termine":
+                  if (ticket._id === myId) {
+                    playNotificationSound();
+                    showSuccess("✅ Votre consultation est terminée", 8000);
+                  } else {
+                    showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
+                    // Vérifier si je suis le prochain
+                    const nextPatient = data.find(t => t.status === "en_attente");
+                    if (nextPatient && nextPatient._id === myId) {
+                      playNotificationSound();
+                      showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
+                    }
+                  }
+                  break;
+                  
+                case "desiste":
+                  if (ticket._id === myId) {
+                    playNotificationSound();
+                    showError("❌ Votre ticket a été annulé", 8000);
+                  }
+                  break;
+              }
+              
+              // Reset les alertes après un changement de statut
+              if (ticket._id === myId) {
+                nextInLineAlerted.current = false;
+                hasAlerted.current = false;
+              }
             }
-          }
-        });
+          });
+        }
 
-        setQueue(data);
-        lastQueueState.current = data;
-        checkNextInLine(data);
-        
-        // Mettre à jour les estimations
+        // Mettre à jour les estimations si nécessaire
         if (data.length !== estimations.length) {
           setEstimations(data.map(() => generateRandomEstimation(10, 20)));
         }
+
+        // Vérifier si je suis le prochain
+        checkNextInLine(data);
       }
 
+      // Toujours mettre à jour l'état précédent
+      lastQueueState.current = data;
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la récupération de la file:", err);
       setError("Impossible de charger la file d'attente");
     }
-  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, checkNextInLine]);
+  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine]);
 
   // 📥 Initialisation et mise à jour périodique
   useEffect(() => {
