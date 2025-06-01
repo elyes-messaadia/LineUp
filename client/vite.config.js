@@ -5,10 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      // Désactiver le fast refresh en production
-      fastRefresh: process.env.NODE_ENV !== 'production',
-    }),
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['assets/icon.png'],
@@ -36,26 +33,22 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: false, // Désactiver les sourcemaps en production
-    minify: 'terser', // Utiliser terser pour la minification
-    terserOptions: {
-      compress: {
-        drop_console: true, // Supprimer les console.log en production
-        drop_debugger: true
-      }
-    },
+    sourcemap: process.env.MODE === 'development',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'router': ['react-router-dom'],
-          'utils': ['@heroicons/react', 'classnames']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('framer-motion')) return 'vendor-framer';
+            return 'vendor';
+          }
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom']
+    include: ['react', 'react-dom', 'react-router-dom', 'classnames', 'framer-motion']
   },
   server: {
     port: 5173,
