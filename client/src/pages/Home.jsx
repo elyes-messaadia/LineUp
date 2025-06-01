@@ -7,6 +7,7 @@ import Title from "../components/Title";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../hooks/useToast";
+import BACKEND_URL from "../config/api";
 
 const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
 
@@ -65,7 +66,9 @@ export default function Home() {
     try {
       showInfo("Création de votre ticket en cours...");
       
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket`, {
+      console.log('🎯 Using API URL:', BACKEND_URL);
+      
+      const res = await fetch(`${BACKEND_URL}/ticket`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ docteur: selectedDoctor })
