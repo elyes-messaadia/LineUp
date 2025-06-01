@@ -21,14 +21,18 @@ export default function Login() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Erreur de connexion");
+        throw new Error(data.message || "Identifiants incorrects");
       }
 
       // Stocker les informations utilisateur
@@ -36,11 +40,12 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
 
-      showSuccess(`Connexion réussie ! Bienvenue ${data.user.fullName}`, 3000);
+      showSuccess(`Connexion réussie ! Bienvenue ${data.user.fullName || data.user.firstName}`, 3000);
 
       // Redirection selon le rôle
       setTimeout(() => {
-        switch (data.user.role.name) {
+        const role = data.user.role?.name || 'visiteur';
+        switch (role) {
           case "medecin":
             navigate("/dashboard/medecin");
             break;
@@ -60,17 +65,31 @@ export default function Login() {
 
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      showError(error.message || "Impossible de se connecter", 5000);
+      showError(error.message || "Identifiants incorrects", 5000);
+      // Nettoyer le stockage local en cas d'erreur
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAuthenticated");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value.trim()
+    }));
+  };
+
+  const handleQuickLogin = async (credentials) => {
+    setFormData(credentials);
+    try {
+      await handleSubmit({ preventDefault: () => {} });
+    } catch (error) {
+      console.error("Erreur connexion rapide:", error);
+    }
   };
 
   return (
@@ -82,59 +101,53 @@ export default function Login() {
           </h2>
 
           {/* Boutons de connexion rapide */}
-          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  setFormData({
+          {import.meta.env.MODE === 'development' && (
+            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleQuickLogin({
                     email: "medecin@lineup.com",
                     password: "medecin123"
-                  });
-                  handleSubmit({ preventDefault: () => {} });
-                }}
-                className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
-              >
-                👨‍⚕️ Médecin
-              </button>
-              <button
-                onClick={() => {
-                  setFormData({
+                  })}
+                  className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
+                  disabled={isLoading}
+                >
+                  👨‍⚕️ Médecin
+                </button>
+                <button
+                  onClick={() => handleQuickLogin({
                     email: "secretaire@lineup.com",
                     password: "secretaire123"
-                  });
-                  handleSubmit({ preventDefault: () => {} });
-                }}
-                className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
-              >
-                👩‍💼 Secrétaire
-              </button>
-              <button
-                onClick={() => {
-                  setFormData({
+                  })}
+                  className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
+                  disabled={isLoading}
+                >
+                  👩‍💼 Secrétaire
+                </button>
+                <button
+                  onClick={() => handleQuickLogin({
                     email: "patient@lineup.com",
                     password: "patient123"
-                  });
-                  handleSubmit({ preventDefault: () => {} });
-                }}
-                className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
-              >
-                🏥 Patient
-              </button>
-              <button
-                onClick={() => {
-                  setFormData({
+                  })}
+                  className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
+                  disabled={isLoading}
+                >
+                  🏥 Patient
+                </button>
+                <button
+                  onClick={() => handleQuickLogin({
                     email: "visiteur@lineup.com",
                     password: "visiteur123"
-                  });
-                  handleSubmit({ preventDefault: () => {} });
-                }}
-                className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
-              >
-                👁️ Visiteur
-              </button>
+                  })}
+                  className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
+                  disabled={isLoading}
+                >
+                  👁️ Visiteur
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -149,6 +162,7 @@ export default function Login() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="votre@email.com"
+                disabled={isLoading}
               />
             </div>
 
@@ -164,6 +178,7 @@ export default function Login() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
+                disabled={isLoading}
               />
             </div>
 
@@ -199,18 +214,8 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-blue-800 mb-2">🧪 Comptes de test :</h3>
-            <div className="space-y-1 text-xs text-blue-700">
-              <p><strong>Médecin :</strong> medecin@lineup.com / medecin123</p>
-              <p><strong>Secrétaire :</strong> secretaire@lineup.com / secretaire123</p>
-              <p><strong>Patient :</strong> patient@lineup.com / patient123</p>
-              <p><strong>Visiteur :</strong> visiteur@lineup.com / visiteur123</p>
-            </div>
-          </div>
-
           {/* Notifications Toast */}
-          {toasts.map(toast => (
+          {toasts.map((toast) => (
             <Toast
               key={toast.id}
               message={toast.message}

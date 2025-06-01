@@ -37,8 +37,15 @@ self.addEventListener('activate', (event) => {
 
 // Interception des requêtes avec stratégie "Network First"
 self.addEventListener('fetch', (event) => {
+  // Ignorer les requêtes chrome-extension
+  if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
   // Ne pas intercepter les requêtes vers l'API
-  if (event.request.url.includes('/api/') || event.request.url.includes('lineup-backend')) {
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('localhost:5000') || 
+      event.request.url.includes('lineup-backend')) {
     return;
   }
 
@@ -47,6 +54,11 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         // Vérifier si la réponse est valide
         if (!response || response.status === 404 || response.type !== 'basic') {
+          return response;
+        }
+
+        // Ne pas mettre en cache les réponses non GET
+        if (event.request.method !== 'GET') {
           return response;
         }
 

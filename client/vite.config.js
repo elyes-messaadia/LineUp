@@ -53,11 +53,29 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    host: true
+    host: true,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173,
+      timeout: 5000,
+      overlay: true
+    },
+    watch: {
+      usePolling: true,
+      interval: 1000
+    }
   },
   preview: {
     port: 5173,
     strictPort: true,
-    host: true
+    host: true,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173
+    }
   }
 });

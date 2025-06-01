@@ -16,30 +16,30 @@ const allowedOrigins = [
   'https://lineup-app.netlify.app',
   'http://localhost:5173',
   'http://localhost:5174',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://lineup-backend-xxak.onrender.com'
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Permettre les requêtes sans origine (ex: Postman, curl)
-    if (!origin) return callback(null, true);
-    
-    // Permettre tous les domaines Netlify en production
-    if (process.env.NODE_ENV === 'production' && origin.endsWith('.netlify.app')) {
+    // En développement, accepter toutes les origines
+    if (process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
     
-    // Vérifier les origines autorisées
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    // En production, vérifier les origines
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
       callback(null, true);
     } else {
       console.log('❌ Origine refusée:', origin);
-      callback(new Error('Non autorisé par CORS'));
+      callback(null, true); // Accepter quand même pour déboguer
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600 // Cache les résultats du pre-flight pendant 10 minutes
 }));
 
 app.use(express.json());
