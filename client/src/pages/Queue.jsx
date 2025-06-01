@@ -132,70 +132,69 @@ const GlobalStats = ({ allTickets }) => {
     : 0;
 
   return (
-    <div className="hidden xl:block bg-white rounded-xl shadow-lg border border-gray-100 mb-8">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-xl">
-        <h2 className="text-2xl font-bold">📊 Vue d'ensemble</h2>
-        <p className="text-indigo-100 mt-1">Statistiques globales en temps réel</p>
+    <div className="hidden xl:block bg-white rounded-2xl shadow-xl border border-gray-100 mb-8 overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold flex items-center">
+              📊 Vue d'ensemble
+            </h2>
+            <p className="text-indigo-100 mt-2 text-lg">Statistiques globales en temps réel</p>
+          </div>
+          <div className="text-right">
+            <div className="text-5xl font-bold">{totalStats.total}</div>
+            <div className="text-indigo-200">patients aujourd'hui</div>
+          </div>
+        </div>
       </div>
-      <div className="p-6">
-        <div className="grid grid-cols-6 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700">Total aujourd'hui</p>
-                <p className="text-3xl font-bold text-blue-900">{totalStats.total}</p>
-              </div>
-              <div className="text-2xl">📋</div>
+      
+      <div className="p-8">
+        <div className="grid grid-cols-6 gap-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📋</div>
+              <p className="text-sm font-medium text-blue-700 mb-1">Total aujourd'hui</p>
+              <p className="text-4xl font-bold text-blue-900">{totalStats.total}</p>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-700">En attente</p>
-                <p className="text-3xl font-bold text-orange-900">{totalStats.waiting}</p>
-              </div>
-              <div className="text-2xl">⏳</div>
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">⏳</div>
+              <p className="text-sm font-medium text-orange-700 mb-1">En attente</p>
+              <p className="text-4xl font-bold text-orange-900">{totalStats.waiting}</p>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700">En consultation</p>
-                <p className="text-3xl font-bold text-green-900">{totalStats.inConsultation}</p>
-              </div>
-              <div className="text-2xl">🩺</div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">🩺</div>
+              <p className="text-sm font-medium text-green-700 mb-1">En consultation</p>
+              <p className="text-4xl font-bold text-green-900">{totalStats.inConsultation}</p>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Terminés</p>
-                <p className="text-3xl font-bold text-gray-900">{totalStats.finished}</p>
-              </div>
-              <div className="text-2xl">✅</div>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">✅</div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Terminés</p>
+              <p className="text-4xl font-bold text-gray-900">{totalStats.finished}</p>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-700">Désistés</p>
-                <p className="text-3xl font-bold text-red-900">{totalStats.cancelled}</p>
-              </div>
-              <div className="text-2xl">❌</div>
+          <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">❌</div>
+              <p className="text-sm font-medium text-red-700 mb-1">Désistés</p>
+              <p className="text-4xl font-bold text-red-900">{totalStats.cancelled}</p>
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-700">Attente moy.</p>
-                <p className="text-3xl font-bold text-purple-900">{avgWaitTime}min</p>
-              </div>
-              <div className="text-2xl">⏱️</div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 hover:shadow-lg transition-all">
+            <div className="text-center">
+              <div className="text-4xl mb-2">⏱️</div>
+              <p className="text-sm font-medium text-purple-700 mb-1">Temps moyen</p>
+              <p className="text-4xl font-bold text-purple-900">{avgWaitTime}<span className="text-2xl">min</span></p>
             </div>
           </div>
         </div>
@@ -206,18 +205,16 @@ const GlobalStats = ({ allTickets }) => {
 
 // Composant pour les statistiques d'un docteur
 const StatsCard = ({ label, count, icon, colorClass, percentage }) => (
-  <div className={`${colorClass} p-4 rounded-lg border transition-all hover:scale-105 hover:shadow-md`}>
-    <div className="flex items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-600">{label}</p>
-        <div className="flex items-baseline space-x-2">
-          <p className="text-2xl font-bold">{count}</p>
-          {percentage !== undefined && (
-            <span className="text-xs text-gray-500">({percentage}%)</span>
-          )}
-        </div>
+  <div className={`${colorClass} p-4 rounded-xl border transition-all hover:scale-105 hover:shadow-md`}>
+    <div className="text-center">
+      <div className="text-2xl mb-2">{icon}</div>
+      <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
+      <div className="flex items-center justify-center space-x-1">
+        <p className="text-3xl font-bold">{count}</p>
+        {percentage !== undefined && (
+          <span className="text-xs text-gray-500">({percentage}%)</span>
+        )}
       </div>
-      <div className="text-2xl ml-2">{icon}</div>
     </div>
   </div>
 );
@@ -229,38 +226,38 @@ const TicketCard = ({ ticket, isMyTicket, position, isDesktop = false }) => {
   return (
     <div 
       className={`
-        relative p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-lg group
+        relative p-5 rounded-xl border-2 transition-all duration-200 hover:shadow-lg group
         ${config.bgClass}
         ${isMyTicket ? 'ring-2 ring-yellow-400 ring-opacity-75 shadow-lg transform scale-[1.02]' : 'shadow-sm hover:scale-[1.01]'}
       `}
     >
       {/* Badge "Vous" pour mon ticket */}
       {isMyTicket && (
-        <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+        <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-sm font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
           👤 Vous
         </div>
       )}
       
-      <div className={`flex items-center ${isDesktop ? 'justify-between' : 'justify-between'}`}>
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4 flex-1">
           {/* Icône de statut */}
           <div className={`${config.iconBg} p-3 rounded-full group-hover:scale-110 transition-transform`}>
-            <span className="text-xl">{config.icon}</span>
+            <span className="text-2xl">{config.icon}</span>
           </div>
           
           {/* Informations du ticket */}
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="text-xl font-bold text-gray-900">N°{ticket.number}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3 mb-3">
+              <span className="text-2xl font-bold text-gray-900">N°{ticket.number}</span>
               <span className={`${config.badgeClass} px-3 py-1 rounded-full text-sm font-medium`}>
                 {config.label}
               </span>
             </div>
             
             {/* Informations détaillées */}
-            <div className={`flex items-center space-x-4 text-sm ${isDesktop ? 'flex-wrap' : ''}`}>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               {ticket.status === 'en_attente' && position && (
-                <span className="text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded">
+                <span className="text-blue-600 font-semibold bg-blue-100 px-3 py-1 rounded-full">
                   🏃‍♂️ Position: {position}
                 </span>
               )}
@@ -279,18 +276,18 @@ const TicketCard = ({ ticket, isMyTicket, position, isDesktop = false }) => {
           </div>
         </div>
         
-        {/* Indicateur visuel du statut et actions desktop */}
-        <div className="flex flex-col items-center space-y-2">
+        {/* Indicateur visuel du statut */}
+        <div className="flex flex-col items-center space-y-2 ml-4">
           {ticket.status === 'en_consultation' && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <div className="animate-pulse">
                 <div className="w-4 h-4 bg-green-500 rounded-full"></div>
               </div>
-              {isDesktop && <span className="text-xs text-green-600 font-medium">LIVE</span>}
+              {isDesktop && <span className="text-xs text-green-600 font-bold">LIVE</span>}
             </div>
           )}
           {ticket.status === 'en_attente' && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
               {isDesktop && position && position <= 3 && (
                 <span className="text-xs text-blue-600 font-bold">BIENTÔT</span>
@@ -298,7 +295,7 @@ const TicketCard = ({ ticket, isMyTicket, position, isDesktop = false }) => {
             </div>
           )}
           {isDesktop && ticket.status === 'termine' && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 text-center">
               ✓ {formatTime(ticket.updatedAt || ticket.createdAt)}
             </span>
           )}
@@ -337,24 +334,24 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
     : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       {/* En-tête du docteur */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold">{docteur}</h2>
-            <p className="text-blue-100 mt-1">File d'attente en temps réel</p>
+            <h2 className="text-3xl font-bold">{docteur}</h2>
+            <p className="text-blue-100 mt-2 text-lg">File d'attente en temps réel</p>
             {isDesktop && avgWaitTime > 0 && (
-              <p className="text-blue-200 text-sm mt-1">
+              <p className="text-blue-200 text-sm mt-2">
                 ⏱️ Attente moyenne: {avgWaitTime} minutes
               </p>
             )}
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold">{stats.total}</div>
-            <div className="text-sm text-blue-100">patients total</div>
+            <div className="text-5xl font-bold">{stats.total}</div>
+            <div className="text-blue-200 text-lg">patients total</div>
             {isDesktop && (
-              <div className="text-xs text-blue-200 mt-1">
+              <div className="text-sm text-blue-300 mt-2">
                 {stats.waiting} en attente • {stats.inConsultation} en cours
               </div>
             )}
@@ -363,7 +360,7 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
       </div>
 
       {/* Statistiques */}
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-8 border-b border-gray-100">
         <div className={`grid gap-4 ${isDesktop ? 'grid-cols-4' : 'grid-cols-2 lg:grid-cols-4'}`}>
           <StatsCard 
             label="En attente" 
@@ -397,14 +394,14 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
       </div>
 
       {/* Contenu principal */}
-      <div className={`p-6 ${isDesktop ? 'max-h-[800px] overflow-y-auto' : ''}`}>
+      <div className={`p-8 ${isDesktop ? 'max-h-[800px] overflow-y-auto' : ''}`}>
         {/* Patient en consultation */}
         {currentTicket && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               🩺 En consultation maintenant
               {isDesktop && (
-                <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                <span className="ml-3 bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
                   ACTIF
                 </span>
               )}
@@ -419,12 +416,12 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
 
         {/* File d'attente */}
         {waitingTickets.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center justify-between">
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
               <span className="flex items-center">
                 ⏳ File d'attente ({waitingTickets.length})
                 {isDesktop && avgWaitTime > 0 && (
-                  <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  <span className="ml-3 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
                     ~{avgWaitTime}min
                   </span>
                 )}
@@ -435,7 +432,7 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
                 </span>
               )}
             </h3>
-            <div className={`space-y-3 ${isDesktop && waitingTickets.length > 5 ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
+            <div className={`space-y-4 ${isDesktop && waitingTickets.length > 5 ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
               {waitingTickets.map((ticket, index) => (
                 <TicketCard 
                   key={ticket._id}
@@ -451,16 +448,16 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
 
         {/* Patients terminés (version desktop étendue) */}
         {completedTickets.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               ✅ Récemment terminés
               {isDesktop && (
-                <span className="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                <span className="ml-3 bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">
                   {completedTickets.length} total
                 </span>
               )}
             </h3>
-            <div className={`space-y-3 ${isDesktop ? 'max-h-48 overflow-y-auto pr-2' : ''}`}>
+            <div className={`space-y-4 ${isDesktop ? 'max-h-48 overflow-y-auto pr-2' : ''}`}>
               {completedTickets
                 .slice(isDesktop ? -8 : -3)
                 .reverse()
@@ -477,18 +474,18 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
           </div>
         )}
 
-        {/* Patients désistés (si il y en a) */}
+        {/* Patients désistés */}
         {cancelledTickets.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               ❌ Désistements ({cancelledTickets.length})
               {isDesktop && (
-                <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                <span className="ml-3 bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full">
                   {getPercentage(cancelledTickets.length)}% du total
                 </span>
               )}
             </h3>
-            <div className={`space-y-3 ${isDesktop ? 'max-h-40' : 'max-h-32'} overflow-y-auto pr-2`}>
+            <div className={`space-y-4 ${isDesktop ? 'max-h-40' : 'max-h-32'} overflow-y-auto pr-2`}>
               {cancelledTickets.map((ticket) => (
                 <TicketCard 
                   key={ticket._id}
@@ -503,12 +500,19 @@ const DoctorQueue = React.memo(({ docteur, tickets, currentTime, myId, isDesktop
 
         {/* Message si aucun ticket */}
         {stats.total === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <div className="text-6xl mb-4">🏥</div>
-            <p className="text-xl font-medium">Aucun patient aujourd'hui</p>
-            {isDesktop && (
-              <p className="text-sm mt-2">La file d'attente se remplira automatiquement</p>
-            )}
+          <div className="text-center py-16">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-12 border-2 border-dashed border-gray-300">
+              <div className="text-8xl mb-6">🏥</div>
+              <h3 className="text-2xl font-bold text-gray-700 mb-3">Aucun patient aujourd'hui</h3>
+              <p className="text-gray-500 text-lg">La file d'attente se remplira automatiquement</p>
+              {isDesktop && (
+                <div className="mt-6 flex justify-center">
+                  <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-lg border border-blue-200">
+                    <span className="text-sm">🔄 Actualisation toutes les {POLL_INTERVAL/1000} secondes</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -631,12 +635,13 @@ const Queue = () => {
     return (
       <Layout hideTitle={true}>
         <AnimatedPage>
-          <div className="min-h-screen flex justify-center items-center">
-            <div className="text-center">
-              <div className="animate-spin text-6xl mb-4">⏳</div>
-              <p className="text-gray-600 text-lg">Chargement des files d'attente...</p>
+          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="text-center bg-white p-12 rounded-2xl shadow-xl">
+              <div className="animate-spin text-8xl mb-6">⏳</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">Chargement des files d'attente</h2>
+              <p className="text-gray-600">Veuillez patienter...</p>
               {isDesktop && (
-                <p className="text-gray-500 text-sm mt-2">Optimisation pour écran large...</p>
+                <p className="text-gray-500 text-sm mt-3">Interface optimisée pour votre écran</p>
               )}
             </div>
           </div>
@@ -649,13 +654,13 @@ const Queue = () => {
     return (
       <Layout hideTitle={true}>
         <AnimatedPage>
-          <div className="min-h-screen flex justify-center items-center">
-            <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg max-w-md">
+          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-red-50 to-red-100">
+            <div className="bg-white border border-red-200 text-red-700 px-8 py-6 rounded-2xl shadow-xl max-w-md">
               <div className="flex items-center">
-                <span className="text-2xl mr-3">⚠️</span>
+                <span className="text-4xl mr-4">⚠️</span>
                 <div>
-                  <strong className="font-bold">Erreur de connexion</strong>
-                  <p className="mt-1">{state.error}</p>
+                  <h3 className="text-xl font-bold">Erreur de connexion</h3>
+                  <p className="mt-2">{state.error}</p>
                 </div>
               </div>
             </div>
@@ -671,21 +676,27 @@ const Queue = () => {
   return (
     <Layout hideTitle={true}>
       <AnimatedPage>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
           {/* En-tête avec titre et contrôles */}
-          <div className="bg-white shadow-sm border-b border-gray-200">
-            <div className="max-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="bg-white shadow-lg border-b border-gray-200">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div className="mb-4 md:mb-0">
-                  <h1 className="text-3xl font-bold text-gray-900">📋 File d'attente</h1>
-                  <p className="text-gray-600 mt-1 flex items-center space-x-4">
-                    <span>Mise à jour automatique • {formatTime(state.currentTime)}</span>
+                <div className="mb-6 md:mb-0">
+                  <h1 className="text-4xl font-bold text-gray-900 flex items-center">
+                    📋 File d'attente
+                  </h1>
+                  <p className="text-gray-600 mt-2 flex items-center space-x-6 text-lg">
+                    <span className="flex items-center">
+                      🔄 Mise à jour automatique • {formatTime(state.currentTime)}
+                    </span>
                     {isDesktop && (
                       <>
                         <span>•</span>
-                        <span>{allTickets.length} patients total aujourd'hui</span>
+                        <span className="text-blue-600 font-medium">{allTickets.length} patients total aujourd'hui</span>
                         <span>•</span>
-                        <span className="text-green-600">🟢 Temps réel</span>
+                        <span className="text-green-600 flex items-center">
+                          🟢 Temps réel
+                        </span>
                       </>
                     )}
                   </p>
@@ -693,22 +704,22 @@ const Queue = () => {
                 
                 {/* Sélecteur de docteur pour secrétaires */}
                 {isSecretary && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setState(prev => ({ ...prev, selectedDoctor: null }))}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      className={`px-6 py-3 rounded-xl font-medium transition-all ${
                         !state.selectedDoctor
                           ? 'bg-blue-600 text-white shadow-lg scale-105'
                           : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:scale-105'
                       }`}
                     >
-                      {isDesktop ? 'Vue globale' : 'Tous'}
+                      {isDesktop ? '📊 Vue globale' : '📊 Tous'}
                     </button>
                     {DOCTEURS.map(docteur => (
                       <button
                         key={docteur}
                         onClick={() => setState(prev => ({ ...prev, selectedDoctor: docteur }))}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        className={`px-6 py-3 rounded-xl font-medium transition-all ${
                           state.selectedDoctor === docteur
                             ? 'bg-blue-600 text-white shadow-lg scale-105'
                             : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:scale-105'
@@ -716,8 +727,8 @@ const Queue = () => {
                       >
                         {docteur}
                         {isDesktop && (
-                          <span className="ml-1 text-xs opacity-75">
-                            ({state.queues[docteur]?.filter(t => t.status === 'en_attente').length || 0})
+                          <span className="ml-2 bg-white bg-opacity-20 text-xs px-2 py-1 rounded-full">
+                            {state.queues[docteur]?.filter(t => t.status === 'en_attente').length || 0}
                           </span>
                         )}
                       </button>
@@ -729,7 +740,7 @@ const Queue = () => {
           </div>
 
           {/* Contenu principal */}
-          <div className="max-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Statistiques globales (desktop only) */}
             {isDesktop && !state.selectedDoctor && (
               <GlobalStats allTickets={allTickets} />
