@@ -3,7 +3,7 @@
   X-XSS-Protection: 1; mode=block
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self' https://lineup-nby9.onrender.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob:; connect-src 'self' https://lineup-nby9.onrender.com wss://*.netlify.app/; worker-src 'self' blob:; manifest-src 'self'
+  Content-Security-Policy: default-src 'self' https://lineup-backend-xxak.onrender.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob:; connect-src 'self' https://lineup-backend-xxak.onrender.com wss://*.netlify.app/; worker-src 'self' blob:; manifest-src 'self'
 
 /manifest.json
   Content-Type: application/manifest+json
