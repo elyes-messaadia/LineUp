@@ -20,6 +20,115 @@ export default function Queue() {
   const lastQueueState = useRef([]);
   const nextInLineAlerted = useRef(false);
   const { toasts, showSuccess, showWarning, showError, showInfo, removeToast } = useToast();
+  const pollInterval = useRef(null);
+
+  // 🔄 Fonction de récupération de la file d'attente
+  const fetchQueue = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const data = await res.json();
+
+      // Toujours mettre à jour l'état avec les nouvelles données
+      setQueue(data);
+
+      // Comparer avec l'état précédent pour détecter les changements
+      const prevQueue = lastQueueState.current;
+      const hasChanges = JSON.stringify(data) !== JSON.stringify(prevQueue);
+
+      if (hasChanges) {
+        // Mettre à jour les estimations si nécessaire
+        const needsNewEstimations = data.some((ticket, index) => {
+          const prevTicket = prevQueue[index];
+          return !prevTicket || prevTicket.status !== ticket.status;
+        });
+
+        if (needsNewEstimations) {
+          setEstimations(data.map(() => generateRandomEstimation(10, 20)));
+        }
+
+        // Vérifier les changements de statut
+        if (prevQueue.length > 0) {
+          data.forEach((ticket) => {
+            const prevTicket = prevQueue.find(t => 
+              t._id === ticket._id || 
+              (t.sessionId && t.sessionId === ticket.sessionId)
+            );
+            
+            if (prevTicket && prevTicket.status !== ticket.status) {
+              // Vérifier si c'est mon ticket (connecté ou anonyme)
+              const isMyTicket = ticket._id === myId || ticket.sessionId === myId;
+
+              // Notification pour changement de statut
+              switch (ticket.status) {
+                case "en_consultation":
+                  if (isMyTicket) {
+                    playNotificationSound();
+                    setTimeout(playNotificationSound, 1500);
+                    showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 15000);
+                    sendSystemNotification(
+                      "🏥 C'est votre tour !",
+                      "Veuillez vous présenter immédiatement au cabinet médical"
+                    );
+                  } else {
+                    playNotificationSound();
+                    showWarning(`Le patient n°${ticket.number} est appelé en consultation`, 8000);
+                  }
+                  break;
+                  
+                case "termine":
+                  if (isMyTicket) {
+                    playNotificationSound();
+                    showSuccess("✅ Votre consultation est terminée", 8000);
+                    sendSystemNotification(
+                      "✅ Consultation terminée",
+                      "Merci de votre visite ! N'oubliez pas vos documents."
+                    );
+                    localStorage.removeItem("lineup_ticket");
+                  } else {
+                    showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
+                    const nextPatient = data.find(t => t.status === "en_attente");
+                    if (nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId)) {
+                      playNotificationSound();
+                      showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
+                      sendSystemNotification(
+                        "🏥 Préparez-vous !",
+                        "Vous serez le prochain patient à être appelé"
+                      );
+                    }
+                  }
+                  break;
+                  
+                case "desiste":
+                  if (isMyTicket) {
+                    playNotificationSound();
+                    showError("❌ Votre ticket a été annulé", 8000);
+                    localStorage.removeItem("lineup_ticket");
+                  }
+                  break;
+              }
+              
+              // Reset les alertes après un changement de statut
+              if (isMyTicket) {
+                nextInLineAlerted.current = false;
+                hasAlerted.current = false;
+              }
+            }
+          });
+        }
+
+        // Vérifier si je suis le prochain
+        checkNextInLine(data);
+      }
+
+      // Toujours mettre à jour l'état précédent
+      lastQueueState.current = data;
+      setError(null);
+    } catch (err) {
+      console.error("Erreur lors de la récupération de la file:", err);
+      setError("Impossible de charger la file d'attente");
+    }
+  }, [myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine, sendSystemNotification]);
 
   // ⏱️ Mise à jour du temps en temps réel
   useEffect(() => {
@@ -28,6 +137,44 @@ export default function Queue() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // 📥 Initialisation et mise à jour périodique
+  useEffect(() => {
+    // Récupérer l'ID du ticket depuis le localStorage
+    const storedTicket = localStorage.getItem("lineup_ticket");
+    if (storedTicket) {
+      try {
+        const parsed = JSON.parse(storedTicket);
+        setMyId(parsed.userId || parsed.sessionId);
+      } catch (e) {
+        console.error("Erreur parsing ticket:", e);
+        localStorage.removeItem("lineup_ticket");
+      }
+    }
+
+    // Demander la permission pour les notifications dès le chargement
+    if ("Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+      else if (Notification.permission === "denied") {
+        showWarning("Activez les notifications pour être alerté quand c'est votre tour", 10000);
+      }
+    }
+
+    // Premier chargement
+    fetchQueue();
+    setIsLoading(false);
+
+    // Mise à jour toutes les 2 secondes pour un meilleur équilibre
+    pollInterval.current = setInterval(fetchQueue, 2000);
+    
+    return () => {
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current);
+      }
+    };
+  }, [fetchQueue, showWarning]);
 
   // Fonction de notification sonore
   const playNotificationSound = useCallback(() => {
@@ -118,154 +265,6 @@ export default function Queue() {
       }
     }
   }, [myId, playNotificationSound, showWarning, showSuccess]);
-
-  // 📥 Initialisation et mise à jour périodique
-  useEffect(() => {
-    // Récupérer l'ID du ticket depuis le localStorage
-    const ticket = localStorage.getItem("lineup_ticket");
-    if (ticket) {
-      const parsed = JSON.parse(ticket);
-      // Pour les tickets anonymes, utiliser le sessionId comme identifiant
-      setMyId(parsed.userId || parsed.sessionId);
-    }
-
-    // Demander la permission pour les notifications dès le chargement
-    if ("Notification" in window) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-      // Redemander la permission si elle a été refusée
-      else if (Notification.permission === "denied") {
-        showWarning("Activez les notifications pour être alerté quand c'est votre tour", 10000);
-      }
-    }
-
-    // Premier chargement
-    fetchQueue();
-    setIsLoading(false);
-
-    // Mise à jour toutes les 500ms pour plus de réactivité
-    const interval = setInterval(fetchQueue, 500);
-    return () => clearInterval(interval);
-  }, [fetchQueue]);
-
-  // 🔄 Fonction de récupération de la file d'attente
-  const fetchQueue = useCallback(async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const data = await res.json();
-
-      // Toujours mettre à jour l'état avec les nouvelles données
-      setQueue(data);
-
-      // Comparer avec l'état précédent pour détecter les changements
-      const prevQueue = lastQueueState.current;
-      const hasChanges = JSON.stringify(data) !== JSON.stringify(prevQueue);
-
-      if (hasChanges) {
-        // Vérifier les changements de statut uniquement si nous avons un état précédent
-        if (prevQueue.length > 0) {
-          data.forEach((ticket) => {
-            const prevTicket = prevQueue.find(t => 
-              // Comparer soit par userId soit par sessionId pour les tickets anonymes
-              t._id === ticket._id || 
-              (t.sessionId && t.sessionId === ticket.sessionId)
-            );
-            
-            if (prevTicket && prevTicket.status !== ticket.status) {
-              // Vérifier si c'est mon ticket (connecté ou anonyme)
-              const isMyTicket = ticket._id === myId || ticket.sessionId === myId;
-
-              // Notification pour changement de statut
-              switch (ticket.status) {
-                case "en_consultation":
-                  if (isMyTicket) {
-                    // Jouer le son plusieurs fois pour être sûr qu'il soit entendu
-                    playNotificationSound();
-                    setTimeout(playNotificationSound, 1500);
-                    
-                    showSuccess("🏥 C'est votre tour ! Veuillez vous présenter au cabinet", 15000);
-                    
-                    // Notification système
-                    sendSystemNotification(
-                      "🏥 C'est votre tour !",
-                      "Veuillez vous présenter immédiatement au cabinet médical"
-                    );
-                  } else {
-                    // Notifier les autres patients
-                    playNotificationSound();
-                    showWarning(`Le patient n°${ticket.number} est appelé en consultation`, 8000);
-                  }
-                  break;
-                  
-                case "termine":
-                  if (isMyTicket) {
-                    // Jouer le son de notification
-                    playNotificationSound();
-                    showSuccess("✅ Votre consultation est terminée", 8000);
-                    
-                    // Notification système
-                    sendSystemNotification(
-                      "✅ Consultation terminée",
-                      "Merci de votre visite ! N'oubliez pas vos documents."
-                    );
-
-                    // Supprimer le ticket du localStorage une fois terminé
-                    localStorage.removeItem("lineup_ticket");
-                  } else {
-                    showInfo(`La consultation du patient n°${ticket.number} est terminée`, 5000);
-                    // Vérifier si je suis le prochain
-                    const nextPatient = data.find(t => t.status === "en_attente");
-                    if (nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId)) {
-                      playNotificationSound();
-                      showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
-                      
-                      // Notification système pour le prochain patient
-                      sendSystemNotification(
-                        "🏥 Préparez-vous !",
-                        "Vous serez le prochain patient à être appelé"
-                      );
-                    }
-                  }
-                  break;
-                  
-                case "desiste":
-                  if (isMyTicket) {
-                    playNotificationSound();
-                    showError("❌ Votre ticket a été annulé", 8000);
-                    // Supprimer le ticket du localStorage une fois annulé
-                    localStorage.removeItem("lineup_ticket");
-                  }
-                  break;
-              }
-              
-              // Reset les alertes après un changement de statut
-              if (isMyTicket) {
-                nextInLineAlerted.current = false;
-                hasAlerted.current = false;
-              }
-            }
-          });
-        }
-
-        // Mettre à jour les estimations si nécessaire
-        if (data.length !== estimations.length) {
-          setEstimations(data.map(() => generateRandomEstimation(10, 20)));
-        }
-
-        // Vérifier si je suis le prochain
-        checkNextInLine(data);
-      }
-
-      // Toujours mettre à jour l'état précédent
-      lastQueueState.current = data;
-      setError(null);
-    } catch (err) {
-      console.error("Erreur lors de la récupération de la file:", err);
-      setError("Impossible de charger la file d'attente");
-    }
-  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine, sendSystemNotification]);
 
   // Reset l'alerte si la queue change
   useEffect(() => {
