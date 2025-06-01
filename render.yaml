@@ -14,5 +14,13 @@ services:
         sync: false  # ⚠️ À configurer manuellement dans Render Dashboard
       - key: PORT
         value: 10000
+      - key: JWT_SECRET
+        sync: false  # ⚠️ À configurer manuellement
+      - key: CORS_ORIGIN
+        value: https://ligneup.netlify.app
     autoDeploy: true
-    branch: main 
+    branch: main
+    healthCheckTimeout: 300
+    numInstances: 1
+    minInstances: 1
+    maxInstances: 1 

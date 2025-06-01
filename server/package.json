@@ -19,7 +19,8 @@
     "cleanup:users": "node scripts/cleanupUsers.js",
     "update:roles": "node scripts/updateRoles.js",
     "fix:tickets": "node scripts/fixTickets.js",
-    "create:test-users": "node scripts/createTestUsers.js"
+    "create:test-users": "node scripts/createTestUsers.js",
+    "check:deploy": "node scripts/checkDeploy.js"
   },
   "keywords": [],
   "author": "",
