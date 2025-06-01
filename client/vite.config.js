@@ -5,7 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Désactiver le fast refresh en production
+      fastRefresh: process.env.NODE_ENV !== 'production',
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['assets/icon.png'],
@@ -33,14 +36,26 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: false, // Désactiver les sourcemaps en production
+    minify: 'terser', // Utiliser terser pour la minification
+    terserOptions: {
+      compress: {
+        drop_console: true, // Supprimer les console.log en production
+        drop_debugger: true
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom']
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'utils': ['@heroicons/react', 'classnames']
         }
       }
     }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom']
   },
   server: {
     port: 5173,

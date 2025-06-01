@@ -9,38 +9,37 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 🌐 Configuration CORS robuste pour production
+// Configuration CORS
 const allowedOrigins = [
-  "https://ligneup.netlify.app",
-  "https://lineup.netlify.app", 
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000"
+  'https://ligneup.netlify.app',
+  'https://lineup.netlify.app',
+  'https://lineup-app.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000'
 ];
 
-// Configuration CORS complète
 app.use(cors({
-  origin: function (origin, callback) {
-    // Autoriser les requêtes sans origin (mobile apps, curl, etc.)
+  origin: function(origin, callback) {
+    // Permettre les requêtes sans origine (ex: Postman, curl)
     if (!origin) return callback(null, true);
     
-    // Autoriser les domaines dans la liste
-    if (allowedOrigins.includes(origin)) {
+    // Permettre tous les domaines Netlify en production
+    if (process.env.NODE_ENV === 'production' && origin.endsWith('.netlify.app')) {
       return callback(null, true);
     }
     
-    // En production, autoriser TOUS les domaines Netlify et localhost
-    if (origin && (origin.includes('.netlify.app') || origin.includes('localhost'))) {
-      return callback(null, true);
+    // Vérifier les origines autorisées
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      console.log('❌ Origine refusée:', origin);
+      callback(new Error('Non autorisé par CORS'));
     }
-    
-    console.log('❌ CORS blocked origin:', origin);
-    return callback(null, true); // En production, on accepte toutes les origines pour le moment
   },
   credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 200 // Pour les anciens navigateurs
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
