@@ -5,18 +5,16 @@
   # Commande de build
   command = "npm run build:prod"
 
-  # Configuration de l'environnement Node
-  environment = { NODE_VERSION = "18" }
+  # Configuration de l'environnement
+  [build.environment]
+    NODE_VERSION = "18"
+    VITE_API_URL = "https://lineup-nby9.onrender.com"
 
 # Règles de redirection pour React Router (SPA)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Variables d'environnement pour la production
-[build.environment]
-  VITE_API_URL = "https://lineup-nby9.onrender.com"
 
 # Configuration des headers de sécurité
 [[headers]]
