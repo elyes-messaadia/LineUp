@@ -1,3 +1,4 @@
+// Force Netlify rebuild with new API URL - 2025-01-27
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";

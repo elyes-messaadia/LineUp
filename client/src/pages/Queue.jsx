@@ -6,50 +6,33 @@ import { useToast } from "../hooks/useToast";
 
 // Constantes
 const API_URL = import.meta.env.VITE_API_URL;
-const POLL_INTERVAL = 2000;
-const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
+const POLL_INTERVAL = 3000;
 
-// Configuration des statuts avec design amélioré
+// Configuration des statuts épurée
 const STATUS_CONFIG = {
   en_attente: {
-    icon: "⏳",
+    icon: "⏱️",
     label: "En attente",
-    color: "amber",
-    bgClass: "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200",
-    badgeClass: "bg-amber-500 text-white",
-    iconBg: "bg-amber-100 text-amber-700",
-    dotColor: "bg-amber-500",
-    ringColor: "ring-amber-300"
+    color: "blue",
+    bgClass: "bg-blue-50 border-blue-200",
+    textClass: "text-blue-800",
+    badgeClass: "bg-blue-100 text-blue-800"
   },
   en_consultation: {
     icon: "🩺",
-    label: "En consultation",
-    color: "emerald",
-    bgClass: "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200",
-    badgeClass: "bg-emerald-500 text-white",
-    iconBg: "bg-emerald-100 text-emerald-700",
-    dotColor: "bg-emerald-500",
-    ringColor: "ring-emerald-300"
+    label: "En consultation", 
+    color: "green",
+    bgClass: "bg-green-50 border-green-200",
+    textClass: "text-green-800",
+    badgeClass: "bg-green-100 text-green-800"
   },
   termine: {
     icon: "✅",
     label: "Terminé",
-    color: "slate",
-    bgClass: "bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200",
-    badgeClass: "bg-slate-500 text-white",
-    iconBg: "bg-slate-100 text-slate-700",
-    dotColor: "bg-slate-500",
-    ringColor: "ring-slate-300"
-  },
-  desiste: {
-    icon: "❌",
-    label: "Désisté",
-    color: "red",
-    bgClass: "bg-gradient-to-br from-red-50 to-rose-50 border-red-200",
-    badgeClass: "bg-red-500 text-white",
-    iconBg: "bg-red-100 text-red-700",
-    dotColor: "bg-red-500",
-    ringColor: "ring-red-300"
+    color: "gray",
+    bgClass: "bg-gray-50 border-gray-200", 
+    textClass: "text-gray-600",
+    badgeClass: "bg-gray-100 text-gray-600"
   }
 };
 
@@ -74,117 +57,45 @@ const formatWaitingTime = (createdAt) => {
   return `${hours}h${mins.toString().padStart(2, '0')}`;
 };
 
-// Hook pour les notifications
-const useNotifications = () => {
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audio = new Audio("/notify.mp3");
-      audio.volume = 1.0;
-      audio.play().catch(console.warn);
-    } catch (error) {
-      console.warn('Erreur audio:', error);
-    }
-  }, []);
-
-  const showSystemNotification = useCallback((title, body) => {
-    if (!("Notification" in window)) return;
-    
-    const showNotif = () => {
-      new Notification(title, {
-        body,
-        icon: "/icon-192x192.png",
-        badge: "/icon-192x192.png",
-        vibrate: [300, 100, 300]
-      });
-    };
-
-    if (Notification.permission === "granted") {
-      showNotif();
-    } else if (Notification.permission === "default") {
-      Notification.requestPermission().then(permission => {
-        if (permission === "granted") showNotif();
-      });
-    }
-  }, []);
-
-  return { playNotificationSound, showSystemNotification };
-};
-
-// Header moderne amélioré avec beaucoup plus d'espacement
-const ModernHeader = ({ allTickets, currentTime }) => {
-  const totalStats = {
+// Header moderne et épuré
+const CleanHeader = ({ allTickets, currentTime }) => {
+  const stats = {
     total: allTickets.length,
     waiting: allTickets.filter(t => t.status === "en_attente").length,
-    inConsultation: allTickets.filter(t => t.status === "en_consultation").length,
-    finished: allTickets.filter(t => t.status === "termine").length,
-    cancelled: allTickets.filter(t => t.status === "desiste").length
+    inConsultation: allTickets.filter(t => t.status === "en_consultation").length
   };
 
-  const avgWaitTime = totalStats.waiting > 0 
-    ? Math.floor(allTickets
-        .filter(t => t.status === "en_attente")
-        .reduce((acc, t) => acc + (Date.now() - new Date(t.createdAt)) / 60000, 0) / totalStats.waiting)
-    : 0;
-
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-200">
-      <div className="max-w-7xl mx-auto px-12 py-16">
-        {/* Titre principal avec beaucoup plus d'espace */}
-        <div className="text-center mb-16">
-          <h1 className="text-7xl font-black text-gray-900 mb-6 tracking-tight">
-            🏥 File d'Attente Médicale
-          </h1>
-          <div className="flex items-center justify-center space-x-6 text-2xl text-gray-600">
-            <span className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="font-semibold">Temps réel</span>
-            </span>
-            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span className="font-mono">{formatTime(currentTime)}</span>
-          </div>
-        </div>
-
-        {/* Statistiques générales avec espacement généreux */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
-          <div className="md:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-10 text-center shadow-2xl">
-            <div className="text-6xl font-black mb-4">{totalStats.total}</div>
-            <div className="text-blue-100 text-xl font-semibold mb-2">Patients Total</div>
-            <div className="text-blue-200 text-lg">Aujourd'hui</div>
+    <div className="bg-white border-b border-gray-100">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        
+        {/* Titre principal épuré */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              File d'Attente Médicale
+            </h1>
+            <p className="text-gray-500 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              <span>Mise à jour automatique</span>
+              <span className="text-gray-300">•</span>
+              <span className="font-mono">{formatTime(currentTime)}</span>
+            </p>
           </div>
           
-          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-amber-200 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="text-5xl font-bold text-amber-600 mb-3">{totalStats.waiting}</div>
-            <div className="text-amber-700 font-bold text-lg mb-3">En Attente</div>
-            <div className="flex items-center justify-center">
-              <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
-              <span className="text-amber-600 font-medium">File active</span>
+          {/* Statistiques compactes */}
+          <div className="flex space-x-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{stats.waiting}</div>
+              <div className="text-sm text-gray-500">En attente</div>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-emerald-200 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="text-5xl font-bold text-emerald-600 mb-3">{totalStats.inConsultation}</div>
-            <div className="text-emerald-700 font-bold text-lg mb-3">En Consultation</div>
-            <div className="flex items-center justify-center">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse mr-2"></div>
-              <span className="text-emerald-600 font-medium">En cours</span>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.inConsultation}</div>
+              <div className="text-sm text-gray-500">En consultation</div>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-slate-200 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="text-5xl font-bold text-slate-600 mb-3">{totalStats.finished}</div>
-            <div className="text-slate-700 font-bold text-lg mb-3">Terminés</div>
-            <div className="flex items-center justify-center">
-              <div className="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
-              <span className="text-slate-600 font-medium">Finis</span>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-purple-200 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="text-5xl font-bold text-purple-600 mb-3">{avgWaitTime}</div>
-            <div className="text-purple-700 font-bold text-lg mb-3">Minutes</div>
-            <div className="flex items-center justify-center">
-              <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-              <span className="text-purple-600 font-medium">Attente moy.</span>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
+              <div className="text-sm text-gray-500">Total</div>
             </div>
           </div>
         </div>
@@ -193,260 +104,61 @@ const ModernHeader = ({ allTickets, currentTime }) => {
   );
 };
 
-// Ticket Card complètement repensé avec plus d'espacement
-const EnhancedTicketCard = ({ ticket, isMyTicket, position, isCompact = false }) => {
+// Carte ticket épurée et moderne
+const CleanTicketCard = ({ ticket, isMyTicket, position }) => {
   const config = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.en_attente;
   
   return (
-    <div 
-      className={`
-        relative rounded-3xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102
-        ${config.bgClass}
-        ${isMyTicket 
-          ? `ring-4 ${config.ringColor} ring-offset-4 shadow-2xl transform scale-105` 
-          : 'hover:shadow-xl'
-        }
-        ${isCompact ? 'p-6' : 'p-10'}
-      `}
-    >
-      {/* Badge "Vous" */}
-      {isMyTicket && (
-        <div className="absolute -top-5 -right-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold px-8 py-4 rounded-full shadow-2xl animate-pulse">
-          🫵 C'est vous !
-        </div>
-      )}
+    <div className={`
+      relative p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md
+      ${config.bgClass}
+      ${isMyTicket ? 'ring-2 ring-blue-400 ring-offset-2' : ''}
+    `}>
       
-      {/* Badge de position pour les files d'attente */}
-      {ticket.status === 'en_attente' && position && (
-        <div className="absolute -top-4 -left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full w-16 h-16 flex items-center justify-center font-black text-xl shadow-xl">
-          {position}
+      {/* Header du ticket */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <div className="text-2xl">{config.icon}</div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xl font-bold text-gray-900">#{ticket.number}</span>
+              {isMyTicket && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                  Vous
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-500">
+              {ticket.docteur || 'Docteur général'}
+            </div>
+          </div>
         </div>
-      )}
-      
-      <div className="flex items-center space-x-8">
-        {/* Icône avec animation */}
-        <div className={`
-          ${config.iconBg} rounded-3xl flex-shrink-0 shadow-xl
-          ${isCompact ? 'p-6' : 'p-8'}
-          ${ticket.status === 'en_consultation' ? 'animate-pulse' : ''}
-        `}>
-          <span className={`${isCompact ? 'text-4xl' : 'text-6xl'}`}>
-            {config.icon}
+        
+        {/* Badge de statut */}
+        <div className={`px-3 py-1 rounded-full text-sm font-medium ${config.badgeClass}`}>
+          {config.label}
+        </div>
+      </div>
+
+      {/* Informations additionnelles */}
+      <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center space-x-4">
+          {position && (
+            <span className="font-medium">
+              Position: {position}
+            </span>
+          )}
+          <span>
+            Créé: {formatTime(ticket.createdAt)}
           </span>
         </div>
         
-        {/* Contenu principal */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-6 mb-6">
-            <span className={`font-black text-gray-900 ${isCompact ? 'text-3xl' : 'text-4xl'}`}>
-              Ticket n°{ticket.number}
+        {ticket.status === "en_attente" && (
+          <div className="flex items-center space-x-1">
+            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            <span className="font-medium text-blue-700">
+              {formatWaitingTime(ticket.createdAt)}
             </span>
-            <span className={`${config.badgeClass} px-6 py-3 rounded-full text-lg font-bold shadow-lg`}>
-              {config.label}
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-6 text-gray-700">
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">⏱️</span>
-              <div>
-                <div className="font-bold text-lg">Attente</div>
-                <div className="text-lg">{formatWaitingTime(ticket.createdAt)}</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">🕐</span>
-              <div>
-                <div className="font-bold text-lg">Arrivée</div>
-                <div className="text-lg">{formatTime(ticket.createdAt)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Indicateur de statut */}
-        <div className="flex-shrink-0">
-          {ticket.status === 'en_consultation' && (
-            <div className="text-center">
-              <div className={`w-8 h-8 ${config.dotColor} rounded-full animate-ping mx-auto mb-3`}></div>
-              <span className="text-emerald-600 font-black text-lg bg-emerald-100 px-4 py-2 rounded-full">
-                EN DIRECT
-              </span>
-            </div>
-          )}
-          {ticket.status === 'en_attente' && position && (
-            <div className="text-center">
-              <div className={`w-8 h-8 ${config.dotColor} rounded-full mx-auto mb-3`}></div>
-              <span className="text-amber-600 font-black text-lg bg-amber-100 px-4 py-2 rounded-full">
-                #{position}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Carte docteur complètement redesignée avec énormément plus d'espacement
-const ModernDoctorCard = ({ docteur, tickets, myId }) => {
-  const stats = {
-    waiting: tickets.filter(t => t.status === "en_attente").length,
-    inConsultation: tickets.filter(t => t.status === "en_consultation").length,
-    finished: tickets.filter(t => t.status === "termine").length,
-    cancelled: tickets.filter(t => t.status === "desiste").length,
-    total: tickets.length
-  };
-
-  const waitingTickets = tickets
-    .filter(t => t.status === "en_attente")
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  
-  const currentTicket = tickets.find(t => t.status === "en_consultation");
-  const recentFinished = tickets
-    .filter(t => t.status === "termine")
-    .slice(-2)
-    .reverse();
-
-  const avgWaitTime = waitingTickets.length > 0 
-    ? Math.floor(waitingTickets.reduce((acc, t) => acc + (Date.now() - new Date(t.createdAt)) / 60000, 0) / waitingTickets.length)
-    : 0;
-
-  return (
-    <div className="bg-white rounded-3xl border-2 border-gray-200 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden">
-      {/* En-tête moderne avec plus d'espace */}
-      <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 text-white p-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-5xl font-black mb-4 tracking-tight">{docteur}</h2>
-            <p className="text-gray-300 text-2xl flex items-center">
-              <span className="mr-3">🏥</span>
-              Cabinet médical
-            </p>
-          </div>
-          <div className="text-center bg-white/20 rounded-3xl p-8">
-            <div className="text-6xl font-black text-white mb-3">{stats.total}</div>
-            <div className="text-gray-300 text-xl">patients</div>
-          </div>
-        </div>
-        
-        {avgWaitTime > 0 && (
-          <div className="bg-blue-500/20 rounded-2xl p-6 border border-blue-400/30">
-            <div className="flex items-center justify-center space-x-3">
-              <span className="text-2xl">⏱️</span>
-              <span className="font-bold text-xl">Temps d'attente moyen: {avgWaitTime} minutes</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Statistiques détaillées avec espacement généreux */}
-      <div className="p-10 bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-100">
-        <div className="grid grid-cols-4 gap-8">
-          <div className="text-center bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl p-8 border-2 border-amber-200 shadow-lg hover:shadow-xl transition-all">
-            <div className="text-4xl font-black text-amber-700 mb-3">{stats.waiting}</div>
-            <div className="text-amber-600 font-bold text-lg">Attente</div>
-            <div className="w-12 h-2 bg-amber-500 rounded-full mx-auto mt-3"></div>
-          </div>
-          <div className="text-center bg-gradient-to-br from-emerald-100 to-green-100 rounded-3xl p-8 border-2 border-emerald-200 shadow-lg hover:shadow-xl transition-all">
-            <div className="text-4xl font-black text-emerald-700 mb-3">{stats.inConsultation}</div>
-            <div className="text-emerald-600 font-bold text-lg">En cours</div>
-            <div className="w-12 h-2 bg-emerald-500 rounded-full mx-auto mt-3"></div>
-          </div>
-          <div className="text-center bg-gradient-to-br from-slate-100 to-gray-100 rounded-3xl p-8 border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all">
-            <div className="text-4xl font-black text-slate-700 mb-3">{stats.finished}</div>
-            <div className="text-slate-600 font-bold text-lg">Terminés</div>
-            <div className="w-12 h-2 bg-slate-500 rounded-full mx-auto mt-3"></div>
-          </div>
-          <div className="text-center bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl p-8 border-2 border-red-200 shadow-lg hover:shadow-xl transition-all">
-            <div className="text-4xl font-black text-red-700 mb-3">{stats.cancelled}</div>
-            <div className="text-red-600 font-bold text-lg">Désistés</div>
-            <div className="w-12 h-2 bg-red-500 rounded-full mx-auto mt-3"></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Contenu principal avec beaucoup plus d'espacement */}
-      <div className="p-10 max-h-[900px] overflow-y-auto space-y-12">
-        {/* Patient en consultation */}
-        {currentTicket && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-4xl font-black text-gray-900 flex items-center">
-                <span className="bg-emerald-500 text-white p-6 rounded-3xl mr-6 shadow-xl">🩺</span>
-                En Consultation
-              </h3>
-              <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-8 py-4 rounded-full font-black text-lg shadow-xl animate-pulse">
-                🔴 LIVE
-              </div>
-            </div>
-            <EnhancedTicketCard 
-              ticket={currentTicket} 
-              isMyTicket={currentTicket._id === myId}
-            />
-          </div>
-        )}
-
-        {/* File d'attente */}
-        {waitingTickets.length > 0 && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-4xl font-black text-gray-900 flex items-center">
-                <span className="bg-amber-500 text-white p-6 rounded-3xl mr-6 shadow-xl">⏳</span>
-                File d'Attente
-                <span className="ml-6 bg-amber-100 text-amber-800 px-6 py-3 rounded-full text-2xl font-black">
-                  {waitingTickets.length}
-                </span>
-              </h3>
-              {avgWaitTime > 0 && (
-                <div className="bg-amber-100 text-amber-700 px-8 py-4 rounded-full font-black text-lg shadow-lg">
-                  ~{avgWaitTime} min
-                </div>
-              )}
-            </div>
-            <div className="space-y-8">
-              {waitingTickets.map((ticket, index) => (
-                <EnhancedTicketCard 
-                  key={ticket._id}
-                  ticket={ticket} 
-                  isMyTicket={ticket._id === myId}
-                  position={index + 1}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Récemment terminés */}
-        {recentFinished.length > 0 && (
-          <div className="space-y-8">
-            <h3 className="text-4xl font-black text-gray-900 flex items-center">
-              <span className="bg-slate-500 text-white p-6 rounded-3xl mr-6 shadow-xl">✅</span>
-              Récemment Terminés
-            </h3>
-            <div className="space-y-8">
-              {recentFinished.map((ticket) => (
-                <EnhancedTicketCard 
-                  key={ticket._id}
-                  ticket={ticket} 
-                  isMyTicket={ticket._id === myId}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* État vide amélioré */}
-        {stats.total === 0 && (
-          <div className="text-center py-24">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl p-24 border-2 border-dashed border-blue-300 shadow-inner">
-              <div className="text-10xl mb-12 opacity-60">🏥</div>
-              <h3 className="text-5xl font-black text-gray-700 mb-8">Aucun Patient</h3>
-              <p className="text-gray-500 text-2xl leading-relaxed">
-                La consultation n'a pas encore commencé.<br/>
-                Les patients apparaîtront ici dès qu'ils prendront un ticket.
-              </p>
-            </div>
           </div>
         )}
       </div>
@@ -454,62 +166,50 @@ const ModernDoctorCard = ({ docteur, tickets, myId }) => {
   );
 };
 
-// Composant principal
+// Interface principale avec vue liste épurée
 const Queue = () => {
   const [state, setState] = useState({
-    queues: Object.fromEntries(DOCTEURS.map(d => [d, []])),
+    queues: {},
     myId: null,
-    currentTime: Date.now(),
     isLoading: true,
-    error: null
+    error: null,
+    currentTime: Date.now()
   });
 
-  const refs = {
-    pollInterval: useRef(null),
-    retryCount: useRef(0),
-    timeInterval: useRef(null)
-  };
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'waiting', 'consultation'
+  const refs = useRef({
+    pollInterval: null,
+    timeInterval: null,
+    retryCount: 0
+  });
 
-  const toast = useToast();
-  const { playNotificationSound, showSystemNotification } = useNotifications();
+  const { toasts, showSuccess, showError, showWarning, removeToast } = useToast();
 
+  // Fonction de fetch simplifiée
   const fetchQueues = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/queue`);
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const tickets = await res.json();
-
-      const queuesByDoctor = DOCTEURS.reduce((acc, docteur) => {
-        acc[docteur] = tickets.filter(t => t.docteur === docteur);
-        return acc;
-      }, {});
-
+      const response = await fetch(`${API_URL}/queue`);
+      if (!response.ok) throw new Error('Erreur réseau');
+      
+      const tickets = await response.json();
+      
       setState(prev => ({
         ...prev,
-        queues: queuesByDoctor,
+        queues: { general: tickets },
         error: null
       }));
-
-      refs.retryCount.current = 0;
+      
+      refs.current.retryCount = 0;
     } catch (err) {
       console.error("Erreur file d'attente:", err);
-      refs.retryCount.current++;
-      
-      if (refs.retryCount.current <= 3) {
-        setState(prev => ({
-          ...prev,
-          error: `Tentative de reconnexion... (${refs.retryCount.current}/3)`
-        }));
-        setTimeout(fetchQueues, 1000 * refs.retryCount.current);
-      } else {
-        setState(prev => ({
-          ...prev,
-          error: "Impossible de charger les files d'attente."
-        }));
-      }
+      setState(prev => ({
+        ...prev,
+        error: "Impossible de charger les données"
+      }));
     }
   }, [API_URL]);
 
+  // Effects
   useEffect(() => {
     const storedTicket = localStorage.getItem("lineup_ticket");
     if (storedTicket) {
@@ -520,7 +220,6 @@ const Queue = () => {
           myId: parsed._id || parsed.userId || parsed.sessionId
         }));
       } catch (e) {
-        console.error("Erreur ticket:", e);
         localStorage.removeItem("lineup_ticket");
       }
     }
@@ -528,97 +227,157 @@ const Queue = () => {
     fetchQueues();
     setState(prev => ({ ...prev, isLoading: false }));
 
-    refs.pollInterval.current = setInterval(fetchQueues, POLL_INTERVAL);
-    refs.timeInterval.current = setInterval(() => {
+    refs.current.pollInterval = setInterval(fetchQueues, POLL_INTERVAL);
+    refs.current.timeInterval = setInterval(() => {
       setState(prev => ({ ...prev, currentTime: Date.now() }));
     }, 1000);
     
     return () => {
-      if (refs.pollInterval.current) clearInterval(refs.pollInterval.current);
-      if (refs.timeInterval.current) clearInterval(refs.timeInterval.current);
+      if (refs.current.pollInterval) clearInterval(refs.current.pollInterval);
+      if (refs.current.timeInterval) clearInterval(refs.current.timeInterval);
     };
   }, [fetchQueues]);
 
+  // Données
   const allTickets = Object.values(state.queues).flat();
+  const filteredTickets = allTickets.filter(ticket => {
+    switch (viewMode) {
+      case 'waiting': return ticket.status === 'en_attente';
+      case 'consultation': return ticket.status === 'en_consultation';
+      default: return true;
+    }
+  });
+
+  const getMyPosition = () => {
+    if (!state.myId) return null;
+    const waitingTickets = allTickets
+      .filter(t => t.status === "en_attente")
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const myIndex = waitingTickets.findIndex(t => t._id === state.myId);
+    return myIndex !== -1 ? myIndex + 1 : null;
+  };
 
   if (state.isLoading) {
     return (
-      <Layout hideTitle={true} fullscreen={true}>
-        <AnimatedPage>
-          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="text-center bg-white p-20 rounded-3xl shadow-2xl border border-gray-100">
-              <div className="animate-spin text-9xl mb-10">⏳</div>
-              <h2 className="text-4xl font-bold text-gray-800 mb-6">Chargement</h2>
-              <p className="text-gray-600 text-2xl">Connexion aux files d'attente...</p>
-            </div>
+      <Layout fullscreen>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin text-4xl mb-4">⚕️</div>
+            <p className="text-gray-600">Chargement de la file d'attente...</p>
           </div>
-        </AnimatedPage>
-      </Layout>
-    );
-  }
-
-  if (state.error) {
-    return (
-      <Layout hideTitle={true} fullscreen={true}>
-        <AnimatedPage>
-          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-red-50 to-red-100">
-            <div className="bg-white border-2 border-red-200 text-red-700 px-16 py-12 rounded-3xl shadow-2xl max-w-lg">
-              <div className="flex items-center">
-                <span className="text-8xl mr-8">⚠️</span>
-                <div>
-                  <h3 className="text-3xl font-bold">Erreur de connexion</h3>
-                  <p className="mt-4 text-xl">{state.error}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </AnimatedPage>
+        </div>
       </Layout>
     );
   }
 
   return (
-    <Layout hideTitle={true} fullscreen={true}>
+    <Layout fullscreen>
       <AnimatedPage>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-          {/* Header moderne */}
-          <ModernHeader 
-            allTickets={allTickets}
-            currentTime={state.currentTime}
-          />
-
-          {/* Grille des docteurs avec espacement généreux */}
-          <div className="max-w-7xl mx-auto px-12 py-16">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-16">
-              {DOCTEURS.map(docteur => (
-                <ModernDoctorCard
-                  key={docteur}
-                  docteur={docteur}
-                  tickets={state.queues[docteur] || []}
-                  myId={state.myId}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Footer avec informations */}
-          <div className="bg-white border-t border-gray-200 mt-16">
-            <div className="max-w-7xl mx-auto px-12 py-12">
-              <div className="text-center text-gray-600">
-                <p className="text-2xl font-semibold">🏥 Interface de gestion des files d'attente médicales</p>
-                <p className="text-lg mt-3">Mise à jour automatique toutes les {POLL_INTERVAL/1000} secondes</p>
+        <div className="min-h-screen bg-gray-50">
+          
+          {/* Header */}
+          <CleanHeader allTickets={allTickets} currentTime={state.currentTime} />
+          
+          {/* Contenu principal */}
+          <div className="max-w-6xl mx-auto px-6 py-8">
+            
+            {/* Filtres */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-sm border">
+                <button
+                  onClick={() => setViewMode('all')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'all' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Tous ({allTickets.length})
+                </button>
+                <button
+                  onClick={() => setViewMode('waiting')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'waiting' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  En attente ({allTickets.filter(t => t.status === 'en_attente').length})
+                </button>
+                <button
+                  onClick={() => setViewMode('consultation')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'consultation' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  En consultation ({allTickets.filter(t => t.status === 'en_consultation').length})
+                </button>
               </div>
+              
+              {/* Indicateur de position personnelle */}
+              {state.myId && getMyPosition() && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                  <span className="text-blue-800 font-medium">
+                    Votre position: #{getMyPosition()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Message d'erreur */}
+            {state.error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-2">
+                  <span className="text-red-600">⚠️</span>
+                  <span className="text-red-800">{state.error}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Liste des tickets */}
+            <div className="space-y-4">
+              {filteredTickets.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🏥</div>
+                  <h3 className="text-xl font-medium text-gray-600 mb-2">
+                    Aucun patient en attente
+                  </h3>
+                  <p className="text-gray-500">
+                    La file d'attente est vide pour le moment
+                  </p>
+                </div>
+              ) : (
+                filteredTickets
+                  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                  .map((ticket, index) => (
+                    <CleanTicketCard
+                      key={ticket._id}
+                      ticket={ticket}
+                      isMyTicket={ticket._id === state.myId}
+                      position={
+                        ticket.status === 'en_attente' 
+                          ? allTickets
+                              .filter(t => t.status === 'en_attente')
+                              .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                              .findIndex(t => t._id === ticket._id) + 1
+                          : null
+                      }
+                    />
+                  ))
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Notifications */}
-          {toast.toasts && toast.toasts.map((t) => (
+        {/* Toasts */}
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {toasts.map(toast => (
             <Toast
-              key={t.id}
-              message={t.message}
-              type={t.type}
-              duration={t.duration}
-              onClose={() => toast.removeToast(t.id)}
+              key={toast.id}
+              toast={toast}
+              onRemove={removeToast}
             />
           ))}
         </div>
