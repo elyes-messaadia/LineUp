@@ -1,0 +1,5 @@
+URGENT NETLIFY REBUILD - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+Environment: VITE_API_URL = https://lineup-backend-xxak.onrender.com
+Force cache clear and rebuild required
+Backend URL: lineup-backend-xxak.onrender.com
+Old URL (deprecated): lineup-nby9.onrender.com 
