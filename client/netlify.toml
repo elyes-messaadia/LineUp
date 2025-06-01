@@ -1,6 +1,7 @@
 [build]
-  publish = "dist"
-  command = "rm -rf node_modules/.vite && rm -rf dist && npm install && npm run build"
+  base = "client/"
+  command = "rm -rf node_modules/.vite && rm -rf dist && npm ci && npm run build"
+  publish = "dist/"
 
 [build.environment]
   NODE_VERSION = "18"
