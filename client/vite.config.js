@@ -5,9 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      jsxRuntime: 'automatic'
-    }),
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['assets/icon.png'],
@@ -34,51 +32,23 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: process.env.NODE_ENV === 'development',
-    minify: 'esbuild',
-    target: 'es2015',
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-react';
-            if (id.includes('framer-motion')) return 'vendor-framer';
-            return 'vendor';
-          }
-        }
-      }
+    sourcemap: true,
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
     }
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'classnames', 'framer-motion']
   },
   server: {
     port: 5173,
     strictPort: true,
-    host: true,
-    hmr: {
-      protocol: 'ws',
-      host: 'localhost',
-      port: 5173,
-      clientPort: 5173,
-      timeout: 5000,
-      overlay: true
-    },
-    watch: {
-      usePolling: true,
-      interval: 1000
-    }
+    host: true
   },
   preview: {
     port: 5173,
     strictPort: true,
-    host: true,
-    hmr: {
-      protocol: 'ws',
-      host: 'localhost',
-      port: 5173,
-      clientPort: 5173
-    }
+    host: true
+  },
+  esbuild: {
+    jsxInject: `import React from 'react'`
   }
 });
