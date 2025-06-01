@@ -7,11 +7,14 @@ import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../hooks/useToast";
 
+const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
+
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
 
@@ -69,18 +72,58 @@ export default function Home() {
       // S'assurer que le sessionId est inclus dans les données stockées
       localStorage.setItem("lineup_ticket", JSON.stringify({
         ...data,
-        isAnonymous: true // Marquer le ticket comme anonyme
+        isAnonymous: true, // Marquer le ticket comme anonyme
+        docteur: selectedDoctor
       }));
       
       showSuccess(`Ticket n°${data.number} créé avec succès !`, 4000);
       
       setTimeout(() => {
-        navigate("/ticket");
+        navigate("/queue");
       }, 1500);
 
     } catch (error) {
       console.error("Erreur création ticket:", error);
       showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateTicket = async () => {
+    if (!selectedDoctor) {
+      showError("Veuillez sélectionner un docteur");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ docteur: selectedDoctor }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création du ticket');
+      }
+
+      const ticket = await response.json();
+      localStorage.setItem('lineup_ticket', JSON.stringify({
+        userId: ticket._id,
+        number: ticket.number,
+        docteur: ticket.docteur
+      }));
+
+      navigate('/queue');
+    } catch (err) {
+      console.error('Erreur:', err);
+      showError("Impossible de créer un ticket. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }

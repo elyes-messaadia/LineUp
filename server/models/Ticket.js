@@ -6,13 +6,24 @@ const ticketSchema = new mongoose.Schema({
     required: true,
     unique: true  // Assurer l'unicité des numéros
   },
-  userId: {
+  status: {
     type: String,
-    required: false  // Optionnel pour la compatibilité
+    enum: ["en_attente", "en_consultation", "desiste", "termine"],
+    default: "en_attente"
+  },
+  docteur: {
+    type: String,
+    required: true,
+    enum: ['Docteur 1', 'Docteur 2', 'Docteur 3']
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   sessionId: {
     type: String,
-    required: false  // ID de session pour identifier l'utilisateur anonyme
+    default: null
   },
   createdAt: { 
     type: Date, 
@@ -21,11 +32,6 @@ const ticketSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  },
-  status: {
-    type: String,
-    enum: ["en_attente", "en_consultation", "desiste", "termine"],
-    default: "en_attente"
   },
   metadata: {
     ipAddress: String,
