@@ -71,6 +71,15 @@ app.use("/auth", authRoutes);
 // 🎫 Créer un ticket (version améliorée)
 app.post("/ticket", async (req, res) => {
   try {
+    const { docteur } = req.body;
+    
+    // Vérifier si le docteur est fourni et valide
+    if (!docteur || !['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(docteur)) {
+      return res.status(400).json({ 
+        message: "Le docteur est requis et doit être l'un des suivants : Docteur 1, Docteur 2, Docteur 3"
+      });
+    }
+
     // Générer un sessionId unique pour identifier l'utilisateur anonyme
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -94,6 +103,7 @@ app.post("/ticket", async (req, res) => {
         
         ticket = new Ticket({ 
           number: nextNumber,
+          docteur: docteur,
           sessionId: sessionId,
           userId: req.body.userId || null,
           metadata: metadata
