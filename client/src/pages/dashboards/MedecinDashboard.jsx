@@ -35,12 +35,10 @@ export default function MedecinDashboard() {
 
     setUser(parsedUser);
     fetchQueue();
-    fetchStats();
 
     // Actualiser toutes les secondes
     const interval = setInterval(() => {
       fetchQueue();
-      fetchStats();
     }, 1000);
 
     return () => clearInterval(interval);
@@ -56,26 +54,25 @@ export default function MedecinDashboard() {
         // Trouver le patient en consultation
         const inConsultation = data.find(t => t.status === "en_consultation");
         setCurrentPatient(inConsultation);
+
+        // Calculer les statistiques avec les données fraîches
+        const today = data.filter(t => {
+          const ticketDate = new Date(t.createdAt);
+          const todayDate = new Date();
+          return ticketDate.toDateString() === todayDate.toDateString();
+        });
+
+        setStats({
+          waitingCount: data.filter(t => t.status === "en_attente").length,
+          inConsultationCount: data.filter(t => t.status === "en_consultation").length,
+          completedToday: today.filter(t => t.status === "termine").length,
+          cancelledToday: today.filter(t => t.status === "desiste").length,
+          totalToday: today.length
+        });
       }
     } catch (error) {
       // Silencieux pour ne pas spam les erreurs
     }
-  };
-
-  const fetchStats = () => {
-    const today = queue.filter(t => {
-      const ticketDate = new Date(t.createdAt);
-      const today = new Date();
-      return ticketDate.toDateString() === today.toDateString();
-    });
-
-    setStats({
-      waitingCount: queue.filter(t => t.status === "en_attente").length,
-      inConsultationCount: queue.filter(t => t.status === "en_consultation").length,
-      completedToday: today.filter(t => t.status === "termine").length,
-      cancelledToday: today.filter(t => t.status === "desiste").length,
-      totalToday: today.length
-    });
   };
 
   const handleCallNext = () => {

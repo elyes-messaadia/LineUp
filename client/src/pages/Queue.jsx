@@ -9,43 +9,47 @@ const API_URL = import.meta.env.VITE_API_URL;
 const POLL_INTERVAL = 2000;
 const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
 
-// Configuration des statuts
+// Configuration des statuts avec design amélioré
 const STATUS_CONFIG = {
   en_attente: {
     icon: "⏳",
     label: "En attente",
     color: "amber",
-    bgClass: "bg-amber-50 border-amber-200",
-    badgeClass: "bg-amber-100 text-amber-800",
-    iconBg: "bg-amber-100",
-    dotColor: "bg-amber-500"
+    bgClass: "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200",
+    badgeClass: "bg-amber-500 text-white",
+    iconBg: "bg-amber-100 text-amber-700",
+    dotColor: "bg-amber-500",
+    ringColor: "ring-amber-300"
   },
   en_consultation: {
     icon: "🩺",
     label: "En consultation",
     color: "emerald",
-    bgClass: "bg-emerald-50 border-emerald-200",
-    badgeClass: "bg-emerald-100 text-emerald-800",
-    iconBg: "bg-emerald-100",
-    dotColor: "bg-emerald-500"
+    bgClass: "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200",
+    badgeClass: "bg-emerald-500 text-white",
+    iconBg: "bg-emerald-100 text-emerald-700",
+    dotColor: "bg-emerald-500",
+    ringColor: "ring-emerald-300"
   },
   termine: {
     icon: "✅",
     label: "Terminé",
     color: "slate",
-    bgClass: "bg-slate-50 border-slate-200",
-    badgeClass: "bg-slate-100 text-slate-800",
-    iconBg: "bg-slate-100",
-    dotColor: "bg-slate-500"
+    bgClass: "bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200",
+    badgeClass: "bg-slate-500 text-white",
+    iconBg: "bg-slate-100 text-slate-700",
+    dotColor: "bg-slate-500",
+    ringColor: "ring-slate-300"
   },
   desiste: {
     icon: "❌",
     label: "Désisté",
     color: "red",
-    bgClass: "bg-red-50 border-red-200",
-    badgeClass: "bg-red-100 text-red-800",
-    iconBg: "bg-red-100",
-    dotColor: "bg-red-500"
+    bgClass: "bg-gradient-to-br from-red-50 to-rose-50 border-red-200",
+    badgeClass: "bg-red-500 text-white",
+    iconBg: "bg-red-100 text-red-700",
+    dotColor: "bg-red-500",
+    ringColor: "ring-red-300"
   }
 };
 
@@ -106,43 +110,8 @@ const useNotifications = () => {
   return { playNotificationSound, showSystemNotification };
 };
 
-// Interface mobile (version simplifiée)
-const MobileInterface = ({ allTickets, currentTime, queues, myId }) => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-      {/* Header mobile */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-lg mx-auto px-6 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-gray-900 mb-2">
-              File d'attente médicale
-            </h1>
-            <p className="text-gray-600">
-              Mise à jour • {formatTime(currentTime)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Grille mobile */}
-      <div className="max-w-lg mx-auto px-6 py-8">
-        <div className="space-y-8">
-          {DOCTEURS.map(docteur => (
-            <MobileDoctorCard
-              key={docteur}
-              docteur={docteur}
-              tickets={queues[docteur] || []}
-              myId={myId}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Sidebar Desktop avec navigation et stats
-const DesktopSidebar = ({ allTickets, currentTime, selectedDoctor, onDoctorSelect }) => {
+// Header moderne amélioré avec beaucoup plus d'espacement
+const ModernHeader = ({ allTickets, currentTime }) => {
   const totalStats = {
     total: allTickets.length,
     waiting: allTickets.filter(t => t.status === "en_attente").length,
@@ -158,253 +127,160 @@ const DesktopSidebar = ({ allTickets, currentTime, selectedDoctor, onDoctorSelec
     : 0;
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 h-screen overflow-y-auto shadow-xl">
-      {/* Header Sidebar */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 text-white p-8">
-        <h1 className="text-3xl font-bold mb-2">📋 LineUp</h1>
-        <p className="text-indigo-100 mb-4">Gestion des files d'attente</p>
-        <div className="bg-white/20 rounded-lg p-4">
-          <div className="text-2xl font-bold">{formatTime(currentTime)}</div>
-          <div className="text-indigo-200 text-sm">Temps réel</div>
-        </div>
-      </div>
-
-      {/* Statistiques globales */}
-      <div className="p-8 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">📊 Vue d'ensemble</h2>
-        
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 mb-6 border border-blue-200">
-          <div className="text-center">
-            <div className="text-5xl font-black text-indigo-700 mb-2">{totalStats.total}</div>
-            <div className="text-indigo-600 font-semibold">Patients aujourd'hui</div>
+    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-200">
+      <div className="max-w-7xl mx-auto px-12 py-16">
+        {/* Titre principal avec beaucoup plus d'espace */}
+        <div className="text-center mb-16">
+          <h1 className="text-7xl font-black text-gray-900 mb-6 tracking-tight">
+            🏥 File d'Attente Médicale
+          </h1>
+          <div className="flex items-center justify-center space-x-6 text-2xl text-gray-600">
+            <span className="flex items-center space-x-3">
+              <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="font-semibold">Temps réel</span>
+            </span>
+            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+            <span className="font-mono">{formatTime(currentTime)}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 text-center">
-            <div className="text-3xl font-bold text-amber-700">{totalStats.waiting}</div>
-            <div className="text-amber-600 text-sm font-medium">En attente</div>
+        {/* Statistiques générales avec espacement généreux */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
+          <div className="md:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-10 text-center shadow-2xl">
+            <div className="text-6xl font-black mb-4">{totalStats.total}</div>
+            <div className="text-blue-100 text-xl font-semibold mb-2">Patients Total</div>
+            <div className="text-blue-200 text-lg">Aujourd'hui</div>
           </div>
-          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200 text-center">
-            <div className="text-3xl font-bold text-emerald-700">{totalStats.inConsultation}</div>
-            <div className="text-emerald-600 text-sm font-medium">En cours</div>
-          </div>
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
-            <div className="text-3xl font-bold text-slate-700">{totalStats.finished}</div>
-            <div className="text-slate-600 text-sm font-medium">Terminés</div>
-          </div>
-          <div className="bg-red-50 rounded-xl p-4 border border-red-200 text-center">
-            <div className="text-3xl font-bold text-red-700">{totalStats.cancelled}</div>
-            <div className="text-red-600 text-sm font-medium">Désistés</div>
-          </div>
-        </div>
-
-        {avgWaitTime > 0 && (
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 text-center">
-            <div className="text-3xl font-bold text-purple-700">{avgWaitTime} min</div>
-            <div className="text-purple-600 text-sm font-medium">Temps d'attente moyen</div>
-          </div>
-        )}
-      </div>
-
-      {/* Navigation des docteurs */}
-      <div className="p-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">👨‍⚕️ Docteurs</h2>
-        <div className="space-y-3">
-          <button
-            onClick={() => onDoctorSelect(null)}
-            className={`w-full text-left p-4 rounded-xl font-semibold transition-all duration-200 ${
-              !selectedDoctor
-                ? 'bg-indigo-600 text-white shadow-lg scale-105'
-                : 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:scale-102'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span>📊 Vue globale</span>
-              <span className="text-sm opacity-75">{totalStats.total}</span>
-            </div>
-          </button>
           
-          {DOCTEURS.map(docteur => {
-            const doctorTickets = allTickets.filter(t => t.docteur === docteur);
-            const waiting = doctorTickets.filter(t => t.status === 'en_attente').length;
-            const inConsultation = doctorTickets.filter(t => t.status === 'en_consultation').length;
-            
-            return (
-              <button
-                key={docteur}
-                onClick={() => onDoctorSelect(docteur)}
-                className={`w-full text-left p-4 rounded-xl font-semibold transition-all duration-200 ${
-                  selectedDoctor === docteur
-                    ? 'bg-indigo-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:scale-102'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{docteur}</span>
-                  <div className="flex items-center space-x-2 text-sm">
-                    {waiting > 0 && (
-                      <span className={`px-2 py-1 rounded-full ${
-                        selectedDoctor === docteur 
-                          ? 'bg-white/20' 
-                          : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {waiting}
-                      </span>
-                    )}
-                    {inConsultation > 0 && (
-                      <span className={`px-2 py-1 rounded-full ${
-                        selectedDoctor === docteur 
-                          ? 'bg-white/20' 
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        🩺
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-amber-200 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="text-5xl font-bold text-amber-600 mb-3">{totalStats.waiting}</div>
+            <div className="text-amber-700 font-bold text-lg mb-3">En Attente</div>
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
+              <span className="text-amber-600 font-medium">File active</span>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-emerald-200 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="text-5xl font-bold text-emerald-600 mb-3">{totalStats.inConsultation}</div>
+            <div className="text-emerald-700 font-bold text-lg mb-3">En Consultation</div>
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse mr-2"></div>
+              <span className="text-emerald-600 font-medium">En cours</span>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-slate-200 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="text-5xl font-bold text-slate-600 mb-3">{totalStats.finished}</div>
+            <div className="text-slate-700 font-bold text-lg mb-3">Terminés</div>
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 bg-slate-500 rounded-full mr-2"></div>
+              <span className="text-slate-600 font-medium">Finis</span>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-3xl p-8 text-center shadow-xl border-2 border-purple-200 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="text-5xl font-bold text-purple-600 mb-3">{avgWaitTime}</div>
+            <div className="text-purple-700 font-bold text-lg mb-3">Minutes</div>
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+              <span className="text-purple-600 font-medium">Attente moy.</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Interface Desktop avec pleine utilisation de l'espace
-const DesktopInterface = ({ allTickets, currentTime, queues, myId, selectedDoctor, onDoctorSelect }) => {
-  return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar */}
-      <DesktopSidebar 
-        allTickets={allTickets}
-        currentTime={currentTime}
-        selectedDoctor={selectedDoctor}
-        onDoctorSelect={onDoctorSelect}
-      />
-
-      {/* Zone principale */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-12">
-          {!selectedDoctor ? (
-            // Vue globale - Grille adaptative
-            <>
-              <div className="mb-12">
-                <h1 className="text-5xl font-bold text-gray-900 mb-4">
-                  🏥 Vue d'ensemble des consultations
-                </h1>
-                <p className="text-xl text-gray-600">
-                  Interface temps réel • {formatTime(currentTime)}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 2xl:grid-cols-3 gap-12 auto-rows-fr">
-                {DOCTEURS.map(docteur => (
-                  <DesktopDoctorCard
-                    key={docteur}
-                    docteur={docteur}
-                    tickets={queues[docteur] || []}
-                    myId={myId}
-                    isFullWidth={false}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            // Vue docteur spécifique - Pleine largeur
-            <>
-              <div className="mb-12">
-                <button
-                  onClick={() => onDoctorSelect(null)}
-                  className="mb-6 flex items-center text-indigo-600 hover:text-indigo-800 font-semibold"
-                >
-                  ← Retour à la vue globale
-                </button>
-                <h1 className="text-5xl font-bold text-gray-900 mb-4">
-                  {selectedDoctor}
-                </h1>
-                <p className="text-xl text-gray-600">
-                  Gestion détaillée de la file d'attente
-                </p>
-              </div>
-              
-              <div className="max-w-6xl">
-                <DesktopDoctorCard
-                  docteur={selectedDoctor}
-                  tickets={queues[selectedDoctor] || []}
-                  myId={myId}
-                  isFullWidth={true}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Carte ticket optimisée
-const TicketCard = ({ ticket, isMyTicket, position, isCompact = false }) => {
+// Ticket Card complètement repensé avec plus d'espacement
+const EnhancedTicketCard = ({ ticket, isMyTicket, position, isCompact = false }) => {
   const config = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.en_attente;
   
   return (
     <div 
       className={`
-        relative rounded-xl border-2 transition-all duration-300 hover:shadow-lg
+        relative rounded-3xl border-2 transition-all duration-300 hover:shadow-2xl hover:scale-102
         ${config.bgClass}
         ${isMyTicket 
-          ? 'ring-2 ring-indigo-400 ring-offset-2 bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-300' 
-          : 'hover:shadow-md hover:-translate-y-1'
+          ? `ring-4 ${config.ringColor} ring-offset-4 shadow-2xl transform scale-105` 
+          : 'hover:shadow-xl'
         }
-        ${isCompact ? 'p-4' : 'p-6'}
+        ${isCompact ? 'p-6' : 'p-10'}
       `}
     >
+      {/* Badge "Vous" */}
       {isMyTicket && (
-        <div className="absolute -top-3 -right-3 bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
-          C'est vous
+        <div className="absolute -top-5 -right-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold px-8 py-4 rounded-full shadow-2xl animate-pulse">
+          🫵 C'est vous !
         </div>
       )}
       
-      <div className="flex items-center space-x-4">
-        <div className={`${config.iconBg} rounded-full ${isCompact ? 'p-3' : 'p-4'} flex-shrink-0`}>
-          <span className={isCompact ? 'text-2xl' : 'text-3xl'}>{config.icon}</span>
+      {/* Badge de position pour les files d'attente */}
+      {ticket.status === 'en_attente' && position && (
+        <div className="absolute -top-4 -left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full w-16 h-16 flex items-center justify-center font-black text-xl shadow-xl">
+          {position}
+        </div>
+      )}
+      
+      <div className="flex items-center space-x-8">
+        {/* Icône avec animation */}
+        <div className={`
+          ${config.iconBg} rounded-3xl flex-shrink-0 shadow-xl
+          ${isCompact ? 'p-6' : 'p-8'}
+          ${ticket.status === 'en_consultation' ? 'animate-pulse' : ''}
+        `}>
+          <span className={`${isCompact ? 'text-4xl' : 'text-6xl'}`}>
+            {config.icon}
+          </span>
         </div>
         
+        {/* Contenu principal */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-3 mb-2">
-            <span className={`font-bold text-gray-900 ${isCompact ? 'text-xl' : 'text-2xl'}`}>
-              N°{ticket.number}
+          <div className="flex items-center space-x-6 mb-6">
+            <span className={`font-black text-gray-900 ${isCompact ? 'text-3xl' : 'text-4xl'}`}>
+              Ticket n°{ticket.number}
             </span>
-            {ticket.status === 'en_attente' && position && (
-              <span className="bg-white/80 text-amber-700 font-semibold px-3 py-1 rounded-full text-sm border border-amber-200">
-                Position {position}
-              </span>
-            )}
+            <span className={`${config.badgeClass} px-6 py-3 rounded-full text-lg font-bold shadow-lg`}>
+              {config.label}
+            </span>
           </div>
           
-          <div className="flex items-center space-x-4 text-gray-600">
-            <span className="flex items-center space-x-1">
-              <span>🕐</span>
-              <span className="font-medium">{formatWaitingTime(ticket.createdAt)}</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <span>📅</span>
-              <span>{formatTime(ticket.createdAt)}</span>
-            </span>
+          <div className="grid grid-cols-2 gap-6 text-gray-700">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">⏱️</span>
+              <div>
+                <div className="font-bold text-lg">Attente</div>
+                <div className="text-lg">{formatWaitingTime(ticket.createdAt)}</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🕐</span>
+              <div>
+                <div className="font-bold text-lg">Arrivée</div>
+                <div className="text-lg">{formatTime(ticket.createdAt)}</div>
+              </div>
+            </div>
           </div>
         </div>
         
+        {/* Indicateur de statut */}
         <div className="flex-shrink-0">
           {ticket.status === 'en_consultation' && (
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 ${config.dotColor} rounded-full animate-pulse`}></div>
-              <span className="text-emerald-600 font-medium text-sm">EN DIRECT</span>
+            <div className="text-center">
+              <div className={`w-8 h-8 ${config.dotColor} rounded-full animate-ping mx-auto mb-3`}></div>
+              <span className="text-emerald-600 font-black text-lg bg-emerald-100 px-4 py-2 rounded-full">
+                EN DIRECT
+              </span>
             </div>
           )}
-          {ticket.status === 'en_attente' && (
-            <div className={`w-3 h-3 ${config.dotColor} rounded-full`}></div>
+          {ticket.status === 'en_attente' && position && (
+            <div className="text-center">
+              <div className={`w-8 h-8 ${config.dotColor} rounded-full mx-auto mb-3`}></div>
+              <span className="text-amber-600 font-black text-lg bg-amber-100 px-4 py-2 rounded-full">
+                #{position}
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -412,8 +288,8 @@ const TicketCard = ({ ticket, isMyTicket, position, isCompact = false }) => {
   );
 };
 
-// Carte docteur desktop optimisée
-const DesktopDoctorCard = ({ docteur, tickets, myId, isFullWidth = false }) => {
+// Carte docteur complètement redesignée avec énormément plus d'espacement
+const ModernDoctorCard = ({ docteur, tickets, myId }) => {
   const stats = {
     waiting: tickets.filter(t => t.status === "en_attente").length,
     inConsultation: tickets.filter(t => t.status === "en_consultation").length,
@@ -429,100 +305,112 @@ const DesktopDoctorCard = ({ docteur, tickets, myId, isFullWidth = false }) => {
   const currentTicket = tickets.find(t => t.status === "en_consultation");
   const recentFinished = tickets
     .filter(t => t.status === "termine")
-    .slice(-5)
+    .slice(-2)
     .reverse();
 
   const avgWaitTime = waitingTickets.length > 0 
     ? Math.floor(waitingTickets.reduce((acc, t) => acc + (Date.now() - new Date(t.createdAt)) / 60000, 0) / waitingTickets.length)
     : 0;
 
-  const maxHeight = isFullWidth ? 'max-h-[calc(100vh-400px)]' : 'max-h-[calc(100vh-300px)]';
-
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden h-full flex flex-col">
-      {/* En-tête */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-8">
-        <div className="flex items-center justify-between">
+    <div className="bg-white rounded-3xl border-2 border-gray-200 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden">
+      {/* En-tête moderne avec plus d'espace */}
+      <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 text-white p-12">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-4xl font-bold mb-2">{docteur}</h2>
-            <p className="text-slate-300 text-lg">Cabinet médical</p>
-            {avgWaitTime > 0 && (
-              <p className="text-slate-200 text-sm mt-2 bg-slate-700/50 rounded-full px-3 py-1 inline-block">
-                ⏱️ Attente moyenne: {avgWaitTime} min
-              </p>
-            )}
+            <h2 className="text-5xl font-black mb-4 tracking-tight">{docteur}</h2>
+            <p className="text-gray-300 text-2xl flex items-center">
+              <span className="mr-3">🏥</span>
+              Cabinet médical
+            </p>
           </div>
-          <div className="text-right">
-            <div className="text-6xl font-black text-white mb-1">{stats.total}</div>
-            <div className="text-slate-300">patients</div>
+          <div className="text-center bg-white/20 rounded-3xl p-8">
+            <div className="text-6xl font-black text-white mb-3">{stats.total}</div>
+            <div className="text-gray-300 text-xl">patients</div>
+          </div>
+        </div>
+        
+        {avgWaitTime > 0 && (
+          <div className="bg-blue-500/20 rounded-2xl p-6 border border-blue-400/30">
+            <div className="flex items-center justify-center space-x-3">
+              <span className="text-2xl">⏱️</span>
+              <span className="font-bold text-xl">Temps d'attente moyen: {avgWaitTime} minutes</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Statistiques détaillées avec espacement généreux */}
+      <div className="p-10 bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-100">
+        <div className="grid grid-cols-4 gap-8">
+          <div className="text-center bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl p-8 border-2 border-amber-200 shadow-lg hover:shadow-xl transition-all">
+            <div className="text-4xl font-black text-amber-700 mb-3">{stats.waiting}</div>
+            <div className="text-amber-600 font-bold text-lg">Attente</div>
+            <div className="w-12 h-2 bg-amber-500 rounded-full mx-auto mt-3"></div>
+          </div>
+          <div className="text-center bg-gradient-to-br from-emerald-100 to-green-100 rounded-3xl p-8 border-2 border-emerald-200 shadow-lg hover:shadow-xl transition-all">
+            <div className="text-4xl font-black text-emerald-700 mb-3">{stats.inConsultation}</div>
+            <div className="text-emerald-600 font-bold text-lg">En cours</div>
+            <div className="w-12 h-2 bg-emerald-500 rounded-full mx-auto mt-3"></div>
+          </div>
+          <div className="text-center bg-gradient-to-br from-slate-100 to-gray-100 rounded-3xl p-8 border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all">
+            <div className="text-4xl font-black text-slate-700 mb-3">{stats.finished}</div>
+            <div className="text-slate-600 font-bold text-lg">Terminés</div>
+            <div className="w-12 h-2 bg-slate-500 rounded-full mx-auto mt-3"></div>
+          </div>
+          <div className="text-center bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl p-8 border-2 border-red-200 shadow-lg hover:shadow-xl transition-all">
+            <div className="text-4xl font-black text-red-700 mb-3">{stats.cancelled}</div>
+            <div className="text-red-600 font-bold text-lg">Désistés</div>
+            <div className="w-12 h-2 bg-red-500 rounded-full mx-auto mt-3"></div>
           </div>
         </div>
       </div>
 
-      {/* Statistiques */}
-      <div className="p-6 bg-gray-50/50 border-b border-gray-100">
-        <div className="grid grid-cols-4 gap-4">
-          <div className="text-center bg-amber-50 rounded-xl p-4 border border-amber-100">
-            <div className="text-3xl font-bold text-amber-700">{stats.waiting}</div>
-            <div className="text-amber-600 text-sm font-medium">Attente</div>
-          </div>
-          <div className="text-center bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-            <div className="text-3xl font-bold text-emerald-700">{stats.inConsultation}</div>
-            <div className="text-emerald-600 text-sm font-medium">En cours</div>
-          </div>
-          <div className="text-center bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div className="text-3xl font-bold text-slate-700">{stats.finished}</div>
-            <div className="text-slate-600 text-sm font-medium">Terminés</div>
-          </div>
-          <div className="text-center bg-red-50 rounded-xl p-4 border border-red-100">
-            <div className="text-3xl font-bold text-red-700">{stats.cancelled}</div>
-            <div className="text-red-600 text-sm font-medium">Désistés</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Contenu avec scroll */}
-      <div className={`flex-1 p-6 overflow-y-auto ${maxHeight} space-y-8`}>
+      {/* Contenu principal avec beaucoup plus d'espacement */}
+      <div className="p-10 max-h-[900px] overflow-y-auto space-y-12">
         {/* Patient en consultation */}
         {currentTicket && (
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <span className="bg-emerald-100 p-3 rounded-full mr-4">🩺</span>
-              En consultation
-              <span className="ml-4 bg-emerald-500 text-white text-sm px-4 py-2 rounded-full animate-pulse">
-                LIVE
-              </span>
-            </h3>
-            <TicketCard 
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-4xl font-black text-gray-900 flex items-center">
+                <span className="bg-emerald-500 text-white p-6 rounded-3xl mr-6 shadow-xl">🩺</span>
+                En Consultation
+              </h3>
+              <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-8 py-4 rounded-full font-black text-lg shadow-xl animate-pulse">
+                🔴 LIVE
+              </div>
+            </div>
+            <EnhancedTicketCard 
               ticket={currentTicket} 
               isMyTicket={currentTicket._id === myId}
-              isCompact={!isFullWidth}
             />
           </div>
         )}
 
         {/* File d'attente */}
         {waitingTickets.length > 0 && (
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-between">
-              <span className="flex items-center">
-                <span className="bg-amber-100 p-3 rounded-full mr-4">⏳</span>
-                File d'attente ({waitingTickets.length})
-              </span>
-              {avgWaitTime > 0 && (
-                <span className="text-amber-600 text-lg bg-amber-50 px-4 py-2 rounded-full">
-                  ~{avgWaitTime} min
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-4xl font-black text-gray-900 flex items-center">
+                <span className="bg-amber-500 text-white p-6 rounded-3xl mr-6 shadow-xl">⏳</span>
+                File d'Attente
+                <span className="ml-6 bg-amber-100 text-amber-800 px-6 py-3 rounded-full text-2xl font-black">
+                  {waitingTickets.length}
                 </span>
+              </h3>
+              {avgWaitTime > 0 && (
+                <div className="bg-amber-100 text-amber-700 px-8 py-4 rounded-full font-black text-lg shadow-lg">
+                  ~{avgWaitTime} min
+                </div>
               )}
-            </h3>
-            <div className="space-y-4">
+            </div>
+            <div className="space-y-8">
               {waitingTickets.map((ticket, index) => (
-                <TicketCard 
+                <EnhancedTicketCard 
                   key={ticket._id}
                   ticket={ticket} 
                   isMyTicket={ticket._id === myId}
                   position={index + 1}
-                  isCompact={!isFullWidth}
                 />
               ))}
             </div>
@@ -531,110 +419,34 @@ const DesktopDoctorCard = ({ docteur, tickets, myId, isFullWidth = false }) => {
 
         {/* Récemment terminés */}
         {recentFinished.length > 0 && (
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <span className="bg-slate-100 p-3 rounded-full mr-4">✅</span>
-              Récemment terminés
+          <div className="space-y-8">
+            <h3 className="text-4xl font-black text-gray-900 flex items-center">
+              <span className="bg-slate-500 text-white p-6 rounded-3xl mr-6 shadow-xl">✅</span>
+              Récemment Terminés
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-8">
               {recentFinished.map((ticket) => (
-                <TicketCard 
+                <EnhancedTicketCard 
                   key={ticket._id}
                   ticket={ticket} 
                   isMyTicket={ticket._id === myId}
-                  isCompact={!isFullWidth}
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* État vide */}
+        {/* État vide amélioré */}
         {stats.total === 0 && (
-          <div className="text-center py-20">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-16 border-2 border-dashed border-gray-200">
-              <div className="text-8xl mb-8 opacity-50">🏥</div>
-              <h3 className="text-3xl font-bold text-gray-700 mb-4">Aucun patient</h3>
-              <p className="text-gray-500 text-xl">La consultation n'a pas encore commencé</p>
+          <div className="text-center py-24">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl p-24 border-2 border-dashed border-blue-300 shadow-inner">
+              <div className="text-10xl mb-12 opacity-60">🏥</div>
+              <h3 className="text-5xl font-black text-gray-700 mb-8">Aucun Patient</h3>
+              <p className="text-gray-500 text-2xl leading-relaxed">
+                La consultation n'a pas encore commencé.<br/>
+                Les patients apparaîtront ici dès qu'ils prendront un ticket.
+              </p>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Carte docteur mobile simplifiée
-const MobileDoctorCard = ({ docteur, tickets, myId }) => {
-  const stats = {
-    waiting: tickets.filter(t => t.status === "en_attente").length,
-    inConsultation: tickets.filter(t => t.status === "en_consultation").length,
-    total: tickets.length
-  };
-
-  const waitingTickets = tickets
-    .filter(t => t.status === "en_attente")
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    .slice(0, 3); // Limite mobile
-  
-  const currentTicket = tickets.find(t => t.status === "en_consultation");
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">{docteur}</h2>
-            <p className="text-slate-300">Cabinet médical</p>
-          </div>
-          <div className="text-right">
-            <div className="text-4xl font-bold">{stats.total}</div>
-            <div className="text-slate-300 text-sm">patients</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6">
-        {currentTicket && (
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">🩺 En consultation</h3>
-            <TicketCard 
-              ticket={currentTicket} 
-              isMyTicket={currentTicket._id === myId}
-              isCompact={true}
-            />
-          </div>
-        )}
-
-        {waitingTickets.length > 0 && (
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">
-              ⏳ En attente ({stats.waiting})
-            </h3>
-            <div className="space-y-3">
-              {waitingTickets.map((ticket, index) => (
-                <TicketCard 
-                  key={ticket._id}
-                  ticket={ticket} 
-                  isMyTicket={ticket._id === myId}
-                  position={index + 1}
-                  isCompact={true}
-                />
-              ))}
-              {stats.waiting > 3 && (
-                <div className="text-center text-gray-500 text-sm py-2">
-                  ... et {stats.waiting - 3} autres patients
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {stats.total === 0 && (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-4 opacity-50">🏥</div>
-            <h3 className="text-lg font-bold text-gray-700 mb-2">Aucun patient</h3>
-            <p className="text-gray-500">La consultation n'a pas commencé</p>
           </div>
         )}
       </div>
@@ -649,8 +461,7 @@ const Queue = () => {
     myId: null,
     currentTime: Date.now(),
     isLoading: true,
-    error: null,
-    selectedDoctor: null
+    error: null
   });
 
   const refs = {
@@ -661,26 +472,6 @@ const Queue = () => {
 
   const toast = useToast();
   const { playNotificationSound, showSystemNotification } = useNotifications();
-  
-  // Détection responsive avancée
-  const [screenSize, setScreenSize] = useState(() => {
-    const width = window.innerWidth;
-    if (width < 768) return 'mobile';
-    if (width < 1280) return 'tablet';
-    return 'desktop';
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 768) setScreenSize('mobile');
-      else if (width < 1280) setScreenSize('tablet');
-      else setScreenSize('desktop');
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchQueues = useCallback(async () => {
     try {
@@ -752,13 +543,13 @@ const Queue = () => {
 
   if (state.isLoading) {
     return (
-      <Layout hideTitle={true}>
+      <Layout hideTitle={true} fullscreen={true}>
         <AnimatedPage>
-          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-50">
-            <div className="text-center bg-white p-12 rounded-3xl shadow-xl border border-gray-100">
-              <div className="animate-spin text-6xl mb-6">⏳</div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">Chargement</h2>
-              <p className="text-gray-600">Connexion aux files d'attente...</p>
+          <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="text-center bg-white p-20 rounded-3xl shadow-2xl border border-gray-100">
+              <div className="animate-spin text-9xl mb-10">⏳</div>
+              <h2 className="text-4xl font-bold text-gray-800 mb-6">Chargement</h2>
+              <p className="text-gray-600 text-2xl">Connexion aux files d'attente...</p>
             </div>
           </div>
         </AnimatedPage>
@@ -768,15 +559,15 @@ const Queue = () => {
 
   if (state.error) {
     return (
-      <Layout hideTitle={true}>
+      <Layout hideTitle={true} fullscreen={true}>
         <AnimatedPage>
           <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-red-50 to-red-100">
-            <div className="bg-white border border-red-200 text-red-700 px-8 py-6 rounded-3xl shadow-xl max-w-md">
+            <div className="bg-white border-2 border-red-200 text-red-700 px-16 py-12 rounded-3xl shadow-2xl max-w-lg">
               <div className="flex items-center">
-                <span className="text-4xl mr-4">⚠️</span>
+                <span className="text-8xl mr-8">⚠️</span>
                 <div>
-                  <h3 className="text-xl font-bold">Erreur de connexion</h3>
-                  <p className="mt-2">{state.error}</p>
+                  <h3 className="text-3xl font-bold">Erreur de connexion</h3>
+                  <p className="mt-4 text-xl">{state.error}</p>
                 </div>
               </div>
             </div>
@@ -786,20 +577,41 @@ const Queue = () => {
     );
   }
 
-  // Interface adaptative selon la taille d'écran
-  if (screenSize === 'desktop') {
-    return (
-      <Layout hideTitle={true} fullscreen={true}>
-        <AnimatedPage>
-          <DesktopInterface 
+  return (
+    <Layout hideTitle={true} fullscreen={true}>
+      <AnimatedPage>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+          {/* Header moderne */}
+          <ModernHeader 
             allTickets={allTickets}
             currentTime={state.currentTime}
-            queues={state.queues}
-            myId={state.myId}
-            selectedDoctor={state.selectedDoctor}
-            onDoctorSelect={(doctor) => setState(prev => ({ ...prev, selectedDoctor: doctor }))}
           />
-          
+
+          {/* Grille des docteurs avec espacement généreux */}
+          <div className="max-w-7xl mx-auto px-12 py-16">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-16">
+              {DOCTEURS.map(docteur => (
+                <ModernDoctorCard
+                  key={docteur}
+                  docteur={docteur}
+                  tickets={state.queues[docteur] || []}
+                  myId={state.myId}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Footer avec informations */}
+          <div className="bg-white border-t border-gray-200 mt-16">
+            <div className="max-w-7xl mx-auto px-12 py-12">
+              <div className="text-center text-gray-600">
+                <p className="text-2xl font-semibold">🏥 Interface de gestion des files d'attente médicales</p>
+                <p className="text-lg mt-3">Mise à jour automatique toutes les {POLL_INTERVAL/1000} secondes</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notifications */}
           {toast.toasts && toast.toasts.map((t) => (
             <Toast
               key={t.id}
@@ -809,31 +621,7 @@ const Queue = () => {
               onClose={() => toast.removeToast(t.id)}
             />
           ))}
-        </AnimatedPage>
-      </Layout>
-    );
-  }
-
-  // Interface mobile/tablette
-  return (
-    <Layout hideTitle={true} fullscreen={false}>
-      <AnimatedPage>
-        <MobileInterface 
-          allTickets={allTickets}
-          currentTime={state.currentTime}
-          queues={state.queues}
-          myId={state.myId}
-        />
-        
-        {toast.toasts && toast.toasts.map((t) => (
-          <Toast
-            key={t.id}
-            message={t.message}
-            type={t.type}
-            duration={t.duration}
-            onClose={() => toast.removeToast(t.id)}
-          />
-        ))}
+        </div>
       </AnimatedPage>
     </Layout>
   );
