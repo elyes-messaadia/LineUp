@@ -5,7 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic'
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['assets/icon.png'],
@@ -33,8 +35,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: process.env.MODE === 'development',
+    sourcemap: process.env.NODE_ENV === 'development',
     minify: 'esbuild',
+    target: 'es2015',
     rollupOptions: {
       output: {
         manualChunks: (id) => {
