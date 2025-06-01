@@ -4,6 +4,10 @@ import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 
+// Constantes
+const API_URL = import.meta.env.VITE_API_URL || "https://lineup-nby9.onrender.com";
+const POLL_INTERVAL = 2000; // 2 secondes
+
 // Génère une estimation aléatoire en minutes (entre 10 et 20 par défaut)
 function generateRandomEstimation(min = 10, max = 20) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -21,13 +25,25 @@ export default function Queue() {
   const nextInLineAlerted = useRef(false);
   const { toasts, showSuccess, showWarning, showError, showInfo, removeToast } = useToast();
   const pollInterval = useRef(null);
+  const retryCount = useRef(0);
+  const maxRetries = 3;
 
   // 🔄 Fonction de récupération de la file d'attente
   const fetchQueue = useCallback(async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const res = await fetch(`${API_URL}/queue`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
+      retryCount.current = 0; // Réinitialiser le compteur après un succès
 
       // Toujours mettre à jour l'état avec les nouvelles données
       setQueue(data);
@@ -126,7 +142,16 @@ export default function Queue() {
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la récupération de la file:", err);
-      setError("Impossible de charger la file d'attente");
+      retryCount.current++;
+      
+      if (retryCount.current <= maxRetries) {
+        setError(`Tentative de reconnexion... (${retryCount.current}/${maxRetries})`);
+        // Réessayer après un délai croissant
+        setTimeout(fetchQueue, 1000 * retryCount.current);
+      } else {
+        setError("Impossible de charger la file d'attente. Veuillez rafraîchir la page.");
+        showError("Erreur de connexion au serveur. Veuillez rafraîchir la page.", 0);
+      }
     }
   }, [myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine, sendSystemNotification]);
 
@@ -167,7 +192,7 @@ export default function Queue() {
     setIsLoading(false);
 
     // Mise à jour toutes les 2 secondes pour un meilleur équilibre
-    pollInterval.current = setInterval(fetchQueue, 2000);
+    pollInterval.current = setInterval(fetchQueue, POLL_INTERVAL);
     
     return () => {
       if (pollInterval.current) {

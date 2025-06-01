@@ -23,13 +23,13 @@ export default function Ticket() {
       if (sessionId) {
         url += `?sessionId=${sessionId}`;
       }
-      
+
       const res = await fetch(url);
       if (res.ok) {
         const serverTicket = await res.json();
         return serverTicket;
       } else if (res.status === 404) {
-        return null; // Ticket n'existe plus
+        return null; // Ticket n'existe plusF
       } else {
         throw new Error(`Erreur ${res.status}`);
       }
@@ -42,7 +42,7 @@ export default function Ticket() {
   useEffect(() => {
     const loadAndVerifyTicket = async () => {
       setIsLoading(true);
-      
+
       const stored = localStorage.getItem("lineup_ticket");
       if (!stored) {
         setIsLoading(false);
@@ -51,13 +51,13 @@ export default function Ticket() {
 
       try {
         const parsedTicket = JSON.parse(stored);
-        
+
         // Vérifier l'existence du ticket côté serveur
         const serverTicket = await verifyTicketExists(
           parsedTicket._id,
           parsedTicket.isAnonymous ? parsedTicket.sessionId : null
         );
-        
+
         if (serverTicket === null) {
           // Ticket n'existe plus côté serveur
           localStorage.removeItem("lineup_ticket");
@@ -74,14 +74,14 @@ export default function Ticket() {
             isAnonymous: parsedTicket.isAnonymous,
             sessionId: parsedTicket.sessionId
           });
-          
+
           // Mettre à jour localStorage avec les données serveur
           localStorage.setItem("lineup_ticket", JSON.stringify({
             ...serverTicket,
             isAnonymous: parsedTicket.isAnonymous,
             sessionId: parsedTicket.sessionId
           }));
-          
+
           // Vérifier si le statut a changé
           if (serverTicket.status !== parsedTicket.status) {
             switch (serverTicket.status) {
@@ -119,17 +119,17 @@ export default function Ticket() {
       showError("Aucun ticket à annuler");
       return;
     }
-    
+
     if (ticket.status === "en_consultation") {
       showWarning("Impossible d'annuler un ticket en consultation");
       return;
     }
-    
+
     if (ticket.status === "termine" || ticket.status === "desiste") {
       showInfo("Ce ticket est déjà terminé ou annulé");
       return;
     }
-    
+
     setShowCancelModal(true);
   };
 
@@ -163,7 +163,7 @@ export default function Ticket() {
       }
 
       localStorage.removeItem("lineup_ticket");
-      
+
       // Attendre un peu pour que l'utilisateur voie le message
       setTimeout(() => {
         navigate("/");
@@ -246,8 +246,8 @@ export default function Ticket() {
               Aucun ticket actif
             </h2>
             <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
-              {!ticketExists 
-                ? "Votre ticket n'existe plus ou a été supprimé." 
+              {!ticketExists
+                ? "Votre ticket n'existe plus ou a été supprimé."
                 : "Vous n'avez pas de ticket en cours."
               }
             </p>
@@ -305,19 +305,18 @@ export default function Ticket() {
                 <div className="text-4xl sm:text-5xl">🎫</div>
               </div>
             </div>
-            
+
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mt-8 mb-4">
               Ticket n°{ticket.number}
             </h1>
-            
+
             {/* Affichage du statut */}
             <div className="mb-8">
-              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                ticket.status === "en_attente" ? "bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900" :
+              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${ticket.status === "en_attente" ? "bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900" :
                 ticket.status === "en_consultation" ? "bg-gradient-to-r from-green-400 to-green-300 text-green-900" :
-                ticket.status === "termine" ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-800" :
-                "bg-gradient-to-r from-red-400 to-red-300 text-red-900"
-              } shadow-sm`}>
+                  ticket.status === "termine" ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-800" :
+                    "bg-gradient-to-r from-red-400 to-red-300 text-red-900"
+                } shadow-sm`}>
                 {getStatusDisplay()}
               </span>
             </div>
