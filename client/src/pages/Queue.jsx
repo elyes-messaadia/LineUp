@@ -4,29 +4,103 @@ import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 
-// Constantes et configuration
+// Constantes
 const API_URL = import.meta.env.VITE_API_URL;
-console.log('🔧 Configuration API:', { API_URL, env: import.meta.env.MODE });
+const POLL_INTERVAL = 2000;
 
-// Génère une estimation aléatoire en minutes (entre 10 et 20 par défaut)
-function generateRandomEstimation(min = 10, max = 20) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+// Utilitaires
+const generateRandomEstimation = (min = 10, max = 20) => 
+  Math.floor(Math.random() * (max - min + 1)) + min;
 
-export default function Queue() {
+const Queue = () => {
+  // États
   const [queue, setQueue] = useState([]);
   const [myId, setMyId] = useState(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [estimations, setEstimations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Refs
   const hasAlerted = useRef(false);
   const lastQueueState = useRef([]);
   const nextInLineAlerted = useRef(false);
-  const { toasts, showSuccess, showWarning, showError, showInfo, removeToast } = useToast();
   const pollInterval = useRef(null);
   const retryCount = useRef(0);
   const maxRetries = 3;
+
+  // Hooks
+  const { toasts, showSuccess, showWarning, showError, showInfo, removeToast } = useToast();
+
+  // Fonctions
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audio = new Audio("/notify.mp3");
+      audio.volume = 1.0;
+      audio.play().catch(() => {
+        document.addEventListener('click', () => {
+          audio.play().catch(() => {});
+        }, { once: true });
+      });
+      
+      if ("vibrate" in navigator) {
+        navigator.vibrate([300, 100, 300, 100, 300]);
+      }
+    } catch (error) {
+      console.warn('Erreur lecture audio:', error);
+    }
+  }, []);
+
+  const sendSystemNotification = useCallback((title, body) => {
+    if (!("Notification" in window)) return;
+    
+    const showNotification = () => {
+      new Notification(title, {
+        body,
+        icon: "/icon-192x192.png",
+        badge: "/icon-192x192.png",
+        vibrate: [300, 100, 300, 100, 300],
+        requireInteraction: true
+      });
+    };
+
+    if (Notification.permission === "granted") {
+      showNotification();
+    } else if (Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") showNotification();
+      });
+    }
+  }, []);
+
+  const checkNextInLine = useCallback((currentQueue) => {
+    if (!myId || !currentQueue?.length) return;
+
+    const currentPatientIndex = currentQueue.findIndex(t => t.status === "en_consultation");
+    
+    if (currentPatientIndex !== -1) {
+      const nextPatient = currentQueue.find((t, index) => 
+        index > currentPatientIndex && t.status === "en_attente"
+      );
+
+      if (nextPatient && 
+          (nextPatient._id === myId || nextPatient.sessionId === myId) && 
+          !nextInLineAlerted.current) {
+        playNotificationSound();
+        showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 10000);
+        nextInLineAlerted.current = true;
+      }
+    } else {
+      const firstInLine = currentQueue.find(t => t.status === "en_attente");
+      if (firstInLine && 
+          (firstInLine._id === myId || firstInLine.sessionId === myId) && 
+          !nextInLineAlerted.current) {
+        playNotificationSound();
+        showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 10000);
+        nextInLineAlerted.current = true;
+      }
+    }
+  }, [myId, playNotificationSound, showWarning, showSuccess]);
 
   // 🔄 Fonction de récupération de la file d'attente
   const fetchQueue = useCallback(async () => {
@@ -211,96 +285,6 @@ export default function Queue() {
       }
     };
   }, [fetchQueue, showWarning]);
-
-  // Fonction de notification sonore
-  const playNotificationSound = useCallback(() => {
-    // Créer plusieurs instances audio pour éviter les problèmes de lecture simultanée
-    const audioPool = [
-      new Audio("/notify.mp3"),
-      new Audio("/notify.mp3"),
-      new Audio("/notify.mp3")
-    ];
-
-    // Trouver une instance audio disponible
-    const availableAudio = audioPool.find(audio => audio.paused);
-    if (availableAudio) {
-      availableAudio.volume = 1.0;
-      availableAudio.play().catch(() => {
-        // Fallback : essayer de jouer le son après une interaction utilisateur
-        document.addEventListener('click', () => {
-          availableAudio.play().catch(() => {});
-        }, { once: true });
-      });
-    }
-    
-    // Vibration sur les appareils mobiles
-    if ("vibrate" in navigator) {
-      navigator.vibrate([300, 100, 300, 100, 300]);
-    }
-  }, []);
-
-  // Fonction pour envoyer une notification système
-  const sendSystemNotification = useCallback((title, body) => {
-    if (!("Notification" in window)) return;
-
-    // Si la permission n'est pas accordée, la demander
-    if (Notification.permission === "default") {
-      Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-          new Notification(title, {
-            body,
-            icon: "/icon-192x192.png",
-            badge: "/icon-192x192.png",
-            vibrate: [300, 100, 300, 100, 300],
-            requireInteraction: true // La notification reste jusqu'à ce que l'utilisateur interagisse avec
-          });
-        }
-      });
-    } 
-    // Si la permission est déjà accordée
-    else if (Notification.permission === "granted") {
-      new Notification(title, {
-        body,
-        icon: "/icon-192x192.png",
-        badge: "/icon-192x192.png",
-        vibrate: [300, 100, 300, 100, 300],
-        requireInteraction: true
-      });
-    }
-  }, []);
-
-  // Fonction pour vérifier si un patient est le prochain
-  const checkNextInLine = useCallback((currentQueue) => {
-    if (!myId) return;
-
-    // Trouver l'index du patient actuel
-    const currentPatientIndex = currentQueue.findIndex(t => t.status === "en_consultation");
-    
-    // Si un patient est en consultation
-    if (currentPatientIndex !== -1) {
-      // Trouver le prochain patient en attente
-      const nextPatient = currentQueue.find((t, index) => 
-        index > currentPatientIndex && t.status === "en_attente"
-      );
-
-      // Si c'est moi le prochain et que je n'ai pas encore été alerté
-      const isMyTicket = nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId);
-      if (isMyTicket && !nextInLineAlerted.current) {
-        playNotificationSound();
-        showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 10000);
-        nextInLineAlerted.current = true;
-      }
-    } else {
-      // Si personne n'est en consultation, vérifier si je suis le premier en attente
-      const firstInLine = currentQueue.find(t => t.status === "en_attente");
-      const isMyTicket = firstInLine && (firstInLine._id === myId || firstInLine.sessionId === myId);
-      if (isMyTicket && !nextInLineAlerted.current) {
-        playNotificationSound();
-        showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 10000);
-        nextInLineAlerted.current = true;
-      }
-    }
-  }, [myId, playNotificationSound, showWarning, showSuccess]);
 
   // Reset l'alerte si la queue change
   useEffect(() => {
@@ -507,3 +491,5 @@ export default function Queue() {
     </Layout>
   );
 }
+
+export default Queue;
