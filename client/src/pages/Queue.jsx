@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import Title from "../components/Title";
+import BACKEND_URL from "../config/api";
 
 // Constantes
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = BACKEND_URL;
 const POLL_INTERVAL = 3000;
 
 // Configuration des statuts épurée

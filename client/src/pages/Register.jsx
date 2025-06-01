@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
+import Title from "../components/Title";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import BACKEND_URL from "../config/api";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -37,7 +39,7 @@ export default function Register() {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      const res = await fetch(`${BACKEND_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

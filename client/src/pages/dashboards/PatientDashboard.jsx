@@ -5,6 +5,7 @@ import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useToast } from "../../hooks/useToast";
+import BACKEND_URL from "../../config/api";
 
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
@@ -13,8 +14,11 @@ export default function PatientDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [queueLoading, setQueueLoading] = useState(true);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
+
+  const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -33,16 +37,30 @@ export default function PatientDashboard() {
 
     setUser(parsedUser);
     loadMyTicket();
-    fetchQueue();
+    loadQueue();
 
     // Actualiser toutes les 3 secondes
     const interval = setInterval(() => {
       loadMyTicket();
-      fetchQueue();
+      loadQueue();
     }, 3000);
 
     return () => clearInterval(interval);
   }, [navigate]);
+
+  const loadQueue = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/queue`);
+      if (res.ok) {
+        const data = await res.json();
+        setQueue(data);
+      }
+    } catch (error) {
+      console.error("Erreur chargement queue:", error);
+    } finally {
+      setQueueLoading(false);
+    }
+  };
 
   const loadMyTicket = () => {
     const stored = localStorage.getItem("lineup_ticket");
@@ -53,18 +71,6 @@ export default function PatientDashboard() {
       } catch (error) {
         localStorage.removeItem("lineup_ticket");
       }
-    }
-  };
-
-  const fetchQueue = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
-      if (res.ok) {
-        const data = await res.json();
-        setQueue(data);
-      }
-    } catch (error) {
-      // Silencieux pour ne pas spam les erreurs
     }
   };
 
@@ -83,7 +89,7 @@ export default function PatientDashboard() {
     try {
       showInfo("Création de votre ticket en cours...");
       
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket`, {
+      const res = await fetch(`${BACKEND_URL}/ticket`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -101,7 +107,7 @@ export default function PatientDashboard() {
       setMyTicket(data);
       
       showSuccess(`Ticket n°${data.number} créé avec succès !`, 4000);
-      fetchQueue();
+      loadQueue();
 
     } catch (error) {
       console.error("Erreur création ticket:", error);
@@ -134,7 +140,7 @@ export default function PatientDashboard() {
     try {
       showWarning("Annulation de votre ticket en cours...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${myTicket._id}`, {
+      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -145,7 +151,7 @@ export default function PatientDashboard() {
         localStorage.removeItem("lineup_ticket");
         setMyTicket(null);
         showSuccess("Ticket annulé avec succès !", 4000);
-        fetchQueue();
+        loadQueue();
       } else {
         throw new Error(`Erreur ${res.status}`);
       }

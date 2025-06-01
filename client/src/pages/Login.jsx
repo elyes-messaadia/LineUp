@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
+import Title from "../components/Title";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import BACKEND_URL from "../config/api";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -19,7 +21,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+      const res = await fetch(`${BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
