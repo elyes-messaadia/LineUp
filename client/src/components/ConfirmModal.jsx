@@ -35,14 +35,16 @@ export default function ConfirmModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-xl">
         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
           <span className="text-xl sm:text-2xl">{getIcon()}</span>
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 leading-tight">{title}</h3>
         </div>
         
-        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">{message}</p>
+        <div className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">
+          {message}
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end">
           <button

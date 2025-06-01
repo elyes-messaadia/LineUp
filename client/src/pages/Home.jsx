@@ -70,27 +70,39 @@ export default function Home() {
         body: JSON.stringify({ docteur: selectedDoctor })
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        throw new Error(data.message || `Erreur ${res.status}`);
       }
 
-      const data = await res.json();
-      // S'assurer que le sessionId est inclus dans les données stockées
+      if (!data.success) {
+        throw new Error(data.message || "Erreur lors de la création du ticket");
+      }
+
+      // S'assurer que le ticket est bien créé
+      if (!data.ticket) {
+        throw new Error("Données de ticket manquantes dans la réponse");
+      }
+
+      // Stocker les informations du ticket
       localStorage.setItem("lineup_ticket", JSON.stringify({
-        ...data,
-        isAnonymous: true, // Marquer le ticket comme anonyme
+        ...data.ticket,
+        isAnonymous: true,
         docteur: selectedDoctor
       }));
       
-      showSuccess(`Ticket n°${data.number} créé avec succès !`, 4000);
+      showSuccess(`Ticket n°${data.ticket.number} créé avec succès !`, 4000);
       
+      // Redirection après un court délai
       setTimeout(() => {
         navigate("/queue");
       }, 1500);
 
     } catch (error) {
       console.error("Erreur création ticket:", error);
-      showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
+      setShowTicketModal(true); // Réafficher le modal en cas d'erreur
+      showError(error.message || "Impossible de créer le ticket. Veuillez réessayer.", 5000);
     } finally {
       setIsLoading(false);
     }
@@ -326,9 +338,9 @@ export default function Home() {
             isOpen={showTicketModal}
             title="Prendre un ticket anonyme"
             message={
-              <div>
-                <p className="mb-4">Pour une meilleure expérience, nous recommandons de créer un compte.</p>
-                <div className="mb-4">
+              <div className="space-y-4">
+                <div>Pour une meilleure expérience, nous recommandons de créer un compte.</div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Choisissez un docteur :
                   </label>

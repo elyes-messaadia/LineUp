@@ -73,66 +73,77 @@ app.post("/ticket", async (req, res) => {
   try {
     const { docteur } = req.body;
     
-    // Vérifier si le docteur est fourni et valide
-    if (!docteur || !['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(docteur)) {
+    // Validation améliorée du docteur
+    if (!docteur) {
       return res.status(400).json({ 
-        message: "Le docteur est requis et doit être l'un des suivants : Docteur 1, Docteur 2, Docteur 3"
+        success: false,
+        message: "Le champ 'docteur' est requis"
       });
     }
 
-    // Générer un sessionId unique pour identifier l'utilisateur anonyme
+    if (!['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(docteur)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Le docteur doit être l'un des suivants : Docteur 1, Docteur 2, Docteur 3"
+      });
+    }
+
+    // Générer un sessionId unique
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Capturer les métadonnées de la requête
+    // Capturer les métadonnées
     const metadata = {
       ipAddress: req.ip || req.connection.remoteAddress,
       userAgent: req.headers['user-agent'],
       device: req.headers['sec-ch-ua-platform'] || 'unknown'
     };
 
-    // Méthode robuste pour éviter les race conditions
-    let ticket;
-    let attempts = 0;
-    const maxAttempts = 5;
+    // Obtenir le dernier numéro de ticket
+    const lastTicket = await Ticket.findOne().sort({ number: -1 });
+    const nextNumber = lastTicket ? lastTicket.number + 1 : 1;
 
-    while (attempts < maxAttempts) {
-      try {
-        // Obtenir le prochain numéro de manière atomique
-        const lastTicket = await Ticket.findOne().sort({ number: -1 });
-        const nextNumber = lastTicket ? lastTicket.number + 1 : 1;
-        
-        ticket = new Ticket({ 
-          number: nextNumber,
-          docteur: docteur,
-          sessionId: sessionId,
-          userId: req.body.userId || null,
-          metadata: metadata
-        });
-        
-        await ticket.save();
-        break; // Succès, sortir de la boucle
-        
-      } catch (error) {
-        if (error.code === 11000 && attempts < maxAttempts - 1) {
-          // Erreur de duplicata, réessayer
-          attempts++;
-          await new Promise(resolve => setTimeout(resolve, 100)); // Attendre 100ms
-          continue;
-        }
-        throw error; // Autre erreur, propager
-      }
-    }
+    // Créer le nouveau ticket
+    const ticket = new Ticket({ 
+      number: nextNumber,
+      docteur,
+      sessionId,
+      userId: req.body.userId || null,
+      metadata
+    });
 
-    if (!ticket) {
-      throw new Error("Impossible de créer le ticket après plusieurs tentatives");
-    }
+    // Sauvegarder le ticket
+    await ticket.save();
 
-    console.log(`✅ Ticket n°${ticket.number} créé (Session: ${sessionId})`);
-    res.status(201).json(ticket);
+    // Réponse avec succès
+    res.status(201).json({
+      success: true,
+      ticket,
+      message: "Ticket créé avec succès"
+    });
     
   } catch (err) {
     console.error("❌ Erreur création ticket:", err);
+    
+    // Gestion spécifique des erreurs de validation Mongoose
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: "Erreur de validation",
+        errors: Object.values(err.errors).map(e => e.message)
+      });
+    }
+    
+    // Gestion des erreurs de duplication
+    if (err.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Un ticket avec ce numéro existe déjà"
+      });
+    }
+    
+    // Erreur générique
     res.status(500).json({ 
+      success: false,
       message: "Erreur lors de la création du ticket",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
