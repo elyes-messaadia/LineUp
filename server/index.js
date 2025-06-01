@@ -133,7 +133,19 @@ app.post("/ticket", async (req, res) => {
 // 🔍 Vérifier l'existence d'un ticket
 app.get("/ticket/:id", async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    let ticket;
+    // Si un sessionId est fourni, chercher aussi par sessionId
+    if (req.query.sessionId) {
+      ticket = await Ticket.findOne({
+        $or: [
+          { _id: req.params.id },
+          { sessionId: req.query.sessionId }
+        ]
+      });
+    } else {
+      ticket = await Ticket.findById(req.params.id);
+    }
+    
     if (!ticket) {
       return res.status(404).json({ message: "Ticket non trouvé" });
     }
@@ -158,8 +170,23 @@ app.get("/queue", async (req, res) => {
 // 🗑️ Désister un ticket
 app.delete("/ticket/:id", async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
-    if (!ticket) return res.status(404).json({ message: "Ticket non trouvé" });
+    let ticket;
+    // Si un sessionId est fourni, vérifier qu'il correspond
+    if (req.query.sessionId) {
+      ticket = await Ticket.findOne({
+        $or: [
+          { _id: req.params.id, sessionId: req.query.sessionId },
+          { sessionId: req.query.sessionId }
+        ]
+      });
+    } else {
+      ticket = await Ticket.findById(req.params.id);
+    }
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket non trouvé" });
+    }
+
     ticket.status = "desiste";
     await ticket.save();
     res.json({ updated: ticket });
@@ -172,7 +199,19 @@ app.delete("/ticket/:id", async (req, res) => {
 // 🔄 Reprendre un ticket désisté
 app.patch("/ticket/:id/resume", async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    let ticket;
+    // Si un sessionId est fourni, vérifier qu'il correspond
+    if (req.query.sessionId) {
+      ticket = await Ticket.findOne({
+        $or: [
+          { _id: req.params.id, sessionId: req.query.sessionId },
+          { sessionId: req.query.sessionId }
+        ]
+      });
+    } else {
+      ticket = await Ticket.findById(req.params.id);
+    }
+
     if (!ticket) {
       return res.status(404).json({ message: "Ticket non trouvé" });
     }

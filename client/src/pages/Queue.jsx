@@ -88,7 +88,7 @@ export default function Queue() {
 
   // Fonction pour vérifier si un patient est le prochain
   const checkNextInLine = useCallback((currentQueue) => {
-    if (!myId || currentQueue.length < 2) return;
+    if (!myId) return;
 
     // Trouver l'index du patient actuel
     const currentPatientIndex = currentQueue.findIndex(t => t.status === "en_consultation");
@@ -101,7 +101,8 @@ export default function Queue() {
       );
 
       // Si c'est moi le prochain et que je n'ai pas encore été alerté
-      if (nextPatient && nextPatient._id === myId && !nextInLineAlerted.current) {
+      const isMyTicket = nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId);
+      if (isMyTicket && !nextInLineAlerted.current) {
         playNotificationSound();
         showWarning("⏰ Préparez-vous ! Vous serez le prochain patient", 10000);
         nextInLineAlerted.current = true;
@@ -109,7 +110,8 @@ export default function Queue() {
     } else {
       // Si personne n'est en consultation, vérifier si je suis le premier en attente
       const firstInLine = currentQueue.find(t => t.status === "en_attente");
-      if (firstInLine && firstInLine._id === myId && !nextInLineAlerted.current) {
+      const isMyTicket = firstInLine && (firstInLine._id === myId || firstInLine.sessionId === myId);
+      if (isMyTicket && !nextInLineAlerted.current) {
         playNotificationSound();
         showSuccess("🏥 Préparez-vous ! Vous allez être appelé", 10000);
         nextInLineAlerted.current = true;

@@ -16,9 +16,15 @@ export default function Ticket() {
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
   // Fonction pour vérifier l'existence du ticket côté serveur
-  const verifyTicketExists = async (ticketId) => {
+  const verifyTicketExists = async (ticketId, sessionId) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticketId}`);
+      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticketId}`;
+      // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
+      if (sessionId) {
+        url += `?sessionId=${sessionId}`;
+      }
+      
+      const res = await fetch(url);
       if (res.ok) {
         const serverTicket = await res.json();
         return serverTicket;
@@ -47,7 +53,10 @@ export default function Ticket() {
         const parsedTicket = JSON.parse(stored);
         
         // Vérifier l'existence du ticket côté serveur
-        const serverTicket = await verifyTicketExists(parsedTicket._id);
+        const serverTicket = await verifyTicketExists(
+          parsedTicket._id,
+          parsedTicket.isAnonymous ? parsedTicket.sessionId : null
+        );
         
         if (serverTicket === null) {
           // Ticket n'existe plus côté serveur
@@ -60,10 +69,18 @@ export default function Ticket() {
           showInfo("Mode hors ligne - Données locales", 3000);
         } else {
           // Ticket existe, utiliser les données du serveur (plus à jour)
-          setTicket(serverTicket);
+          setTicket({
+            ...serverTicket,
+            isAnonymous: parsedTicket.isAnonymous,
+            sessionId: parsedTicket.sessionId
+          });
           
           // Mettre à jour localStorage avec les données serveur
-          localStorage.setItem("lineup_ticket", JSON.stringify(serverTicket));
+          localStorage.setItem("lineup_ticket", JSON.stringify({
+            ...serverTicket,
+            isAnonymous: parsedTicket.isAnonymous,
+            sessionId: parsedTicket.sessionId
+          }));
           
           // Vérifier si le statut a changé
           if (serverTicket.status !== parsedTicket.status) {
@@ -88,6 +105,7 @@ export default function Ticket() {
         console.error("Erreur lors du chargement du ticket:", error);
         showError("Erreur lors du chargement du ticket");
         localStorage.removeItem("lineup_ticket");
+        setTicketExists(false);
       } finally {
         setIsLoading(false);
       }
@@ -124,7 +142,13 @@ export default function Ticket() {
     try {
       showWarning("Annulation de votre ticket en cours...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticket._id}`, {
+      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}`;
+      // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
+      if (ticket.isAnonymous && ticket.sessionId) {
+        url += `?sessionId=${ticket.sessionId}`;
+      }
+
+      const res = await fetch(url, {
         method: "DELETE",
       });
 
@@ -161,7 +185,13 @@ export default function Ticket() {
     try {
       showInfo("Reprise de votre ticket en cours...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${ticket._id}/resume`, {
+      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}/resume`;
+      // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
+      if (ticket.isAnonymous && ticket.sessionId) {
+        url += `?sessionId=${ticket.sessionId}`;
+      }
+
+      const res = await fetch(url, {
         method: "PATCH",
       });
 
@@ -170,8 +200,17 @@ export default function Ticket() {
       }
 
       const updatedTicket = await res.json();
-      setTicket(updatedTicket.updated);
-      localStorage.setItem("lineup_ticket", JSON.stringify(updatedTicket.updated));
+      // Préserver les informations du ticket anonyme
+      setTicket({
+        ...updatedTicket.updated,
+        isAnonymous: ticket.isAnonymous,
+        sessionId: ticket.sessionId
+      });
+      localStorage.setItem("lineup_ticket", JSON.stringify({
+        ...updatedTicket.updated,
+        isAnonymous: ticket.isAnonymous,
+        sessionId: ticket.sessionId
+      }));
       showSuccess("Ticket repris avec succès !", 4000);
 
     } catch (error) {
