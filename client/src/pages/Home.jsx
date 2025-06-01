@@ -109,45 +109,6 @@ export default function Home() {
     }
   };
 
-  const handleCreateTicket = async () => {
-    if (!selectedDoctor) {
-      showError("Veuillez sélectionner un docteur");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ docteur: selectedDoctor }),
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création du ticket');
-      }
-
-      const ticket = await response.json();
-      localStorage.setItem('lineup_ticket', JSON.stringify({
-        userId: ticket._id,
-        number: ticket.number,
-        docteur: ticket.docteur
-      }));
-
-      navigate('/queue');
-    } catch (err) {
-      console.error('Erreur:', err);
-      showError("Impossible de créer un ticket. Veuillez réessayer.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Layout hideTitle={true}>
       <AnimatedPage>
