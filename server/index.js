@@ -233,26 +233,55 @@ app.delete("/next", async (req, res) => {
     // 1. Trouver le ticket en consultation actuel s'il existe
     const currentTicket = await Ticket.findOne({ status: "en_consultation" });
     if (currentTicket) {
+      // Sauvegarder l'ancien statut pour la notification
+      const previousStatus = currentTicket.status;
+      
       // Marquer le ticket actuel comme terminé
       currentTicket.status = "termine";
       await currentTicket.save();
+
+      // Préparer la notification pour le patient terminé
+      const terminatedNotification = {
+        previousStatus,
+        type: "consultation_terminee",
+        message: "✅ Votre consultation est terminée"
+      };
     }
 
     // 2. Trouver et appeler le prochain patient
     const nextTicket = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
     if (nextTicket) {
+      // Sauvegarder l'ancien statut pour la notification
+      const previousStatus = nextTicket.status;
+      
       nextTicket.status = "en_consultation";
       await nextTicket.save();
       
-      // Envoyer les deux tickets mis à jour
+      // Préparer la notification pour le patient appelé
+      const calledNotification = {
+        previousStatus,
+        type: "patient_appele",
+        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet"
+      };
+      
+      // Envoyer les deux tickets mis à jour avec leurs notifications
       res.json({ 
-        previous: currentTicket,
-        called: nextTicket,
+        previous: currentTicket ? {
+          ticket: currentTicket,
+          notification: terminatedNotification
+        } : null,
+        called: {
+          ticket: nextTicket,
+          notification: calledNotification
+        },
         message: "Patient suivant appelé avec succès"
       });
     } else {
       res.status(404).json({ 
-        previous: currentTicket,
+        previous: currentTicket ? {
+          ticket: currentTicket,
+          notification: terminatedNotification
+        } : null,
         message: "Aucun patient en attente" 
       });
     }
@@ -278,9 +307,22 @@ app.patch("/ticket/:id/finish", async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
     if (ticket && ticket.status === "en_consultation") {
+      // Sauvegarder l'ancien statut pour la notification
+      const previousStatus = ticket.status;
+      
+      // Mettre à jour le statut
       ticket.status = "termine";
       await ticket.save();
-      res.json({ updated: ticket });
+
+      // Envoyer les informations nécessaires pour la notification
+      res.json({ 
+        updated: ticket,
+        notification: {
+          previousStatus,
+          type: "consultation_terminee",
+          message: "✅ Votre consultation est terminée"
+        }
+      });
     } else {
       res.status(404).json({ message: "Ticket non trouvé ou statut invalide" });
     }

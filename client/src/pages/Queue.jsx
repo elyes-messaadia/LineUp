@@ -201,8 +201,16 @@ export default function Queue() {
                   
                 case "termine":
                   if (isMyTicket) {
+                    // Jouer le son de notification
                     playNotificationSound();
                     showSuccess("✅ Votre consultation est terminée", 8000);
+                    
+                    // Notification système
+                    sendSystemNotification(
+                      "✅ Consultation terminée",
+                      "Merci de votre visite ! N'oubliez pas vos documents."
+                    );
+
                     // Supprimer le ticket du localStorage une fois terminé
                     localStorage.removeItem("lineup_ticket");
                   } else {
@@ -212,6 +220,12 @@ export default function Queue() {
                     if (nextPatient && (nextPatient._id === myId || nextPatient.sessionId === myId)) {
                       playNotificationSound();
                       showSuccess("🏥 Préparez-vous ! Vous serez le prochain", 10000);
+                      
+                      // Notification système pour le prochain patient
+                      sendSystemNotification(
+                        "🏥 Préparez-vous !",
+                        "Vous serez le prochain patient à être appelé"
+                      );
                     }
                   }
                   break;
@@ -251,7 +265,7 @@ export default function Queue() {
       console.error("Erreur lors de la récupération de la file:", err);
       setError("Impossible de charger la file d'attente");
     }
-  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine]);
+  }, [estimations.length, myId, playNotificationSound, showSuccess, showWarning, showError, showInfo, checkNextInLine, sendSystemNotification]);
 
   // Reset l'alerte si la queue change
   useEffect(() => {
