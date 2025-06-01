@@ -149,53 +149,58 @@ const Queue = () => {
 
   const refs = {
     pollInterval: useRef(null),
-    retryCount: useRef(0)
+    retryCount: useRef(0),
+    timeInterval: useRef(null)
   };
 
   const toast = useToast();
   const { playNotificationSound, showSystemNotification } = useNotifications();
   const isSecretary = true; // À remplacer par la vraie logique d'authentification
 
-  useEffect(() => {
-    const fetchQueues = async () => {
-      try {
-        const res = await fetch(`${API_URL}/queue`);
-        if (!res.ok) throw new Error(`Erreur ${res.status}`);
-        const tickets = await res.json();
+  const fetchQueues = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const tickets = await res.json();
 
-        // Grouper les tickets par docteur
-        const queuesByDoctor = DOCTEURS.reduce((acc, docteur) => {
-          acc[docteur] = tickets.filter(t => t.docteur === docteur);
-          return acc;
-        }, {});
+      // Grouper les tickets par docteur
+      const queuesByDoctor = DOCTEURS.reduce((acc, docteur) => {
+        acc[docteur] = tickets.filter(t => t.docteur === docteur);
+        return acc;
+      }, {});
 
+      setState(prev => ({
+        ...prev,
+        queues: queuesByDoctor,
+        error: null
+      }));
+
+      refs.retryCount.current = 0;
+    } catch (err) {
+      console.error("Erreur file d'attente:", err);
+      refs.retryCount.current++;
+      
+      if (refs.retryCount.current <= 3) {
         setState(prev => ({
           ...prev,
-          queues: queuesByDoctor,
-          error: null
+          error: `Tentative de reconnexion... (${refs.retryCount.current}/3)`
         }));
-
-        refs.retryCount.current = 0;
-      } catch (err) {
-        console.error("Erreur file d'attente:", err);
-        refs.retryCount.current++;
-        
-        if (refs.retryCount.current <= 3) {
-          setState(prev => ({
-            ...prev,
-            error: `Tentative de reconnexion... (${refs.retryCount.current}/3)`
-          }));
-          setTimeout(fetchQueues, 1000 * refs.retryCount.current);
-        } else {
-          setState(prev => ({
-            ...prev,
-            error: "Impossible de charger les files d'attente. Veuillez rafraîchir la page."
-          }));
-          toast.showError("Erreur de connexion au serveur. Veuillez rafraîchir la page.", 0);
-        }
+        // Utiliser setTimeout au lieu de rappel récursif direct
+        setTimeout(() => {
+          fetchQueues();
+        }, 1000 * refs.retryCount.current);
+      } else {
+        setState(prev => ({
+          ...prev,
+          error: "Impossible de charger les files d'attente. Veuillez rafraîchir la page."
+        }));
+        // Ne pas utiliser toast dans le fetchQueues pour éviter les dépendances cycliques
+        console.error("Erreur de connexion au serveur. Veuillez rafraîchir la page.");
       }
-    };
+    }
+  }, [API_URL]);
 
+  useEffect(() => {
     // Initialisation
     const storedTicket = localStorage.getItem("lineup_ticket");
     if (storedTicket) {
@@ -211,20 +216,27 @@ const Queue = () => {
       }
     }
 
+    // Premier fetch
     fetchQueues();
     setState(prev => ({ ...prev, isLoading: false }));
 
     // Polling
     refs.pollInterval.current = setInterval(fetchQueues, POLL_INTERVAL);
-    const timeInterval = setInterval(() => {
+    
+    // Timer pour l'heure actuelle
+    refs.timeInterval.current = setInterval(() => {
       setState(prev => ({ ...prev, currentTime: Date.now() }));
     }, 1000);
     
     return () => {
-      clearInterval(refs.pollInterval.current);
-      clearInterval(timeInterval);
+      if (refs.pollInterval.current) {
+        clearInterval(refs.pollInterval.current);
+      }
+      if (refs.timeInterval.current) {
+        clearInterval(refs.timeInterval.current);
+      }
     };
-  }, [toast]);
+  }, [fetchQueues]); // Utiliser fetchQueues comme dépendance
 
   if (state.isLoading) {
     return (
@@ -288,7 +300,7 @@ const Queue = () => {
               <div key={docteur} className="col-span-1">
                 <h2 className="text-2xl font-bold mb-4 text-gray-800">{docteur}</h2>
                 <DoctorQueue
-                  tickets={state.queues[docteur]}
+                  tickets={state.queues[docteur] || []}
                   currentTime={state.currentTime}
                   myId={state.myId}
                   onNotification={toast.showSuccess}
@@ -297,7 +309,7 @@ const Queue = () => {
             ))}
           </div>
 
-          {toast.toasts.map((t) => (
+          {toast.toasts && toast.toasts.map((t) => (
             <Toast
               key={t.id}
               message={t.message}
