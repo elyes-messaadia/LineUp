@@ -5,6 +5,7 @@ import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useToast } from "../../hooks/useToast";
+import BACKEND_URL from "../../config/api";
 
 export default function SecretaireDashboard() {
   const [user, setUser] = useState(null);
@@ -46,13 +47,14 @@ export default function SecretaireDashboard() {
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      const res = await fetch(`${BACKEND_URL}/queue`);
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
+        fetchStats();
       }
     } catch (error) {
-      // Silencieux pour ne pas spam les erreurs
+      console.error("Erreur chargement queue:", error);
     }
   };
 
@@ -99,7 +101,7 @@ export default function SecretaireDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/next`, {
+      const res = await fetch(`${BACKEND_URL}/next`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -133,7 +135,7 @@ export default function SecretaireDashboard() {
     try {
       showInfo("Création d'un ticket patient...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket`, {
+      const res = await fetch(`${BACKEND_URL}/ticket`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

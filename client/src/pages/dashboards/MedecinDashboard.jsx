@@ -5,6 +5,7 @@ import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useToast } from "../../hooks/useToast";
+import BACKEND_URL from "../../config/api";
 
 export default function MedecinDashboard() {
   const [user, setUser] = useState(null);
@@ -46,7 +47,7 @@ export default function MedecinDashboard() {
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      const res = await fetch(`${BACKEND_URL}/queue`);
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
@@ -106,7 +107,7 @@ export default function MedecinDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/next`, {
+      const res = await fetch(`${BACKEND_URL}/next`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -147,7 +148,7 @@ export default function MedecinDashboard() {
     try {
       showInfo("Finalisation de la consultation...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${currentPatient._id}/finish`, {
+      const res = await fetch(`${BACKEND_URL}/ticket/${currentPatient._id}/finish`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -185,7 +186,7 @@ export default function MedecinDashboard() {
     try {
       showWarning("Réinitialisation de la file d'attente...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
+      const res = await fetch(`${BACKEND_URL}/reset`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`

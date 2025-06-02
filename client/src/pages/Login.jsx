@@ -103,53 +103,51 @@ export default function Login() {
           </h2>
 
           {/* Boutons de connexion rapide */}
-          {import.meta.env.MODE === 'development' && (
-            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleQuickLogin({
-                    email: "medecin@lineup.com",
-                    password: "medecin123"
-                  })}
-                  className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
-                  disabled={isLoading}
-                >
-                  👨‍⚕️ Médecin
-                </button>
-                <button
-                  onClick={() => handleQuickLogin({
-                    email: "secretaire@lineup.com",
-                    password: "secretaire123"
-                  })}
-                  className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
-                  disabled={isLoading}
-                >
-                  👩‍💼 Secrétaire
-                </button>
-                <button
-                  onClick={() => handleQuickLogin({
-                    email: "patient@lineup.com",
-                    password: "patient123"
-                  })}
-                  className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
-                  disabled={isLoading}
-                >
-                  🏥 Patient
-                </button>
-                <button
-                  onClick={() => handleQuickLogin({
-                    email: "visiteur@lineup.com",
-                    password: "visiteur123"
-                  })}
-                  className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
-                  disabled={isLoading}
-                >
-                  👁️ Visiteur
-                </button>
-              </div>
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleQuickLogin({
+                  email: "medecin@lineup.com",
+                  password: "medecin123"
+                })}
+                className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
+                disabled={isLoading}
+              >
+                👨‍⚕️ Médecin
+              </button>
+              <button
+                onClick={() => handleQuickLogin({
+                  email: "secretaire@lineup.com",
+                  password: "secretaire123"
+                })}
+                className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
+                disabled={isLoading}
+              >
+                👩‍💼 Secrétaire
+              </button>
+              <button
+                onClick={() => handleQuickLogin({
+                  email: "patient@lineup.com",
+                  password: "patient123"
+                })}
+                className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
+                disabled={isLoading}
+              >
+                🏥 Patient
+              </button>
+              <button
+                onClick={() => handleQuickLogin({
+                  email: "visiteur@lineup.com",
+                  password: "visiteur123"
+                })}
+                className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
+                disabled={isLoading}
+              >
+                👁️ Visiteur
+              </button>
             </div>
-          )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

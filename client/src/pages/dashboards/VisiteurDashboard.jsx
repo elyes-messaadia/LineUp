@@ -4,11 +4,13 @@ import Layout from "../../components/Layout";
 import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
+import BACKEND_URL from "../../config/api";
 
 export default function VisiteurDashboard() {
   const [user, setUser] = useState(null);
   const [queue, setQueue] = useState([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [queueLoading, setQueueLoading] = useState(true);
   const navigate = useNavigate();
   const { toasts, showInfo, removeToast } = useToast();
 
@@ -28,26 +30,28 @@ export default function VisiteurDashboard() {
     }
 
     setUser(parsedUser);
-    fetchQueue();
+    loadQueue();
 
     // Actualiser toutes les 3 secondes
     const interval = setInterval(() => {
-      fetchQueue();
+      loadQueue();
       setCurrentTime(Date.now());
     }, 3000);
 
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const fetchQueue = async () => {
+  const loadQueue = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      const res = await fetch(`${BACKEND_URL}/queue`);
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
       }
     } catch (error) {
-      // Silencieux pour ne pas spam les erreurs
+      console.error("Erreur chargement queue:", error);
+    } finally {
+      setQueueLoading(false);
     }
   };
 

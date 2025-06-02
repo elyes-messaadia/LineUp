@@ -6,6 +6,7 @@
 [build.environment]
   NODE_VERSION = "18"
   VITE_API_URL = "https://[votre-nouveau-backend].onrender.com"
+  VITE_SHOW_QUICK_LOGIN = "true"
 
 [[redirects]]
   from = "/*"

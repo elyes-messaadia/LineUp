@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import QRCodeTicket from "../components/QRCodeTicket";
 import { useToast } from "../hooks/useToast";
+import BACKEND_URL from "../config/api";
 
 export default function Ticket() {
   const [ticket, setTicket] = useState(null);
@@ -18,7 +19,7 @@ export default function Ticket() {
   // Fonction pour vérifier l'existence du ticket côté serveur
   const verifyTicketExists = async (ticketId, sessionId) => {
     try {
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticketId}`;
+      let url = `${BACKEND_URL}/ticket/${ticketId}`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (sessionId) {
         url += `?sessionId=${sessionId}`;
@@ -142,7 +143,7 @@ export default function Ticket() {
     try {
       showWarning("Annulation de votre ticket en cours...");
 
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}`;
+      let url = `${BACKEND_URL}/ticket/${ticket._id}`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (ticket.isAnonymous && ticket.sessionId) {
         url += `?sessionId=${ticket.sessionId}`;
@@ -185,7 +186,7 @@ export default function Ticket() {
     try {
       showInfo("Reprise de votre ticket en cours...");
 
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}/resume`;
+      let url = `${BACKEND_URL}/ticket/${ticket._id}/resume`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (ticket.isAnonymous && ticket.sessionId) {
         url += `?sessionId=${ticket.sessionId}`;
