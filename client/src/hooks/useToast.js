@@ -6,8 +6,8 @@ export function useToast() {
   // Son de notification
   const playNotificationSound = useCallback((type = 'info') => {
     try {
-      // Utiliser l'API Web Audio pour créer un bip simple si le fichier n'existe pas
-      const createBeep = (frequency = 800, duration = 200) => {
+      // Utiliser uniquement l'API Web Audio pour créer des bips
+      const createBeep = (frequency = 800, duration = 200, volume = 0.3) => {
         try {
           const audioContext = new (window.AudioContext || window.webkitAudioContext)();
           const oscillator = audioContext.createOscillator();
@@ -19,31 +19,37 @@ export function useToast() {
           oscillator.frequency.value = frequency;
           oscillator.type = 'sine';
           
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
           
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + duration / 1000);
         } catch (e) {
           // Ignore si l'API audio n'est pas supportée
+          console.warn('Audio API non supportée:', e);
         }
       };
 
-      // Essayer d'abord le fichier audio, sinon utiliser le fallback
-      const audio = new Audio('/notify.mp3');
-      audio.volume = type === 'important' ? 1.0 : 0.7;
-      
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Si le fichier n'existe pas ou autres erreurs, utiliser le fallback
-          if (type === 'important') {
-            createBeep(1000, 300); // Son plus aigu et long pour important
-            setTimeout(() => createBeep(800, 200), 100);
-          } else {
-            createBeep(800, 200); // Son standard
-          }
-        });
+      // Sons différents selon le type
+      switch (type) {
+        case 'important':
+          createBeep(1000, 300, 0.5); // Son plus aigu et long
+          setTimeout(() => createBeep(800, 200, 0.4), 150);
+          setTimeout(() => createBeep(1000, 200, 0.3), 300);
+          break;
+        case 'error':
+          createBeep(400, 400, 0.6); // Son grave pour erreur
+          break;
+        case 'warning':
+          createBeep(600, 250, 0.4); // Son moyen pour avertissement
+          setTimeout(() => createBeep(600, 150, 0.3), 200);
+          break;
+        case 'success':
+          createBeep(800, 150, 0.3); // Son aigu court pour succès
+          setTimeout(() => createBeep(1000, 100, 0.2), 100);
+          break;
+        default:
+          createBeep(800, 200, 0.3); // Son standard
       }
 
       // Vibration pour les notifications importantes (mobiles)
@@ -52,6 +58,7 @@ export function useToast() {
       }
     } catch (error) {
       // Ignore toutes les erreurs audio
+      console.warn('Erreur audio:', error);
     }
   }, []);
 
