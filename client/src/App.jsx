@@ -5,6 +5,7 @@ import Queue from "./pages/Queue";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDebugPanel from "./components/UserDebugPanel";
+import { getDisplayName } from "./utils/userUtils";
 
 // Dashboards par rôle
 import PatientDashboard from "./pages/dashboards/PatientDashboard";
@@ -33,12 +34,7 @@ function App() {
                 {user.role?.name === "secretaire" && "👩‍💼"}
                 {user.role?.name === "patient" && "👤"}
                 {user.role?.name === "visiteur" && "👁️"}
-                {" "}{user.fullName || 
-                       (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
-                       user.firstName || 
-                       user.lastName || 
-                       user.email?.split('@')[0] || 
-                       'Utilisateur'}
+                {" "}{getDisplayName(user)}
               </span>
               <Link 
                 to={`/dashboard/${user.role?.name}`} 

@@ -10,14 +10,23 @@
 export function getDisplayName(user) {
   if (!user) return 'Utilisateur';
   
-  // Priorité au fullName calculé côté serveur
-  if (user.fullName && user.fullName !== user.email) {
+  // Priorité au fullName calculé côté serveur (sauf si c'est l'email)
+  if (user.fullName && user.fullName !== user.email && !user.fullName.includes('undefined')) {
     return user.fullName;
   }
   
-  // Construire le nom à partir des composants
-  const firstName = user.firstName || user.profile?.firstName;
-  const lastName = user.lastName || user.profile?.lastName;
+  // Essayer les différentes structures de données
+  // 1. Structure moderne : profile.firstName/lastName
+  const profileFirstName = user.profile?.firstName;
+  const profileLastName = user.profile?.lastName;
+  
+  // 2. Structure legacy : firstName/lastName directs
+  const directFirstName = user.firstName;
+  const directLastName = user.lastName;
+  
+  // Choisir la meilleure source
+  const firstName = profileFirstName || directFirstName;
+  const lastName = profileLastName || directLastName;
   
   if (firstName && lastName) {
     return `${firstName} ${lastName}`;
