@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Ticket from "./pages/Ticket";
@@ -14,8 +15,47 @@ import MedecinDashboard from "./pages/dashboards/MedecinDashboard";
 import SecretaireDashboard from "./pages/dashboards/SecretaireDashboard";
 
 function App() {
-  const isAuthenticated = localStorage.getItem("isAuthenticated");
-  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated"));
+  const [user, setUser] = useState(() => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  });
+
+  // Écouter les changements d'authentification
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsAuthenticated(localStorage.getItem("isAuthenticated"));
+      const userData = localStorage.getItem("user");
+      setUser(userData ? JSON.parse(userData) : null);
+    };
+
+    // Écouter les changements de localStorage (autres onglets)
+    window.addEventListener('storage', handleAuthChange);
+    
+    // Écouter notre événement personnalisé (même onglet)
+    window.addEventListener('authStateChanged', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAuthenticated');
+    
+    // Mettre à jour l'état immédiatement
+    setIsAuthenticated(null);
+    setUser(null);
+    
+    // Déclencher l'événement pour notifier d'autres composants
+    window.dispatchEvent(new Event('authStateChanged'));
+    
+    // Rediriger vers l'accueil
+    window.location.href = '/';
+  };
 
   return (
     <div>
@@ -42,6 +82,13 @@ function App() {
               >
                 📊 Mon espace
               </Link>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 px-3 py-1 rounded hover:bg-red-400 transition text-sm"
+                title="Se déconnecter"
+              >
+                🚪 Déconnexion
+              </button>
             </div>
           ) : (
             <div className="flex gap-2">

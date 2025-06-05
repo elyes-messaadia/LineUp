@@ -48,6 +48,9 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
 
+      // Déclencher un événement pour notifier App.jsx du changement
+      window.dispatchEvent(new Event('authStateChanged'));
+
       // Utiliser l'utilitaire pour l'affichage
       const welcomeMessage = getWelcomeMessage(data.user, 'Connexion réussie ! Bienvenue');
       showSuccess(welcomeMessage, 3000);
