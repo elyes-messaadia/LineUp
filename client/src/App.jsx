@@ -4,6 +4,7 @@ import Ticket from "./pages/Ticket";
 import Queue from "./pages/Queue";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import UserDebugPanel from "./components/UserDebugPanel";
 
 // Dashboards par rôle
 import PatientDashboard from "./pages/dashboards/PatientDashboard";
@@ -75,6 +76,9 @@ function App() {
         <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
         <Route path="/dashboard/secretaire" element={<SecretaireDashboard />} />
       </Routes>
+      
+      {/* Panneau de debug (toujours visible pour diagnostiquer) */}
+      <UserDebugPanel />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import AnimatedPage from "../components/AnimatedPage";
 import Title from "../components/Title";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
+import { getWelcomeMessage, debugUserData } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
 
 export default function Login() {
@@ -38,20 +39,18 @@ export default function Login() {
         throw new Error(data.message || "Identifiants incorrects");
       }
 
+      // Debug pour diagnostiquer le problème
+      console.log('🔍 Données reçues du serveur:', data.user);
+      debugUserData(data.user);
+
       // Stocker les informations utilisateur
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
 
-      // Créer un nom d'affichage robuste
-      const displayName = data.user.fullName || 
-                          (data.user.firstName && data.user.lastName ? `${data.user.firstName} ${data.user.lastName}` : '') ||
-                          data.user.firstName || 
-                          data.user.lastName || 
-                          data.user.email?.split('@')[0] || 
-                          'utilisateur';
-      
-      showSuccess(`Connexion réussie ! Bienvenue ${displayName}`, 3000);
+      // Utiliser l'utilitaire pour l'affichage
+      const welcomeMessage = getWelcomeMessage(data.user, 'Connexion réussie ! Bienvenue');
+      showSuccess(welcomeMessage, 3000);
 
       // Redirection selon le rôle
       setTimeout(() => {

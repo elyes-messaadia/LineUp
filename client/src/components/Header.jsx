@@ -47,7 +47,7 @@ export default function Header({ hideTitle = false }) {
         </button>
       </div>
       
-      <Title />
+      <Title left="Ticket" emoji="🎫" />
     </header>
   );
 } 

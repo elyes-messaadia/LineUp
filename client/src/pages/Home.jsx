@@ -7,6 +7,7 @@ import Title from "../components/Title";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../hooks/useToast";
+import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
 
 const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
@@ -147,12 +148,7 @@ export default function Home() {
                   {user.role?.name === "visiteur" && "👁️"}
                 </span>
                 <h2 className="legacy-text-primary font-bold text-blue-900">
-                  Bonjour {user.fullName || 
-                           (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
-                           user.firstName || 
-                           user.lastName || 
-                           user.email?.split('@')[0] || 
-                           'utilisateur'}
+                  Bonjour {getDisplayName(user)}
                 </h2>
               </div>
               <p className="text-blue-700 legacy-text-secondary mb-4 xs:mb-6">
