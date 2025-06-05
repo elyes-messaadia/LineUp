@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import AnimatedPage from "../../components/AnimatedPage";
@@ -14,11 +14,34 @@ export default function PatientDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [queueLoading, setQueueLoading] = useState(true);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
   const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
+
+  const loadQueue = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/queue`);
+      if (res.ok) {
+        const data = await res.json();
+        setQueue(data);
+      }
+    } catch (error) {
+      console.error("Erreur chargement queue:", error);
+    }
+  }, []);
+
+  const loadMyTicket = useCallback(() => {
+    const stored = localStorage.getItem("lineup_ticket");
+    if (stored) {
+      try {
+        const parsedTicket = JSON.parse(stored);
+        setMyTicket(parsedTicket);
+      } catch (error) {
+        localStorage.removeItem("lineup_ticket");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -46,33 +69,7 @@ export default function PatientDashboard() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [navigate]);
-
-  const loadQueue = async () => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/queue`);
-      if (res.ok) {
-        const data = await res.json();
-        setQueue(data);
-      }
-    } catch (error) {
-      console.error("Erreur chargement queue:", error);
-    } finally {
-      setQueueLoading(false);
-    }
-  };
-
-  const loadMyTicket = () => {
-    const stored = localStorage.getItem("lineup_ticket");
-    if (stored) {
-      try {
-        const parsedTicket = JSON.parse(stored);
-        setMyTicket(parsedTicket);
-      } catch (error) {
-        localStorage.removeItem("lineup_ticket");
-      }
-    }
-  };
+  }, [navigate, loadMyTicket, loadQueue]);
 
   const handleTakeTicket = () => {
     if (myTicket) {

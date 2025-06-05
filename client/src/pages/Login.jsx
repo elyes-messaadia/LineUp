@@ -13,6 +13,7 @@ export default function Login() {
     password: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuickLogin, setShowQuickLogin] = useState(false);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
@@ -97,134 +98,183 @@ export default function Login() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-md mx-auto">
-          <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-gray-800">
-            🔐 Connexion
-          </h2>
+        <div className="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-xl accessible-shadow">
+          <Title level={1}>🔐 Connexion</Title>
 
-          {/* Boutons de connexion rapide */}
-          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-3">🧪 Comptes de test</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleQuickLogin({
-                  email: "medecin@lineup.com",
-                  password: "medecin123"
-                })}
-                className="p-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition"
-                disabled={isLoading}
-              >
-                👨‍⚕️ Médecin
-              </button>
-              <button
-                onClick={() => handleQuickLogin({
-                  email: "secretaire@lineup.com",
-                  password: "secretaire123"
-                })}
-                className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg text-sm transition"
-                disabled={isLoading}
-              >
-                👩‍💼 Secrétaire
-              </button>
-              <button
-                onClick={() => handleQuickLogin({
-                  email: "patient@lineup.com",
-                  password: "patient123"
-                })}
-                className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition"
-                disabled={isLoading}
-              >
-                🏥 Patient
-              </button>
-              <button
-                onClick={() => handleQuickLogin({
-                  email: "visiteur@lineup.com",
-                  password: "visiteur123"
-                })}
-                className="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg text-sm transition"
-                disabled={isLoading}
-              >
-                👁️ Visiteur
-              </button>
-            </div>
+          {/* Message d'aide principal */}
+          <div className="help-text mb-6">
+            <p className="text-center font-medium">
+              Entrez votre email et mot de passe pour vous connecter
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Boutons de test simplifié */}
+          <div className="mb-8">
+            <button
+              onClick={() => setShowQuickLogin(!showQuickLogin)}
+              className="w-full high-contrast-button touch-target-large bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300 gentle-transition"
+              type="button"
+              aria-expanded={showQuickLogin}
+              aria-controls="quick-login-section"
+            >
+              🧪 {showQuickLogin ? 'Masquer' : 'Voir'} les comptes de démonstration
+            </button>
+
+            {showQuickLogin && (
+              <div 
+                id="quick-login-section"
+                className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4"
+                role="region"
+                aria-label="Comptes de démonstration"
+              >
+                <h3 className="font-bold text-blue-900 mb-4 text-center senior-friendly-text">
+                  Comptes de test disponibles
+                </h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleQuickLogin({
+                      email: "medecin@lineup.com",
+                      password: "medecin123"
+                    })}
+                    className="w-full high-contrast-button touch-target-large bg-green-100 hover:bg-green-200 text-green-800 border-green-300 gentle-transition"
+                    disabled={isLoading}
+                    aria-label="Se connecter en tant que médecin de démonstration"
+                  >
+                    👨‍⚕️ Médecin (Démonstration)
+                  </button>
+                  <button
+                    onClick={() => handleQuickLogin({
+                      email: "secretaire@lineup.com",
+                      password: "secretaire123"
+                    })}
+                    className="w-full high-contrast-button touch-target-large bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 gentle-transition"
+                    disabled={isLoading}
+                    aria-label="Se connecter en tant que secrétaire de démonstration"
+                  >
+                    👩‍💼 Secrétaire (Démonstration)
+                  </button>
+                  <button
+                    onClick={() => handleQuickLogin({
+                      email: "patient@lineup.com",
+                      password: "patient123"
+                    })}
+                    className="w-full high-contrast-button touch-target-large bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 gentle-transition"
+                    disabled={isLoading}
+                    aria-label="Se connecter en tant que patient de démonstration"
+                  >
+                    🏥 Patient (Démonstration)
+                  </button>
+                  <button
+                    onClick={() => handleQuickLogin({
+                      email: "visiteur@lineup.com",
+                      password: "visiteur123"
+                    })}
+                    className="w-full high-contrast-button touch-target-large bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300 gentle-transition"
+                    disabled={isLoading}
+                    aria-label="Se connecter en tant que visiteur de démonstration"
+                  >
+                    👁️ Visiteur (Démonstration)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                📧 Email
+              <label 
+                htmlFor="email"
+                className="block senior-friendly-text font-semibold text-gray-800 mb-3 text-left"
+              >
+                📧 Adresse email
               </label>
               <input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="votre@email.com"
+                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
+                placeholder="Exemple: jean@email.com"
                 disabled={isLoading}
+                aria-describedby="email-help"
+                autoComplete="email"
               />
+              <div id="email-help" className="mt-2 text-sm text-gray-600 text-left">
+                Entrez votre adresse email complète
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label 
+                htmlFor="password"
+                className="block senior-friendly-text font-semibold text-gray-800 mb-3 text-left"
+              >
                 🔒 Mot de passe
               </label>
               <input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="••••••••"
+                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
+                placeholder="Votre mot de passe"
                 disabled={isLoading}
+                aria-describedby="password-help"
+                autoComplete="current-password"
               />
+              <div id="password-help" className="mt-2 text-sm text-gray-600 text-left">
+                Entrez votre mot de passe
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 rounded-lg transition font-medium ${
-                isLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              } text-white`}
+              disabled={isLoading || !formData.email || !formData.password}
+              className={`w-full touch-target-large high-contrast-button gentle-transition ${
+                isLoading || !formData.email || !formData.password
+                  ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600"
+                  : "bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
+              }`}
+              aria-describedby="submit-help"
             >
               {isLoading ? (
                 <>
-                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  <span className="animate-spin inline-block mr-3">⏳</span>
                   Connexion en cours...
                 </>
               ) : (
                 "Se connecter"
               )}
             </button>
+            
+            {(!formData.email || !formData.password) && (
+              <div id="submit-help" className="text-sm text-gray-600 text-center">
+                Veuillez remplir tous les champs pour continuer
+              </div>
+            )}
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 mb-4">
-              Pas encore de compte ?
+          {/* Lien vers inscription */}
+          <div className="mt-8 pt-6 border-t-2 border-gray-200">
+            <p className="senior-friendly-text text-gray-700 mb-4 text-center">
+              Vous n'avez pas encore de compte ?
             </p>
             <Link
               to="/register"
-              className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              className="block w-full text-center high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition no-underline"
+              aria-label="Créer un nouveau compte"
             >
-              Créer un compte
+              ✨ Créer un compte
             </Link>
           </div>
-
-          {/* Notifications Toast */}
-          {toasts.map((toast) => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
         </div>
+
+        {/* Toasts pour les messages */}
+        <Toast toasts={toasts} removeToast={removeToast} />
       </AnimatedPage>
     </Layout>
   );

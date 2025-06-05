@@ -11,60 +11,244 @@
     animation: blink 1s step-start infinite;
   }
 
-/* Améliorations pour mobile */
+/* Améliorations pour accessibilité et utilisateurs âgés */
 @layer base {
   /* Améliorer la lisibilité sur mobile */
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Taille de base plus grande pour meilleure lisibilité */
+    font-size: 18px;
+  }
+
+  /* Optimisation spécifique pour iPhone 12 et petits écrans */
+  @media (max-width: 390px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    html {
+      font-size: 16px;
+    }
   }
 
   /* Améliorer les interactions tactiles */
   button, a {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    /* Zone de touch minimum pour l'accessibilité */
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimisation pour très petits écrans */
+  @media (max-width: 390px) {
+    button, a {
+      min-height: 40px;
+      min-width: 40px;
+    }
   }
 
   /* Améliorer le scroll sur mobile */
   body {
     -webkit-overflow-scrolling: touch;
     overflow-scrolling: touch;
+    /* Hauteur de ligne globale améliorée */
+    line-height: 1.6;
+  }
+
+  /* Améliorer le focus pour les utilisateurs au clavier */
+  *:focus {
+    outline: 3px solid #3B82F6 !important;
+    outline-offset: 2px !important;
   }
 }
 
 @layer utilities {
-  /* Classe pour améliorer les zones de touch sur mobile */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+  /* Classes pour l'accessibilité et simplicité */
+  .senior-friendly-text {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    font-weight: 500;
+  }
+
+  @media (max-width: 640px) {
+    .senior-friendly-text {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .senior-friendly-text {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+  }
+
+  /* Zone de touch adaptée pour seniors */
+  .touch-target-large {
+    min-height: 56px;
+    min-width: 56px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .touch-target-large {
+      min-height: 48px;
+      padding: 0.75rem 1rem;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .touch-target-large {
+      min-height: 44px;
+      padding: 0.625rem 0.875rem;
+    }
   }
 
   /* Améliorer la lisibilité des petits textes */
   .text-mobile-readable {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 500;
   }
 
   @media (min-width: 640px) {
     .text-mobile-readable {
-      font-size: inherit;
-      line-height: inherit;
+      font-size: 1.125rem;
+      line-height: 1.7;
     }
   }
 
-  /* Animation douce pour les transitions */
-  .smooth-transition {
-    transition: all 0.2s ease-in-out;
+  @media (max-width: 390px) {
+    .text-mobile-readable {
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
   }
 
-  /* Améliorer les ombres sur mobile */
-  .mobile-shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Animation très douce pour éviter les problèmes vestibulaires */
+  .gentle-transition {
+    transition: all 0.3s ease-out;
+  }
+
+  /* Améliorer les ombres avec plus de contraste */
+  .accessible-shadow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   @media (min-width: 640px) {
-    .mobile-shadow {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    .accessible-shadow {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  @media (max-width: 390px) {
+    .accessible-shadow {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  /* États d'erreur plus visibles */
+  .error-highlight {
+    border: 2px solid #DC2626 !important;
+    background-color: #FEF2F2 !important;
+  }
+
+  /* États de succès plus visibles */
+  .success-highlight {
+    border: 2px solid #059669 !important;
+    background-color: #F0FDF4 !important;
+  }
+
+  /* Boutons avec contraste élevé */
+  .high-contrast-button {
+    font-weight: 600;
+    border: 2px solid transparent;
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 390px) {
+    .high-contrast-button {
+      font-size: 1rem;
+      line-height: 1.3;
+    }
+  }
+
+  /* États de loading plus visible */
+  .loading-state {
+    opacity: 0.7;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .loading-state::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+  }
+
+  /* Messages d'aide plus visibles */
+  .help-text {
+    background: #FEF3C7;
+    border: 2px solid #F59E0B;
+    color: #92400E;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 390px) {
+    .help-text {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Navigation simplifiée */
+  .nav-button {
+    background: #1F2937;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1.125rem;
+    border: 3px solid transparent;
+    transition: all 0.2s ease-out;
+  }
+
+  .nav-button:hover {
+    background: #374151;
+    border-color: #60A5FA;
+    transform: translateY(-1px);
+  }
+
+  .nav-button:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }
+
+  @media (max-width: 390px) {
+    .nav-button {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+    }
+  }
+
+  /* Classe xs pour très petits écrans */
+  @media (min-width: 375px) {
+    .xs\:inline {
+      display: inline;
     }
   }
 }

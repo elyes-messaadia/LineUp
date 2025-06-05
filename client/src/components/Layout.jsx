@@ -11,11 +11,17 @@ export default function Layout({ children, hideTitle = false, fullscreen = false
     );
   }
 
-  // Version normale pour mobile/autres pages
+  // Version optimisée pour iPhone et petits écrans
   return (
-    <div className="min-h-screen bg-white text-center px-4 py-6 sm:px-6 sm:py-8 flex flex-col items-center pb-16 sm:pb-10 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 text-center px-3 py-4 sm:px-6 sm:py-8 flex flex-col items-center pb-16 sm:pb-20 overflow-x-hidden">
       <Header hideTitle={hideTitle} />
-      <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">{children}</div>
+      <main 
+        className="w-full max-w-sm sm:max-w-md lg:max-w-lg flex-1"
+        role="main"
+        aria-label="Contenu principal"
+      >
+        {children}
+      </main>
       <Footer />
     </div>
   );

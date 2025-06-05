@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
+import NetworkError from "../components/NetworkError";
 import { useToast } from "../hooks/useToast";
+import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
 import BACKEND_URL from "../config/api";
 
@@ -36,6 +37,14 @@ const STATUS_CONFIG = {
     bgClass: "bg-gray-50 border-gray-200", 
     textClass: "text-gray-600",
     badgeClass: "bg-gray-100 text-gray-600"
+  },
+  desiste: {
+    icon: "❌",
+    label: "Annulé",
+    color: "red",
+    bgClass: "bg-red-50 border-red-200", 
+    textClass: "text-red-600",
+    badgeClass: "bg-red-100 text-red-600"
   }
 };
 
@@ -60,13 +69,18 @@ const formatWaitingTime = (createdAt) => {
   return `${hours}h${mins.toString().padStart(2, '0')}`;
 };
 
-// Header moderne et épuré
-const CleanHeader = ({ allTickets, currentTime }) => {
-  const stats = {
-    total: allTickets.length,
-    waiting: allTickets.filter(t => t.status === "en_attente").length,
-    inConsultation: allTickets.filter(t => t.status === "en_consultation").length
-  };
+const formatEstimatedTime = (minutes) => {
+  if (minutes <= 0) return "Maintenant";
+  if (minutes < 60) return `~${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `~${hours}h${mins.toString().padStart(2, '0')}`;
+};
+
+// Header moderne et épuré avec indicateurs temps réel
+const CleanHeader = ({ stats, currentTime, lastUpdate, error }) => {
+  const timeSinceUpdate = Math.floor((currentTime - lastUpdate) / 1000);
+  const isStale = timeSinceUpdate > 10; // Plus de 10 secondes
 
   return (
     <div className="bg-white border-b border-gray-100">
@@ -78,12 +92,37 @@ const CleanHeader = ({ allTickets, currentTime }) => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               File d'Attente Médicale
             </h1>
-            <p className="text-gray-500 flex items-center space-x-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span>Mise à jour automatique</span>
+            <div className="flex items-center space-x-4 text-sm">
+              {/* Indicateur de connexion */}
+              <div className="flex items-center space-x-2">
+                <span className={`w-2 h-2 rounded-full ${
+                  error ? 'bg-red-500' : 
+                  isStale ? 'bg-yellow-500' : 
+                  'bg-green-500 animate-pulse'
+                }`}></span>
+                <span className="text-gray-600">
+                  {error ? 'Connexion impossible' :
+                   isStale ? 'Connexion lente' :
+                   'Temps réel'}
+                </span>
+              </div>
+              
               <span className="text-gray-300">•</span>
-              <span className="font-mono">{formatTime(currentTime)}</span>
-            </p>
+              
+              {/* Heure de dernière mise à jour */}
+              <span className="text-gray-500 font-mono">
+                Mis à jour: {formatTime(lastUpdate)}
+              </span>
+              
+              {timeSinceUpdate > 0 && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-400">
+                    il y a {timeSinceUpdate}s
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           
           {/* Statistiques compactes */}
@@ -98,8 +137,14 @@ const CleanHeader = ({ allTickets, currentTime }) => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
-              <div className="text-sm text-gray-500">Total</div>
+              <div className="text-sm text-gray-500">Total aujourd'hui</div>
             </div>
+            {stats.cancelled > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
+                <div className="text-sm text-gray-500">Annulés</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -107,15 +152,16 @@ const CleanHeader = ({ allTickets, currentTime }) => {
   );
 };
 
-// Carte ticket épurée et moderne
-const CleanTicketCard = ({ ticket, isMyTicket, position }) => {
+// Carte ticket épurée et moderne avec estimation
+const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatusChanged }) => {
   const config = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.en_attente;
   
   return (
     <div className={`
-      relative p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md
+      relative p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md
       ${config.bgClass}
       ${isMyTicket ? 'ring-2 ring-blue-400 ring-offset-2' : ''}
+      ${hasStatusChanged ? 'animate-pulse border-orange-400' : ''}
     `}>
       
       {/* Header du ticket */}
@@ -128,6 +174,11 @@ const CleanTicketCard = ({ ticket, isMyTicket, position }) => {
               {isMyTicket && (
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                   Vous
+                </span>
+              )}
+              {hasStatusChanged && (
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full animate-pulse">
+                  Nouveau
                 </span>
               )}
             </div>
@@ -156,12 +207,23 @@ const CleanTicketCard = ({ ticket, isMyTicket, position }) => {
           </span>
         </div>
         
+        {/* Estimation et temps d'attente */}
         {ticket.status === "en_attente" && (
-          <div className="flex items-center space-x-1">
-            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-            <span className="font-medium text-blue-700">
-              {formatWaitingTime(ticket.createdAt)}
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+              <span className="font-medium text-blue-700">
+                {formatWaitingTime(ticket.createdAt)}
+              </span>
+            </div>
+            {estimatedWait > 0 && (
+              <>
+                <span className="text-gray-300">•</span>
+                <span className="text-orange-600 font-medium">
+                  {formatEstimatedTime(estimatedWait)}
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -171,96 +233,102 @@ const CleanTicketCard = ({ ticket, isMyTicket, position }) => {
 
 // Interface principale avec vue liste épurée
 const Queue = () => {
-  const [state, setState] = useState({
-    queues: {},
-    myId: null,
-    isLoading: true,
-    error: null,
-    currentTime: Date.now()
-  });
-
   const [viewMode, setViewMode] = useState('all'); // 'all', 'waiting', 'consultation'
-  const refs = useRef({
-    pollInterval: null,
-    timeInterval: null,
-    retryCount: 0
-  });
+  const [myId, setMyId] = useState(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [recentChanges, setRecentChanges] = useState(new Set());
+  
+  const { 
+    toasts, 
+    showSuccess, 
+    showError, 
+    showWarning, 
+    showInfo, 
+    showImportant, 
+    removeToast 
+  } = useToast();
 
-  const { toasts, showSuccess, showError, showWarning, removeToast } = useToast();
+  // Gestion des changements de statut en temps réel
+  const handleStatusChanges = useCallback((changes) => {
+    changes.forEach(change => {
+      // Marquer le ticket comme ayant changé récemment
+      setRecentChanges(prev => new Set([...prev, change.ticket._id]));
+      
+      // Supprimer le marquage après 5 secondes
+      setTimeout(() => {
+        setRecentChanges(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(change.ticket._id);
+          return newSet;
+        });
+      }, 5000);
 
-  // Fonction de fetch simplifiée
-  const fetchQueues = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/queue`);
-      if (!response.ok) throw new Error('Erreur réseau');
-      
-      const tickets = await response.json();
-      
-      setState(prev => ({
-        ...prev,
-        queues: { general: tickets },
-        error: null
-      }));
-      
-      refs.current.retryCount = 0;
-    } catch (err) {
-      console.error("Erreur file d'attente:", err);
-      setState(prev => ({
-        ...prev,
-        error: "Impossible de charger les données"
-      }));
-    }
-  }, [API_URL]);
+      // Notification selon le type de changement
+      switch (change.type) {
+        case 'new':
+          showInfo(change.message, 4000, true);
+          break;
+        case 'removed':
+          showWarning(change.message, 5000, true);
+          break;
+        case 'status_change':
+          if (change.isImportant) {
+            showImportant(change.message);
+          } else {
+            showSuccess(change.message, 4000, true);
+          }
+          break;
+        default:
+          showInfo(change.message, 3000);
+      }
+    });
+  }, [showSuccess, showError, showWarning, showInfo, showImportant]);
 
-  // Effects
+  // Utiliser le hook temps réel
+  const {
+    queue,
+    isLoading,
+    error,
+    lastUpdate,
+    stats,
+    forceUpdate,
+    getPosition,
+    getEstimatedWait
+  } = useRealTimeQueue(handleStatusChanges);
+
+  // Timer pour l'horloge
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  // Charger l'ID du ticket utilisateur
   useEffect(() => {
     const storedTicket = localStorage.getItem("lineup_ticket");
     if (storedTicket) {
       try {
         const parsed = JSON.parse(storedTicket);
-        setState(prev => ({
-          ...prev,
-          myId: parsed._id || parsed.userId || parsed.sessionId
-        }));
+        setMyId(parsed._id || parsed.userId || parsed.sessionId);
       } catch (e) {
         localStorage.removeItem("lineup_ticket");
       }
     }
+  }, []);
 
-    fetchQueues();
-    setState(prev => ({ ...prev, isLoading: false }));
-
-    refs.current.pollInterval = setInterval(fetchQueues, POLL_INTERVAL);
-    refs.current.timeInterval = setInterval(() => {
-      setState(prev => ({ ...prev, currentTime: Date.now() }));
-    }, 1000);
-    
-    return () => {
-      if (refs.current.pollInterval) clearInterval(refs.current.pollInterval);
-      if (refs.current.timeInterval) clearInterval(refs.current.timeInterval);
-    };
-  }, [fetchQueues]);
-
-  // Données
-  const allTickets = Object.values(state.queues).flat();
-  const filteredTickets = allTickets.filter(ticket => {
+  // Filtrer les tickets selon le mode de vue
+  const filteredTickets = queue.filter(ticket => {
     switch (viewMode) {
       case 'waiting': return ticket.status === 'en_attente';
       case 'consultation': return ticket.status === 'en_consultation';
+      case 'completed': return ['termine', 'desiste'].includes(ticket.status);
       default: return true;
     }
   });
 
-  const getMyPosition = () => {
-    if (!state.myId) return null;
-    const waitingTickets = allTickets
-      .filter(t => t.status === "en_attente")
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    const myIndex = waitingTickets.findIndex(t => t._id === state.myId);
-    return myIndex !== -1 ? myIndex + 1 : null;
-  };
-
-  if (state.isLoading) {
+  if (isLoading) {
     return (
       <Layout fullscreen>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -279,7 +347,12 @@ const Queue = () => {
         <div className="min-h-screen bg-gray-50">
           
           {/* Header */}
-          <CleanHeader allTickets={allTickets} currentTime={state.currentTime} />
+          <CleanHeader 
+            stats={stats} 
+            currentTime={currentTime} 
+            lastUpdate={lastUpdate}
+            error={error}
+          />
           
           {/* Contenu principal */}
           <div className="max-w-6xl mx-auto px-6 py-8">
@@ -295,7 +368,7 @@ const Queue = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Tous ({allTickets.length})
+                  Tous ({queue.length})
                 </button>
                 <button
                   onClick={() => setViewMode('waiting')}
@@ -305,7 +378,7 @@ const Queue = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  En attente ({allTickets.filter(t => t.status === 'en_attente').length})
+                  En attente ({stats.waiting})
                 </button>
                 <button
                   onClick={() => setViewMode('consultation')}
@@ -315,75 +388,104 @@ const Queue = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  En consultation ({allTickets.filter(t => t.status === 'en_consultation').length})
+                  En consultation ({stats.inConsultation})
+                </button>
+                <button
+                  onClick={() => setViewMode('completed')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'completed' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Terminés ({stats.completed + stats.cancelled})
                 </button>
               </div>
               
-              {/* Indicateur de position personnelle */}
-              {state.myId && getMyPosition() && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-                  <span className="text-blue-800 font-medium">
-                    Votre position: #{getMyPosition()}
-                  </span>
-                </div>
-              )}
+              {/* Actions */}
+              <div className="flex items-center space-x-3">
+                {/* Indicateur de position personnelle */}
+                {myId && getPosition(myId) && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                    <span className="text-blue-800 font-medium">
+                      Votre position: #{getPosition(myId)}
+                    </span>
+                    {getEstimatedWait(getPosition(myId)) > 0 && (
+                      <span className="text-blue-600 ml-2">
+                        (~{formatEstimatedTime(getEstimatedWait(getPosition(myId)))})
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Bouton de mise à jour manuelle */}
+                <button
+                  onClick={forceUpdate}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors"
+                  title="Actualiser manuellement"
+                >
+                  🔄 Actualiser
+                </button>
+              </div>
             </div>
 
             {/* Message d'erreur */}
-            {state.error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center space-x-2">
-                  <span className="text-red-600">⚠️</span>
-                  <span className="text-red-800">{state.error}</span>
-                </div>
-              </div>
+            {error && (
+              <NetworkError 
+                error={error}
+                onRetry={forceUpdate}
+                isConnected={stats.total > 0} // Si on a des données, c'est que la connexion fonctionne partiellement
+              />
             )}
 
             {/* Liste des tickets */}
             <div className="space-y-4">
               {filteredTickets.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🏥</div>
+                  <div className="text-6xl mb-4">
+                    {viewMode === 'waiting' && '⏱️'}
+                    {viewMode === 'consultation' && '🩺'}
+                    {viewMode === 'completed' && '✅'}
+                    {viewMode === 'all' && '🏥'}
+                  </div>
                   <h3 className="text-xl font-medium text-gray-600 mb-2">
-                    Aucun patient en attente
+                    {viewMode === 'waiting' && 'Aucun patient en attente'}
+                    {viewMode === 'consultation' && 'Aucune consultation en cours'}
+                    {viewMode === 'completed' && 'Aucune consultation terminée'}
+                    {viewMode === 'all' && 'Aucun ticket aujourd\'hui'}
                   </h3>
                   <p className="text-gray-500">
-                    La file d'attente est vide pour le moment
+                    {viewMode === 'waiting' && 'La file d\'attente est vide pour le moment'}
+                    {viewMode === 'consultation' && 'Aucun patient en consultation actuellement'}
+                    {viewMode === 'completed' && 'Aucune consultation terminée aujourd\'hui'}
+                    {viewMode === 'all' && 'Aucun patient n\'a pris de ticket aujourd\'hui'}
                   </p>
                 </div>
               ) : (
                 filteredTickets
                   .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                  .map((ticket, index) => (
-                    <CleanTicketCard
-                      key={ticket._id}
-                      ticket={ticket}
-                      isMyTicket={ticket._id === state.myId}
-                      position={
-                        ticket.status === 'en_attente' 
-                          ? allTickets
-                              .filter(t => t.status === 'en_attente')
-                              .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                              .findIndex(t => t._id === ticket._id) + 1
-                          : null
-                      }
-                    />
-                  ))
+                  .map((ticket) => {
+                    const position = ticket.status === 'en_attente' ? getPosition(ticket._id) : null;
+                    const estimatedWait = position ? getEstimatedWait(position) : 0;
+                    
+                    return (
+                      <CleanTicketCard
+                        key={ticket._id}
+                        ticket={ticket}
+                        isMyTicket={ticket._id === myId}
+                        position={position}
+                        estimatedWait={estimatedWait}
+                        hasStatusChanged={recentChanges.has(ticket._id)}
+                      />
+                    );
+                  })
               )}
             </div>
           </div>
         </div>
 
-        {/* Toasts */}
-        <div className="fixed top-4 right-4 z-50 space-y-2">
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              toast={toast}
-              onRemove={removeToast}
-            />
-          ))}
-        </div>
+        {/* Toasts pour les notifications */}
+        <Toast toasts={toasts} removeToast={removeToast} />
       </AnimatedPage>
     </Layout>
   );

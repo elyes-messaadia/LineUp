@@ -1,6 +1,31 @@
 import { useEffect, useState } from 'react';
 
-export default function Toast({ message, type = 'info', duration = 3000, onClose }) {
+// Composant Toast principal pour gérer une liste de toasts
+export default function Toast({ toasts, removeToast }) {
+  if (!toasts || toasts.length === 0) return null;
+
+  return (
+    <div 
+      className="fixed top-4 right-4 z-50 space-y-3 max-w-sm"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+    >
+      {toasts.map((toast) => (
+        <ToastItem
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Composant ToastItem individuel
+function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -13,22 +38,24 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = "fixed top-4 left-4 right-4 sm:top-4 sm:right-4 sm:left-auto sm:max-w-sm z-50 p-3 sm:p-4 rounded-lg shadow-lg transition-all duration-300 transform";
+    const baseStyles = "p-4 rounded-xl accessible-shadow gentle-transition transform senior-friendly-text border-2";
     
     if (!isVisible) {
-      return `${baseStyles} translate-y-[-100%] sm:translate-y-0 sm:translate-x-full opacity-0`;
+      return `${baseStyles} translate-x-full opacity-0`;
     }
 
     switch (type) {
       case 'success':
-        return `${baseStyles} bg-green-500 text-white`;
+        return `${baseStyles} bg-green-50 text-green-900 border-green-200`;
       case 'error':
-        return `${baseStyles} bg-red-500 text-white`;
+        return `${baseStyles} bg-red-50 text-red-900 border-red-200`;
       case 'warning':
-        return `${baseStyles} bg-yellow-500 text-white`;
+        return `${baseStyles} bg-yellow-50 text-yellow-900 border-yellow-200`;
+      case 'important':
+        return `${baseStyles} bg-purple-50 text-purple-900 border-purple-300 border-4 shadow-lg ring-2 ring-purple-200 animate-pulse`;
       case 'info':
       default:
-        return `${baseStyles} bg-blue-500 text-white`;
+        return `${baseStyles} bg-blue-50 text-blue-900 border-blue-200`;
     }
   };
 
@@ -40,25 +67,64 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
         return '❌';
       case 'warning':
         return '⚠️';
+      case 'important':
+        return '🔔';
       case 'info':
       default:
         return 'ℹ️';
     }
   };
 
+  const getAriaLabel = () => {
+    switch (type) {
+      case 'success':
+        return `Message de succès: ${message}`;
+      case 'error':
+        return `Message d'erreur: ${message}`;
+      case 'warning':
+        return `Avertissement: ${message}`;
+      case 'important':
+        return `Notification importante: ${message}`;
+      case 'info':
+      default:
+        return `Information: ${message}`;
+    }
+  };
+
+  const getAriaLive = () => {
+    // Les notifications importantes et erreurs sont annoncées immédiatement
+    return (type === 'important' || type === 'error') ? 'assertive' : 'polite';
+  };
+
   return (
-    <div className={getToastStyles()}>
-      <div className="flex items-center gap-2">
-        <span className="text-base sm:text-lg flex-shrink-0">{getIcon()}</span>
-        <span className="font-medium text-sm sm:text-base leading-tight flex-1">{message}</span>
+    <div 
+      className={getToastStyles()}
+      role="alert"
+      aria-label={getAriaLabel()}
+      aria-live={getAriaLive()}
+    >
+      <div className="flex items-start gap-3">
+        <span 
+          className={`${type === 'important' ? 'text-2xl animate-bounce' : 'text-xl'} flex-shrink-0 mt-1`}
+          aria-hidden="true"
+        >
+          {getIcon()}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className={`${type === 'important' ? 'font-bold text-lg' : 'font-semibold'} leading-relaxed break-words`}>
+            {message}
+          </p>
+        </div>
         <button
           onClick={() => {
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="ml-2 text-white hover:text-gray-200 font-bold text-lg flex-shrink-0"
+          className="touch-target-large ml-2 text-gray-600 hover:text-gray-800 font-bold text-xl flex-shrink-0 p-1 rounded gentle-transition"
+          aria-label="Fermer cette notification"
+          title="Fermer cette notification"
         >
-          ×
+          ✕
         </button>
       </div>
     </div>

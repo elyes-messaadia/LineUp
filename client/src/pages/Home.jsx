@@ -115,37 +115,46 @@ export default function Home() {
   return (
     <Layout hideTitle={true}>
       <AnimatedPage>
-        <div className="text-center">
+        <div className="text-center bg-white p-4 sm:p-6 lg:p-8 rounded-xl accessible-shadow max-w-2xl mx-auto">
           <Title>🏥 Bienvenue sur LineUp</Title>
-          <p className="text-base sm:text-lg text-gray-600 mb-8 px-4 leading-relaxed">
-            Système de gestion de file d'attente médicale intelligente
-          </p>
+          
+          {/* Description principale avec message d'aide */}
+          <div className="help-text mb-6 sm:mb-8">
+            <p className="font-medium text-center">
+              Gérez votre file d'attente médicale en toute simplicité
+            </p>
+            <p className="mt-2 text-sm">
+              Prenez un ticket, suivez votre position en temps réel
+            </p>
+          </div>
 
           {/* Section utilisateur connecté */}
           {isAuthenticated && user && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 mx-4 sm:mx-0">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <span className="text-2xl">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <span className="text-2xl sm:text-3xl">
                   {user.role?.name === "medecin" && "🩺"}
                   {user.role?.name === "secretaire" && "👩‍💼"}
                   {user.role?.name === "patient" && "👤"}
                   {user.role?.name === "visiteur" && "👁️"}
                 </span>
-                <h2 className="text-lg font-semibold text-blue-800">
-                  Bienvenue {user.fullName || `${user.firstName} ${user.lastName}`}
+                <h2 className="senior-friendly-text font-bold text-blue-900">
+                  Bonjour {user.fullName || `${user.firstName} ${user.lastName}`}
                 </h2>
               </div>
-              <p className="text-blue-600 text-sm mb-4">
-                Connecté en tant que <strong>{
-                  user.role?.name === "medecin" ? "Médecin" :
-                  user.role?.name === "secretaire" ? "Secrétaire" :
-                  user.role?.name === "patient" ? "Patient" :
-                  user.role?.name === "visiteur" ? "Visiteur" : "Utilisateur"
-                }</strong>
+              <p className="text-blue-700 senior-friendly-text mb-4 sm:mb-6">
+                Vous êtes connecté en tant que{' '}
+                <strong>
+                  {user.role?.name === "medecin" ? "Médecin" :
+                   user.role?.name === "secretaire" ? "Secrétaire" :
+                   user.role?.name === "patient" ? "Patient" :
+                   user.role?.name === "visiteur" ? "Visiteur" : "Utilisateur"}
+                </strong>
               </p>
               <button
                 onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium w-full sm:w-auto"
+                className="high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 w-full sm:w-auto gentle-transition"
+                aria-label="Accéder à votre espace personnel"
               >
                 📊 Accéder à mon espace
               </button>
@@ -153,79 +162,124 @@ export default function Home() {
           )}
 
           {/* Actions principales */}
-          <div className="space-y-4 mb-8 px-4 sm:px-0">
+          <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
             {!isAuthenticated ? (
               // Mode non connecté
-              <>
-                <button
-                  onClick={handleTakeTicket}
-                  disabled={isLoading}
-                  className={`w-full sm:w-auto bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition font-medium text-base sm:text-lg ${
-                    isLoading ? "bg-gray-400 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="animate-spin inline-block mr-2">⏳</span>
-                      Création en cours...
-                    </>
-                  ) : (
-                    "🎟️ Prendre un ticket (mode anonyme)"
-                  )}
-                </button>
-
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Ou connectez-vous pour une expérience personnalisée
+              <div className="space-y-6">
+                {/* Action principale : Prendre un ticket */}
+                <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+                  <h3 className="senior-friendly-text font-bold text-blue-900 mb-4">
+                    🎟️ Prendre un ticket rapidement
+                  </h3>
+                  <button
+                    onClick={handleTakeTicket}
+                    disabled={isLoading}
+                    className={`w-full high-contrast-button touch-target-large gentle-transition ${
+                      isLoading 
+                        ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600 loading-state" 
+                        : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    }`}
+                    aria-label="Prendre un ticket de consultation en mode anonyme"
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="animate-spin inline-block mr-3">⏳</span>
+                        Création en cours...
+                      </>
+                    ) : (
+                      "Prendre un ticket (mode anonyme)"
+                    )}
+                  </button>
+                  <p className="text-sm text-blue-700 mt-3">
+                    Mode rapide sans inscription
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                </div>
+
+                {/* Ou se connecter */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t-2 border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-gray-600 font-medium">
+                      OU
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-b from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
+                  <h3 className="senior-friendly-text font-bold text-green-900 mb-4">
+                    👤 Connexion personnalisée
+                  </h3>
+                  <p className="text-green-700 text-sm mb-6">
+                    Pour un suivi personnalisé et des fonctionnalités avancées
+                  </p>
+                  <div className="space-y-4">
                     <button
                       onClick={() => navigate("/login")}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium"
+                      className="w-full high-contrast-button touch-target-large bg-green-600 hover:bg-green-700 text-white border-green-600 gentle-transition"
+                      aria-label="Se connecter avec un compte existant"
                     >
                       🔐 Se connecter
                     </button>
                     <button
                       onClick={() => navigate("/register")}
-                      className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition font-medium"
+                      className="w-full high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition"
+                      aria-label="Créer un nouveau compte utilisateur"
                     >
                       ✨ Créer un compte
                     </button>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
-              // Mode connecté
-              <div className="space-y-3">
+              // Mode connecté - Actions selon le rôle
+              <div className="space-y-4">
                 {user.role?.name === "patient" && (
-                  <button
-                    onClick={handleTakeTicket}
-                    disabled={isLoading}
-                    className="w-full sm:w-auto bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition font-medium text-base sm:text-lg"
-                  >
-                    🎟️ Prendre un ticket de consultation
-                  </button>
+                  <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+                    <h3 className="senior-friendly-text font-bold text-blue-900 mb-4">
+                      🎟️ Prendre un ticket de consultation
+                    </h3>
+                    <button
+                      onClick={handleTakeTicket}
+                      disabled={isLoading}
+                      className="w-full high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 gentle-transition"
+                      aria-label="Prendre un nouveau ticket de consultation"
+                    >
+                      Prendre un ticket de consultation
+                    </button>
+                  </div>
                 )}
                 
                 {["medecin", "secretaire"].includes(user.role?.name) && (
-                  <button
-                    onClick={handleTakeTicket}
-                    className="w-full sm:w-auto bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition font-medium text-base sm:text-lg"
-                  >
-                    ⚙️ Gérer la file d'attente
-                  </button>
+                  <div className="bg-gradient-to-b from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
+                    <h3 className="senior-friendly-text font-bold text-green-900 mb-4">
+                      ⚙️ Gestion de la file d'attente
+                    </h3>
+                    <button
+                      onClick={handleTakeTicket}
+                      className="w-full high-contrast-button touch-target-large bg-green-600 hover:bg-green-700 text-white border-green-600 gentle-transition"
+                      aria-label="Accéder aux outils de gestion de la file d'attente"
+                    >
+                      Gérer la file d'attente
+                    </button>
+                  </div>
                 )}
 
                 {user.role?.name === "visiteur" && (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-3">
-                      En tant que visiteur, vous pouvez consulter la file d'attente
+                  <div className="bg-gradient-to-b from-yellow-50 to-yellow-100 border-2 border-yellow-200 rounded-xl p-6">
+                    <h3 className="senior-friendly-text font-bold text-yellow-900 mb-4">
+                      👁️ Mode visiteur
+                    </h3>
+                    <p className="text-yellow-700 senior-friendly-text mb-4">
+                      Vous pouvez consulter la file d'attente mais pas prendre de tickets
                     </p>
                     <button
                       onClick={() => navigate("/register")}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
+                      className="w-full high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 gentle-transition"
+                      aria-label="Créer un compte patient pour prendre des tickets"
                     >
-                      ✨ Devenir patient pour prendre des tickets
+                      ✨ Devenir patient
                     </button>
                   </div>
                 )}
@@ -234,98 +288,131 @@ export default function Home() {
           </div>
 
           {/* Navigation rapide */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 px-4 sm:px-0">
-            <button
-              onClick={() => navigate("/queue")}
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-medium"
-            >
-              📋 Voir la file d'attente
-            </button>
-
-            {!isAuthenticated && (
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-8">
+            <h3 className="senior-friendly-text font-bold text-gray-900 mb-6 text-center">
+              🧭 Navigation rapide
+            </h3>
+            <div className="space-y-4">
               <button
-                onClick={() => navigate("/ticket")}
-                className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition font-medium"
+                onClick={() => navigate("/queue")}
+                className="w-full high-contrast-button touch-target-large bg-gray-600 hover:bg-gray-700 text-white border-gray-600 gentle-transition"
+                aria-label="Consulter la file d'attente actuelle"
               >
-                🎫 Mon ticket actuel
+                📋 Voir la file d'attente
               </button>
-            )}
 
-            {isAuthenticated && (
-              <button
-                onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
-              >
-                📊 Mon tableau de bord
-              </button>
-            )}
+              {!isAuthenticated && (
+                <button
+                  onClick={() => navigate("/ticket")}
+                  className="w-full high-contrast-button touch-target-large bg-orange-600 hover:bg-orange-700 text-white border-orange-600 gentle-transition"
+                  aria-label="Voir mon ticket actuel"
+                >
+                  🎫 Mon ticket actuel
+                </button>
+              )}
+
+              {isAuthenticated && (
+                <button
+                  onClick={() => navigate(`/dashboard/${user.role.name}`)}
+                  className="w-full high-contrast-button touch-target-large bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 gentle-transition"
+                  aria-label="Accéder à mon tableau de bord personnel"
+                >
+                  📊 Mon tableau de bord
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Informations système */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mx-4 sm:mx-0">
-            <h3 className="font-semibold text-gray-800 mb-3">ℹ️ À propos du système</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
-              <div className="space-y-2">
-                <p><strong>🩺 Médecins :</strong> Gestion complète des consultations</p>
-                <p><strong>👩‍💼 Secrétaires :</strong> Assistance et coordination</p>
+          {/* Informations système simplifiées */}
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6">
+            <h3 className="senior-friendly-text font-bold text-gray-900 mb-4 text-center">
+              ℹ️ Types d'utilisateurs
+            </h3>
+            <div className="space-y-4 text-left">
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <span className="text-2xl">🩺</span>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Médecins</h4>
+                  <p className="text-sm text-gray-600">Gestion complète des consultations</p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <p><strong>👤 Patients :</strong> Prise de tickets et suivi</p>
-                <p><strong>👁️ Visiteurs :</strong> Consultation temps d'attente</p>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <span className="text-2xl">👩‍💼</span>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Secrétaires</h4>
+                  <p className="text-sm text-gray-600">Assistance et coordination des rendez-vous</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <span className="text-2xl">👤</span>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Patients</h4>
+                  <p className="text-sm text-gray-600">Prise de tickets et suivi des consultations</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <span className="text-2xl">👁️</span>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Visiteurs</h4>
+                  <p className="text-sm text-gray-600">Consultation du temps d'attente</p>
+                </div>
               </div>
             </div>
             
             {!isAuthenticated && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs text-blue-800">
-                  💡 <strong>Nouveau :</strong> Créez un compte pour bénéficier de fonctionnalités avancées,
-                  notifications en temps réel et historique de vos consultations.
+              <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Conseil :</strong> Créez un compte pour bénéficier de notifications,
+                  d'un historique de vos consultations et de fonctionnalités avancées.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Comptes de test (mode développement) */}
-          {import.meta.env.DEV && (
-            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg mx-4 sm:mx-0">
-              <h3 className="font-semibold text-yellow-800 mb-2">🧪 Comptes de test</h3>
-              <div className="text-xs text-yellow-700 space-y-1">
-                <p><strong>Médecin :</strong> medecin@lineup.com / medecin123</p>
-                <p><strong>Secrétaire :</strong> secretaire@lineup.com / secretaire123</p>
-                <p><strong>Patient :</strong> patient@lineup.com / patient123</p>
-                <p><strong>Visiteur :</strong> visiteur@lineup.com / visiteur123</p>
-              </div>
-            </div>
-          )}
-
-          {/* Modal de confirmation pour ticket anonyme */}
+          {/* Modal de confirmation pour ticket anonyme - Amélioré */}
           <ConfirmModal
             isOpen={showTicketModal}
-            title="Prendre un ticket anonyme"
+            title="Choisir un médecin"
             message={
-              <div className="space-y-4">
-                <div>Pour une meilleure expérience, nous recommandons de créer un compte.</div>
+              <div className="space-y-6">
+                <div className="help-text">
+                  <p>Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Choisissez un docteur :
+                  <label 
+                    htmlFor="doctor-select"
+                    className="block senior-friendly-text font-semibold text-gray-800 mb-3"
+                  >
+                    👨‍⚕️ Médecin disponible :
                   </label>
                   <select
+                    id="doctor-select"
                     value={selectedDoctor || ""}
                     onChange={(e) => setSelectedDoctor(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
+                    aria-describedby="doctor-help"
                   >
-                    <option value="">Sélectionnez un docteur</option>
+                    <option value="">Choisissez un médecin</option>
                     {DOCTEURS.map((docteur) => (
                       <option key={docteur} value={docteur}>
                         {docteur}
                       </option>
                     ))}
                   </select>
+                  <div id="doctor-help" className="mt-2 text-sm text-gray-600">
+                    Cette information est nécessaire pour organiser la file d'attente
+                  </div>
+                </div>
+                <div className="help-text">
+                  <p><strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.</p>
                 </div>
               </div>
             }
-            confirmText="Oui, continuer en anonyme"
-            cancelText="Créer un compte"
+            confirmText="✅ Continuer en mode anonyme"
+            cancelText="✨ Créer un compte à la place"
             type="info"
             onConfirm={confirmTakeTicket}
             onCancel={() => {
@@ -334,16 +421,8 @@ export default function Home() {
             }}
           />
 
-          {/* Notifications Toast */}
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
+          {/* Toasts pour les messages */}
+          <Toast toasts={toasts} removeToast={removeToast} />
         </div>
       </AnimatedPage>
     </Layout>
