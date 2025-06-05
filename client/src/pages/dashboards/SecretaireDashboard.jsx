@@ -206,7 +206,12 @@ export default function SecretaireDashboard() {
                   👩‍💼 Espace Secrétaire
                 </h1>
                 <p className="text-pink-600">
-                  Bienvenue {user.fullName}
+                  Bienvenue {user.fullName || 
+                            (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
+                            user.firstName || 
+                            user.lastName || 
+                            user.email?.split('@')[0] || 
+                            'utilisateur'}
                 </p>
               </div>
               <button

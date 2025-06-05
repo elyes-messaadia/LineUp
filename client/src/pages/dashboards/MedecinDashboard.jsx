@@ -255,7 +255,12 @@ export default function MedecinDashboard() {
                   🩺 Espace Médecin
                 </h1>
                 <p className="text-green-600">
-                  Bienvenue Dr. {user.fullName}
+                  Bienvenue Dr. {user.fullName || 
+                                 (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
+                                 user.firstName || 
+                                 user.lastName || 
+                                 user.email?.split('@')[0] || 
+                                 'utilisateur'}
                 </p>
               </div>
               <button

@@ -150,15 +150,18 @@ export function useRealTimeQueue(onStatusChange = null) {
       // Si trop d'erreurs consécutives, arrêter le polling automatique
       if (retryCountRef.current >= maxRetries) {
         console.warn('Trop d\'erreurs consécutives, arrêt du polling automatique');
-        stopPolling();
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
       }
     }
-  }, [isLoading, onStatusChange, detectChanges]);
+  }, []); // Pas de dépendances pour éviter les re-créations
 
   // Fonction pour forcer une mise à jour
   const forceUpdate = useCallback(() => {
     fetchQueue();
-  }, [fetchQueue]);
+  }, []);
 
   // Fonction pour démarrer le polling
   const startPolling = useCallback((interval = 2000) => {
@@ -166,8 +169,8 @@ export function useRealTimeQueue(onStatusChange = null) {
       clearInterval(pollIntervalRef.current);
     }
     
-    pollIntervalRef.current = setInterval(fetchQueue, interval);
-  }, [fetchQueue]);
+    pollIntervalRef.current = setInterval(() => fetchQueue(), interval);
+  }, []);
 
   // Fonction pour arrêter le polling
   const stopPolling = useCallback(() => {
@@ -177,7 +180,7 @@ export function useRealTimeQueue(onStatusChange = null) {
     }
   }, []);
 
-  // Effet principal
+  // Effet principal - exécuté une seule fois
   useEffect(() => {
     isActiveRef.current = true;
     isMountedRef.current = true;
@@ -194,17 +197,23 @@ export function useRealTimeQueue(onStatusChange = null) {
       isMountedRef.current = false;
       stopPolling();
     };
-  }, [fetchQueue, startPolling, stopPolling]);
+  }, []); // Dépendances vides pour éviter les re-exécutions
 
   // Gestion de la visibilité de la page (optimisation performance)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Page cachée : polling moins fréquent
-        startPolling(5000);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        pollIntervalRef.current = setInterval(() => fetchQueue(), 5000);
       } else {
         // Page visible : polling normal + mise à jour immédiate
-        startPolling(2000);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        pollIntervalRef.current = setInterval(() => fetchQueue(), 2000);
         fetchQueue();
       }
     };
@@ -214,7 +223,7 @@ export function useRealTimeQueue(onStatusChange = null) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [startPolling, fetchQueue]);
+  }, []); // Pas de dépendances pour éviter les re-exécutions
 
   // Calculer des statistiques utiles
   const stats = {

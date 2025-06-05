@@ -147,7 +147,12 @@ export default function Home() {
                   {user.role?.name === "visiteur" && "👁️"}
                 </span>
                 <h2 className="legacy-text-primary font-bold text-blue-900">
-                  Bonjour {user.fullName || `${user.firstName} ${user.lastName}`}
+                  Bonjour {user.fullName || 
+                           (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
+                           user.firstName || 
+                           user.lastName || 
+                           user.email?.split('@')[0] || 
+                           'utilisateur'}
                 </h2>
               </div>
               <p className="text-blue-700 legacy-text-secondary mb-4 xs:mb-6">

@@ -32,7 +32,12 @@ function App() {
                 {user.role?.name === "secretaire" && "👩‍💼"}
                 {user.role?.name === "patient" && "👤"}
                 {user.role?.name === "visiteur" && "👁️"}
-                {" "}{user.fullName || user.firstName}
+                {" "}{user.fullName || 
+                       (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
+                       user.firstName || 
+                       user.lastName || 
+                       user.email?.split('@')[0] || 
+                       'Utilisateur'}
               </span>
               <Link 
                 to={`/dashboard/${user.role?.name}`} 

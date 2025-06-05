@@ -50,12 +50,14 @@ router.post('/register', async (req, res) => {
 
     // Créer l'utilisateur
     const newUser = new User({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      phone: phone ? phone.trim() : undefined,
       role: role._id,
+      profile: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone ? phone.trim() : undefined
+      },
       isActive: true
     });
 
@@ -67,8 +69,9 @@ router.post('/register', async (req, res) => {
       message: 'Compte créé avec succès',
       user: {
         id: newUser._id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
+        firstName: newUser.profile.firstName,
+        lastName: newUser.profile.lastName,
+        fullName: `${newUser.profile.firstName} ${newUser.profile.lastName}`,
         email: newUser.email,
         role: {
           name: role.name,
@@ -143,11 +146,11 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: `${user.firstName} ${user.lastName}`,
+        firstName: user.profile?.firstName,
+        lastName: user.profile?.lastName,
+        fullName: user.fullName, // Utilise le virtual défini dans le modèle
         email: user.email,
-        phone: user.phone,
+        phone: user.profile?.phone,
         role: {
           name: user.role.name,
           permissions: user.role.permissions
@@ -195,10 +198,11 @@ router.post('/verify', async (req, res) => {
       valid: true,
       user: {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: `${user.firstName} ${user.lastName}`,
+        firstName: user.profile?.firstName,
+        lastName: user.profile?.lastName,
+        fullName: user.fullName, // Utilise le virtual défini dans le modèle
         email: user.email,
+        phone: user.profile?.phone,
         role: {
           name: user.role.name,
           permissions: user.role.permissions

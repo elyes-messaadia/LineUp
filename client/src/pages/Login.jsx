@@ -43,7 +43,15 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
 
-      showSuccess(`Connexion réussie ! Bienvenue ${data.user.fullName || data.user.firstName}`, 3000);
+      // Créer un nom d'affichage robuste
+      const displayName = data.user.fullName || 
+                          (data.user.firstName && data.user.lastName ? `${data.user.firstName} ${data.user.lastName}` : '') ||
+                          data.user.firstName || 
+                          data.user.lastName || 
+                          data.user.email?.split('@')[0] || 
+                          'utilisateur';
+      
+      showSuccess(`Connexion réussie ! Bienvenue ${displayName}`, 3000);
 
       // Redirection selon le rôle
       setTimeout(() => {
