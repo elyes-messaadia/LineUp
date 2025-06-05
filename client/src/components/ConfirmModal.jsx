@@ -106,7 +106,8 @@ export default function ConfirmModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-6 z-50"
+      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center 
+                 p-3 xs:p-4 se:p-6 z-50 old-device-optimized"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -115,18 +116,22 @@ export default function ConfirmModal({
     >
       <div 
         ref={modalRef}
-        className="bg-white rounded-xl p-6 sm:p-8 max-w-lg w-full accessible-shadow"
+        className="bg-white rounded-lg se:rounded-xl 
+                   legacy-modal
+                   p-4 xs:p-5 se:p-6 sm:p-8 
+                   max-w-xs xs:max-w-sm se:max-w-md lg:max-w-lg 
+                   w-full accessible-shadow"
       >
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-3 xs:gap-4 mb-4 xs:mb-6">
           <span 
-            className="text-3xl flex-shrink-0" 
+            className="text-2xl xs:text-3xl flex-shrink-0" 
             aria-hidden="true"
           >
             {getIcon()}
           </span>
           <h3 
             id="modal-title"
-            className="senior-friendly-text font-bold text-gray-900 leading-tight"
+            className="legacy-text-primary font-bold text-gray-900 leading-tight"
           >
             {title}
           </h3>
@@ -134,23 +139,24 @@ export default function ConfirmModal({
         
         <div 
           id="modal-description"
-          className="senior-friendly-text text-gray-700 mb-8 leading-relaxed"
+          className="legacy-text-secondary text-gray-700 mb-6 xs:mb-8 leading-relaxed"
         >
           {message}
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 sm:justify-end">
+        <div className="flex flex-col se:flex-row gap-3 xs:gap-4 se:justify-end">
           <button
             ref={cancelButtonRef}
             onClick={onCancel}
-            className="high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition order-2 sm:order-1"
+            className="legacy-button bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 
+                       transition-colors duration-200 order-2 se:order-1"
             aria-label={`${cancelText} - Fermer cette boîte de dialogue`}
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className={`high-contrast-button touch-target-large gentle-transition order-1 sm:order-2 ${getButtonStyles()}`}
+            className={`legacy-button transition-colors duration-200 order-1 se:order-2 ${getButtonStyles()}`}
             aria-label={`${confirmText} - Confirmer cette action`}
           >
             {confirmText}

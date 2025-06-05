@@ -4,7 +4,9 @@ export default function Title({ children, left, emoji, level = 1 }) {
   // Si children est fourni, l'utiliser directement
   if (children) {
     return (
-      <TitleTag className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-center px-2 senior-friendly-text">
+      <TitleTag className="text-lg xs:text-xl se:text-2xl sm:text-3xl md:text-4xl 
+                          font-bold mb-3 xs:mb-4 sm:mb-6 text-center 
+                          px-2 xs:px-3 legacy-text-primary old-device-optimized">
         <span className="text-gray-900">
           {children}
         </span>
@@ -14,7 +16,9 @@ export default function Title({ children, left, emoji, level = 1 }) {
   
   // Sinon, utiliser le format traditionnel avec LineUp
   return (
-    <TitleTag className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-center px-2 senior-friendly-text">
+    <TitleTag className="text-lg xs:text-xl se:text-2xl sm:text-3xl md:text-4xl 
+                        font-bold mb-3 xs:mb-4 sm:mb-6 text-center 
+                        px-2 xs:px-3 legacy-text-primary old-device-optimized">
       <span className="text-gray-900">
         {emoji ? `${emoji} ` : ''}
         {left}

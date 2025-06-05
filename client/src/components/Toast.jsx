@@ -6,7 +6,12 @@ export default function Toast({ toasts, removeToast }) {
 
   return (
     <div 
-      className="fixed top-4 right-4 z-50 space-y-3 max-w-sm"
+      className="fixed 
+                 top-safe-top top-3 xs:top-4 
+                 left-safe-left left-3 right-safe-right right-3 xs:right-4 
+                 se:left-auto se:max-w-sm 
+                 z-50 space-y-2 xs:space-y-3 
+                 old-device-optimized"
       role="region"
       aria-label="Notifications"
       aria-live="polite"
@@ -38,10 +43,10 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = "p-4 rounded-xl accessible-shadow gentle-transition transform senior-friendly-text border-2";
+    const baseStyles = "p-3 xs:p-4 rounded-lg se:rounded-xl accessible-shadow transition-all duration-200 transform legacy-text-secondary border-2 old-android-safe";
     
     if (!isVisible) {
-      return `${baseStyles} translate-x-full opacity-0`;
+      return `${baseStyles} se:translate-x-full translate-y-full se:translate-y-0 opacity-0`;
     }
 
     switch (type) {
@@ -103,15 +108,15 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
       aria-label={getAriaLabel()}
       aria-live={getAriaLive()}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2 xs:gap-3">
         <span 
-          className={`${type === 'important' ? 'text-2xl animate-bounce' : 'text-xl'} flex-shrink-0 mt-1`}
+          className={`${type === 'important' ? 'text-lg xs:text-2xl old-android-safe' : 'text-base xs:text-xl'} flex-shrink-0 mt-1`}
           aria-hidden="true"
         >
           {getIcon()}
         </span>
         <div className="flex-1 min-w-0">
-          <p className={`${type === 'important' ? 'font-bold text-lg' : 'font-semibold'} leading-relaxed break-words`}>
+          <p className={`${type === 'important' ? 'legacy-text-primary font-bold' : 'font-semibold'} leading-relaxed break-words`}>
             {message}
           </p>
         </div>
@@ -120,7 +125,7 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="touch-target-large ml-2 text-gray-600 hover:text-gray-800 font-bold text-xl flex-shrink-0 p-1 rounded gentle-transition"
+          className="min-h-touch min-w-touch ml-1 xs:ml-2 text-gray-600 hover:text-gray-800 font-bold text-lg xs:text-xl flex-shrink-0 p-1 rounded transition-colors duration-200"
           aria-label="Fermer cette notification"
           title="Fermer cette notification"
         >

@@ -115,34 +115,42 @@ export default function Home() {
   return (
     <Layout hideTitle={true}>
       <AnimatedPage>
-        <div className="text-center bg-white p-4 sm:p-6 lg:p-8 rounded-xl accessible-shadow max-w-2xl mx-auto">
+        <div className="text-center bg-white 
+                        p-3 xs:p-4 se:p-6 lg:p-8 
+                        rounded-lg se:rounded-xl 
+                        accessible-shadow max-w-2xl mx-auto 
+                        old-device-optimized">
           <Title>🏥 Bienvenue sur LineUp</Title>
           
           {/* Description principale avec message d'aide */}
-          <div className="help-text mb-6 sm:mb-8">
-            <p className="font-medium text-center">
+          <div className="help-text mb-4 xs:mb-6 sm:mb-8">
+            <p className="legacy-text-primary text-center">
               Gérez votre file d'attente médicale en toute simplicité
             </p>
-            <p className="mt-2 text-sm">
+            <p className="mt-2 legacy-text-secondary">
               Prenez un ticket, suivez votre position en temps réel
             </p>
           </div>
 
           {/* Section utilisateur connecté */}
           {isAuthenticated && user && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
-              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <span className="text-2xl sm:text-3xl">
+            <div className="bg-blue-50 border-2 border-blue-200 
+                           rounded-lg se:rounded-xl 
+                           p-3 xs:p-4 se:p-6 
+                           mb-4 xs:mb-6 sm:mb-8 
+                           old-device-optimized">
+              <div className="flex items-center justify-center gap-2 xs:gap-3 mb-3 xs:mb-4">
+                <span className="text-xl xs:text-2xl se:text-3xl">
                   {user.role?.name === "medecin" && "🩺"}
                   {user.role?.name === "secretaire" && "👩‍💼"}
                   {user.role?.name === "patient" && "👤"}
                   {user.role?.name === "visiteur" && "👁️"}
                 </span>
-                <h2 className="senior-friendly-text font-bold text-blue-900">
+                <h2 className="legacy-text-primary font-bold text-blue-900">
                   Bonjour {user.fullName || `${user.firstName} ${user.lastName}`}
                 </h2>
               </div>
-              <p className="text-blue-700 senior-friendly-text mb-4 sm:mb-6">
+              <p className="text-blue-700 legacy-text-secondary mb-4 xs:mb-6">
                 Vous êtes connecté en tant que{' '}
                 <strong>
                   {user.role?.name === "medecin" ? "Médecin" :
@@ -153,7 +161,8 @@ export default function Home() {
               </p>
               <button
                 onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                className="high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 w-full sm:w-auto gentle-transition"
+                className="legacy-button bg-blue-600 hover:bg-blue-700 text-white border-blue-600 
+                          w-full sm:w-auto transition-colors duration-200"
                 aria-label="Accéder à votre espace personnel"
               >
                 📊 Accéder à mon espace
