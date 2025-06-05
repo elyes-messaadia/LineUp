@@ -6,6 +6,8 @@ import AnimatedPage from "../components/AnimatedPage";
 import Title from "../components/Title";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
 import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
@@ -114,24 +116,31 @@ export default function Home() {
   };
 
   return (
-    <Layout hideTitle={true}>
-      <AnimatedPage>
-        <div className="text-center bg-white 
-                        p-3 xs:p-4 se:p-6 lg:p-8 
-                        rounded-lg se:rounded-xl 
-                        accessible-shadow max-w-2xl mx-auto 
-                        old-device-optimized">
-          <Title>🏥 Bienvenue sur LineUp</Title>
+    <AnimatedPage>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-6">
+          <div className="inline-flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <span className="text-white text-2xl">🏥</span>
+            </div>
+            <div className="text-left">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                LineUp
+              </h1>
+              <p className="text-gray-600">Gestion de file d'attente médicale</p>
+            </div>
+          </div>
           
-          {/* Description principale avec message d'aide */}
-          <div className="help-text mb-4 xs:mb-6 sm:mb-8">
-            <p className="legacy-text-primary text-center">
-              Gérez votre file d'attente médicale en toute simplicité
-            </p>
-            <p className="mt-2 legacy-text-secondary">
-              Prenez un ticket, suivez votre position en temps réel
+          <div className="space-y-4">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+              Bienvenue sur votre plateforme de gestion
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              Prenez un ticket, suivez votre position en temps réel et gérez vos consultations en toute simplicité
             </p>
           </div>
+        </div>
 
           {/* Section utilisateur connecté */}
           {isAuthenticated && user && (
@@ -435,6 +444,5 @@ export default function Home() {
           <Toast toasts={toasts} removeToast={removeToast} />
         </div>
       </AnimatedPage>
-    </Layout>
-  );
-}
+    );
+  }
