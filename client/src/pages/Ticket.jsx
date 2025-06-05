@@ -56,12 +56,16 @@ export default function Ticket() {
 
   // Fonction pour surveiller les changements de statut
   const monitorTicketStatus = useCallback(async () => {
-    if (!ticket || !isActiveRef.current) return;
+    // Récupérer le ticket depuis localStorage pour éviter les dépendances
+    const storedTicket = localStorage.getItem("lineup_ticket");
+    if (!storedTicket || !isActiveRef.current) return;
 
     try {
+      const currentTicket = JSON.parse(storedTicket);
+      
       const serverTicket = await verifyTicketExists(
-        ticket._id,
-        ticket.isAnonymous ? ticket.sessionId : null
+        currentTicket._id,
+        currentTicket.isAnonymous ? currentTicket.sessionId : null
       );
 
       if (serverTicket === null) {
@@ -103,15 +107,15 @@ export default function Ticket() {
       setTicket(prev => ({
         ...prev,
         ...serverTicket,
-        isAnonymous: prev?.isAnonymous,
-        sessionId: prev?.sessionId
+        isAnonymous: currentTicket.isAnonymous,
+        sessionId: currentTicket.sessionId
       }));
 
       // Mettre à jour localStorage
       localStorage.setItem("lineup_ticket", JSON.stringify({
         ...serverTicket,
-        isAnonymous: ticket.isAnonymous,
-        sessionId: ticket.sessionId
+        isAnonymous: currentTicket.isAnonymous,
+        sessionId: currentTicket.sessionId
       }));
 
       lastStatusRef.current = serverTicket.status;
@@ -119,7 +123,7 @@ export default function Ticket() {
     } catch (error) {
       console.error("Erreur monitoring ticket:", error);
     }
-  }, [ticket, verifyTicketExists, showImportant, showInfo, navigate]);
+  }, []); // Pas de dépendances pour éviter les re-créations
 
   // Démarrer la surveillance automatique
   const startMonitoring = useCallback(() => {
@@ -128,8 +132,10 @@ export default function Ticket() {
     }
     
     // Surveiller toutes les 2 secondes
-    pollIntervalRef.current = setInterval(monitorTicketStatus, 2000);
-  }, [monitorTicketStatus]);
+    pollIntervalRef.current = setInterval(() => {
+      monitorTicketStatus();
+    }, 2000);
+  }, []); // Pas de dépendances pour éviter la re-création
 
   // Arrêter la surveillance
   const stopMonitoring = useCallback(() => {
@@ -139,6 +145,7 @@ export default function Ticket() {
     }
   }, []);
 
+  // Effet principal - exécuté une seule fois au montage
   useEffect(() => {
     const loadAndVerifyTicket = async () => {
       setIsLoading(true);
@@ -235,22 +242,28 @@ export default function Ticket() {
       isActiveRef.current = false;
       stopMonitoring();
     };
-  }, [verifyTicketExists, showSuccess, showError, showWarning, showInfo, showImportant, navigate, startMonitoring, stopMonitoring]);
+  }, []); // Dépendances vides pour éviter les re-exécutions
 
   // Gestion de la visibilité de la page pour optimiser la surveillance
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Page cachée : surveillance moins fréquente
-        stopMonitoring();
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
         if (ticket && isActiveRef.current) {
           pollIntervalRef.current = setInterval(monitorTicketStatus, 5000);
         }
       } else {
         // Page visible : surveillance normale + vérification immédiate
-        stopMonitoring();
-        startMonitoring();
-        monitorTicketStatus();
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        if (ticket && isActiveRef.current) {
+          pollIntervalRef.current = setInterval(monitorTicketStatus, 2000);
+          monitorTicketStatus();
+        }
       }
     };
 
@@ -259,7 +272,7 @@ export default function Ticket() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [ticket, monitorTicketStatus, startMonitoring, stopMonitoring]);
+  }, []); // Pas de dépendances pour éviter les re-exécutions
 
   const handleCancelRequest = () => {
     if (!ticket) {

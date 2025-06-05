@@ -514,6 +514,39 @@
     /* Animations réduites */
     animation-duration: 0.2s;
     animation-timing-function: ease-out;
+    /* Pas d'animation de pulsation */
+    animation: none;
+  }
+
+  /* Optimisations pour la file d'attente */
+  .queue-stable {
+    /* Éviter les re-flows lors des mises à jour */
+    contain: layout style;
+    /* Performance optimisée */
+    will-change: auto;
+  }
+
+  /* Réduction des animations automatiques problématiques */
+  @media (max-width: 414px) {
+    .animate-pulse {
+      animation: none !important;
+    }
+    
+    .animate-spin {
+      animation-duration: 1s !important;
+    }
+    
+    /* Transitions plus douces pour la file */
+    .transition-all {
+      transition-duration: 150ms !important;
+    }
+  }
+
+  /* Classe pour éviter les mouvements bizarres */
+  .stable-layout {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
 
   /* Classe xs pour très petits écrans */

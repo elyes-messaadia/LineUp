@@ -98,7 +98,7 @@ const CleanHeader = ({ stats, currentTime, lastUpdate, error }) => {
                 <span className={`w-2 h-2 rounded-full ${
                   error ? 'bg-red-500' : 
                   isStale ? 'bg-yellow-500' : 
-                  'bg-green-500 animate-pulse'
+                  'bg-green-500 old-android-safe'
                 }`}></span>
                 <span className="text-gray-600">
                   {error ? 'Connexion impossible' :
@@ -158,10 +158,11 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
   
   return (
     <div className={`
-      relative p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md
+      relative p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md
       ${config.bgClass}
       ${isMyTicket ? 'ring-2 ring-blue-400 ring-offset-2' : ''}
-      ${hasStatusChanged ? 'animate-pulse border-orange-400' : ''}
+      ${hasStatusChanged ? 'border-orange-400' : ''}
+      old-device-optimized
     `}>
       
       {/* Header du ticket */}
@@ -177,7 +178,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
                 </span>
               )}
               {hasStatusChanged && (
-                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full animate-pulse">
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
                   Nouveau
                 </span>
               )}
@@ -211,7 +212,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
         {ticket.status === "en_attente" && (
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+              <span className="w-2 h-2 bg-blue-500 rounded-full old-android-safe"></span>
               <span className="font-medium text-blue-700">
                 {formatWaitingTime(ticket.createdAt)}
               </span>
@@ -253,20 +254,23 @@ const Queue = () => {
   } = useToast();
 
   // ===== CALLBACKS =====
-  // Gestion des changements de statut en temps réel
+  // Gestion des changements de statut en temps réel (optimisée)
   const handleStatusChanges = useCallback((changes) => {
+    // Éviter les mises à jour trop fréquentes
+    if (changes.length === 0) return;
+    
     changes.forEach(change => {
       // Marquer le ticket comme ayant changé récemment
       setRecentChanges(prev => new Set([...prev, change.ticket._id]));
       
-      // Supprimer le marquage après 5 secondes
+      // Supprimer le marquage après 3 secondes pour réduire les animations
       setTimeout(() => {
         setRecentChanges(prev => {
           const newSet = new Set(prev);
           newSet.delete(change.ticket._id);
           return newSet;
         });
-      }, 5000);
+      }, 3000);
 
       // Notification selon le type de changement
       switch (change.type) {
@@ -303,11 +307,11 @@ const Queue = () => {
   } = useRealTimeQueue(handleStatusChanges);
 
   // ===== EFFETS =====
-  // Timer pour l'horloge
+  // Timer pour l'horloge (optimisé)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
+    }, 5000); // Mise à jour toutes les 5 secondes au lieu de chaque seconde
     
     return () => clearInterval(timer);
   }, []);
@@ -485,8 +489,8 @@ const Queue = () => {
               />
             )}
 
-            {/* Liste des tickets */}
-            <div className="space-y-4">
+            {            /* Liste des tickets */}
+            <div className="space-y-4 old-device-optimized queue-stable stable-layout">
               {filteredTickets.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">
@@ -510,14 +514,21 @@ const Queue = () => {
                 </div>
               ) : (
                 filteredTickets
-                  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                  .sort((a, b) => {
+                    // Tri stable pour éviter les réordonnements constants
+                    const dateA = new Date(a.createdAt).getTime();
+                    const dateB = new Date(b.createdAt).getTime();
+                    if (dateA !== dateB) return dateA - dateB;
+                    // Tri secondaire par ID pour stabilité
+                    return a._id.localeCompare(b._id);
+                  })
                   .map((ticket) => {
                     const position = ticket.status === 'en_attente' ? getPosition(ticket._id) : null;
                     const estimatedWait = position ? getEstimatedWait(position) : 0;
                     
                     return (
                       <CleanTicketCard
-                        key={ticket._id}
+                        key={`${ticket._id}-${ticket.status}-${ticket.updatedAt || ticket.createdAt}`}
                         ticket={ticket}
                         isMyTicket={ticket._id === myId}
                         position={position}
