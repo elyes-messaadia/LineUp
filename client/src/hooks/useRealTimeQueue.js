@@ -13,9 +13,12 @@ export function useRealTimeQueue(onStatusChange = null) {
   const isActiveRef = useRef(true);
   const retryCountRef = useRef(0);
   const maxRetries = 5;
+  const isMountedRef = useRef(true);
 
   // Fonction pour comparer deux tickets et détecter les changements
   const detectChanges = useCallback((oldQueue, newQueue) => {
+    if (!isMountedRef.current) return [];
+    
     const changes = [];
     
     // Créer des maps pour un accès plus rapide
@@ -85,16 +88,30 @@ export function useRealTimeQueue(onStatusChange = null) {
 
   // Fonction de fetch avec gestion d'erreur améliorée
   const fetchQueue = useCallback(async () => {
-    if (!isActiveRef.current) return;
+    if (!isActiveRef.current || !isMountedRef.current) return;
     
     try {
-      const response = await fetch(`${BACKEND_URL}/queue`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(`${BACKEND_URL}/queue`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`);
       }
       
       const newQueue = await response.json();
+      
+      if (!isMountedRef.current) return;
       
       // Détecter les changements si ce n'est pas la première charge
       if (previousQueueRef.current.length > 0 && onStatusChange) {
@@ -117,10 +134,12 @@ export function useRealTimeQueue(onStatusChange = null) {
       }
       
     } catch (err) {
+      if (!isMountedRef.current) return;
+      
       console.error('Erreur lors du fetch de la queue:', err);
       retryCountRef.current += 1;
       
-      setError(err.message);
+      setError(err.name === 'AbortError' ? 'Timeout de connexion' : err.message);
       setIsConnected(false);
       
       // Ne pas masquer le loading si c'est la première tentative
@@ -161,6 +180,7 @@ export function useRealTimeQueue(onStatusChange = null) {
   // Effet principal
   useEffect(() => {
     isActiveRef.current = true;
+    isMountedRef.current = true;
     
     // Fetch initial
     fetchQueue();
@@ -171,6 +191,7 @@ export function useRealTimeQueue(onStatusChange = null) {
     // Cleanup
     return () => {
       isActiveRef.current = false;
+      isMountedRef.current = false;
       stopPolling();
     };
   }, [fetchQueue, startPolling, stopPolling]);

@@ -233,11 +233,13 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
 
 // Interface principale avec vue liste épurée
 const Queue = () => {
+  // ===== HOOKS D'ÉTAT (toujours en premier) =====
   const [viewMode, setViewMode] = useState('all'); // 'all', 'waiting', 'consultation'
   const [myId, setMyId] = useState(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [recentChanges, setRecentChanges] = useState(new Set());
   
+  // ===== HOOKS PERSONNALISÉS (toujours dans le même ordre) =====
   const { 
     toasts, 
     showSuccess, 
@@ -248,6 +250,7 @@ const Queue = () => {
     removeToast 
   } = useToast();
 
+  // ===== CALLBACKS =====
   // Gestion des changements de statut en temps réel
   const handleStatusChanges = useCallback((changes) => {
     changes.forEach(change => {
@@ -284,7 +287,8 @@ const Queue = () => {
     });
   }, [showSuccess, showError, showWarning, showInfo, showImportant]);
 
-  // Utiliser le hook temps réel
+  // ===== HOOK TEMPS RÉEL =====
+  // Utiliser le hook temps réel (toujours après les autres hooks)
   const {
     queue,
     isLoading,
@@ -296,6 +300,7 @@ const Queue = () => {
     getEstimatedWait
   } = useRealTimeQueue(handleStatusChanges);
 
+  // ===== EFFETS =====
   // Timer pour l'horloge
   useEffect(() => {
     const timer = setInterval(() => {
@@ -318,6 +323,7 @@ const Queue = () => {
     }
   }, []);
 
+  // ===== LOGIQUE DE RENDU =====
   // Filtrer les tickets selon le mode de vue
   const filteredTickets = queue.filter(ticket => {
     switch (viewMode) {

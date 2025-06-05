@@ -86,17 +86,29 @@ export default function PatientDashboard() {
     try {
       showInfo("Création de votre ticket en cours...");
       
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token d'authentification manquant. Veuillez vous reconnecter.");
+      }
+      
       const res = await fetch(`${BACKEND_URL}/ticket`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ userId: user._id })
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        let errorMessage = `Erreur ${res.status}`;
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Ignore si on ne peut pas parser la réponse
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await res.json();
@@ -108,7 +120,15 @@ export default function PatientDashboard() {
 
     } catch (error) {
       console.error("Erreur création ticket:", error);
-      showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
+      
+      if (error.message.includes("401") || error.message.includes("Token")) {
+        showError("Session expirée. Veuillez vous reconnecter.", 5000);
+        handleLogout();
+      } else if (error.message.includes("400")) {
+        showError("Données invalides. Vérifiez votre profil.", 5000);
+      } else {
+        showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
+      }
     } finally {
       setIsLoading(false);
     }
