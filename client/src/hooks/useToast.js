@@ -1,15 +1,59 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export function useToast() {
   const [toasts, setToasts] = useState([]);
+  const audioContextRef = useRef(null);
+  const isAudioInitializedRef = useRef(false);
+
+  // Initialiser l'AudioContext après interaction utilisateur
+  const initializeAudio = useCallback(() => {
+    if (isAudioInitializedRef.current) return true;
+    
+    try {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Reprendre le contexte s'il est suspendu
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+      
+      isAudioInitializedRef.current = true;
+      console.log('🔊 Audio initialisé avec succès');
+      return true;
+    } catch (e) {
+      console.warn('❌ Impossible d\'initialiser l\'audio:', e);
+      return false;
+    }
+  }, []);
 
   // Son de notification
   const playNotificationSound = useCallback((type = 'info') => {
+    console.log(`🔊 Tentative de lecture du son: ${type}`);
+    
     try {
-      // Utiliser uniquement l'API Web Audio pour créer des bips
+      // Essayer d'initialiser l'audio si pas encore fait
+      if (!initializeAudio()) {
+        console.warn('❌ Audio non initialisé');
+        return;
+      }
+
+      const audioContext = audioContextRef.current;
+      if (!audioContext || audioContext.state === 'closed') {
+        console.warn('❌ AudioContext non disponible');
+        return;
+      }
+
+      // Reprendre le contexte s'il est suspendu
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          playNotificationSound(type); // Réessayer après reprise
+        });
+        return;
+      }
+
+      // Créer un beep avec l'AudioContext
       const createBeep = (frequency = 800, duration = 200, volume = 0.3) => {
         try {
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
           
@@ -24,13 +68,15 @@ export function useToast() {
           
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + duration / 1000);
+          
+          console.log(`✅ Beep joué: ${frequency}Hz, ${duration}ms`);
         } catch (e) {
-          // Ignore si l'API audio n'est pas supportée
-          console.warn('Audio API non supportée:', e);
+          console.warn('❌ Erreur lors de la création du beep:', e);
         }
       };
 
       // Sons différents selon le type
+      console.log(`🎵 Lecture du son de type: ${type}`);
       switch (type) {
         case 'important':
           createBeep(1000, 300, 0.5); // Son plus aigu et long
@@ -55,22 +101,26 @@ export function useToast() {
       // Vibration pour les notifications importantes (mobiles)
       if (type === 'important' && 'vibrate' in navigator) {
         navigator.vibrate([300, 100, 300, 100, 300]);
+        console.log('📳 Vibration activée');
       }
     } catch (error) {
-      // Ignore toutes les erreurs audio
-      console.warn('Erreur audio:', error);
+      console.warn('❌ Erreur audio globale:', error);
     }
-  }, []);
+  }, [initializeAudio]);
 
   const showToast = useCallback((message, type = 'info', duration = 3000, playSound = false) => {
     const id = Date.now() + Math.random();
     const newToast = { id, message, type, duration };
     
     setToasts(prev => [...prev, newToast]);
+    console.log(`📢 Toast affiché: ${message} (son: ${playSound})`);
     
     // Jouer le son si demandé
     if (playSound) {
-      playNotificationSound(type);
+      // Délai pour éviter les problèmes de timing
+      setTimeout(() => {
+        playNotificationSound(type);
+      }, 100);
     }
     
     // Auto-remove après la durée spécifiée
@@ -83,26 +133,38 @@ export function useToast() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
-  const showSuccess = useCallback((message, duration, playSound = false) => {
+  const showSuccess = useCallback((message, duration = 3000, playSound = false) => {
+    console.log(`✅ Success toast: ${message}`);
     showToast(message, 'success', duration, playSound);
   }, [showToast]);
 
-  const showError = useCallback((message, duration, playSound = true) => {
+  const showError = useCallback((message, duration = 5000, playSound = true) => {
+    console.log(`❌ Error toast: ${message}`);
     showToast(message, 'error', duration, playSound);
   }, [showToast]);
 
-  const showWarning = useCallback((message, duration, playSound = true) => {
+  const showWarning = useCallback((message, duration = 4000, playSound = true) => {
+    console.log(`⚠️ Warning toast: ${message}`);
     showToast(message, 'warning', duration, playSound);
   }, [showToast]);
 
-  const showInfo = useCallback((message, duration, playSound = false) => {
+  const showInfo = useCallback((message, duration = 3000, playSound = false) => {
+    console.log(`ℹ️ Info toast: ${message}`);
     showToast(message, 'info', duration, playSound);
   }, [showToast]);
 
   // Notification spéciale pour les changements de statut critiques
   const showImportant = useCallback((message, duration = 8000) => {
+    console.log(`🚨 Important toast: ${message}`);
     showToast(message, 'important', duration, true);
   }, [showToast]);
+
+  // Fonction pour tester le son manuellement
+  const testSound = useCallback((type = 'info') => {
+    console.log('🔧 Test manuel du son...');
+    initializeAudio();
+    playNotificationSound(type);
+  }, [initializeAudio, playNotificationSound]);
 
   return {
     toasts,
@@ -113,6 +175,8 @@ export function useToast() {
     showWarning,
     showInfo,
     showImportant,
-    playNotificationSound
+    playNotificationSound,
+    testSound,
+    initializeAudio
   };
 } 

@@ -247,7 +247,9 @@ const Queue = () => {
     showWarning, 
     showInfo, 
     showImportant, 
-    removeToast 
+    removeToast,
+    testSound,
+    initializeAudio
   } = useToast();
 
   // ===== CALLBACKS =====
@@ -310,6 +312,23 @@ const Queue = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Initialiser l'audio après la première interaction utilisateur
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      initializeAudio();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [initializeAudio]);
+
   // Charger l'ID du ticket utilisateur
   useEffect(() => {
     const storedTicket = localStorage.getItem("lineup_ticket");
@@ -322,6 +341,15 @@ const Queue = () => {
       }
     }
   }, []);
+
+  // Notification de bienvenue avec conseils audio
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      showInfo('💡 Astuce: Cliquez sur "🔊 Test son" pour activer les notifications audio', 6000);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [showInfo]);
 
   // ===== LOGIQUE DE RENDU =====
   // Filtrer les tickets selon le mode de vue
@@ -423,6 +451,19 @@ const Queue = () => {
                     )}
                   </div>
                 )}
+                
+                {/* Bouton test audio */}
+                <button
+                  onClick={() => {
+                    initializeAudio();
+                    testSound('success');
+                    showInfo('🔊 Test audio effectué !');
+                  }}
+                  className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg border border-green-300 transition-colors"
+                  title="Tester les notifications audio"
+                >
+                  🔊 Test son
+                </button>
                 
                 {/* Bouton de mise à jour manuelle */}
                 <button
