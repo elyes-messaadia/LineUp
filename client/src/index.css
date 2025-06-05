@@ -43,6 +43,59 @@
     }
   }
 
+  /* Optimisations spécifiques iPhone SE */
+  @media (max-width: 375px) {
+    /* Réduction des espacements pour plus de contenu visible */
+    .legacy-container {
+      padding: 0.5rem !important;
+    }
+    
+    /* Formulaires compacts */
+    form {
+      max-width: 100%;
+    }
+    
+    /* Labels plus compacts */
+    label {
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Messages d'aide plus compacts */
+    .help-text {
+      padding: 0.5rem !important;
+      margin-bottom: 1rem !important;
+    }
+    
+    /* Réduction des focus ring pour éviter les débordements */
+    input:focus, select:focus, button:focus {
+      outline-offset: 1px !important;
+    }
+  }
+
+  /* Optimisations spécifiques iPhone SE 1ère génération (320px) */
+  @media (max-width: 320px) {
+    .legacy-container {
+      padding: 0.25rem !important;
+    }
+    
+    /* Grid désactivé sur très petits écrans */
+    .se\:grid {
+      display: block !important;
+    }
+    
+    /* Tous les champs en pleine largeur */
+    input, select, button {
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+    
+    /* Titre plus compact */
+    h1, h2, h3 {
+      line-height: 1.2 !important;
+      margin-bottom: 0.5rem !important;
+    }
+  }
+
   /* Optimisation spécifique pour iPhone SE (375px) */
   @media (max-width: 375px) {
     html {
