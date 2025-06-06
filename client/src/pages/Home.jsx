@@ -1,9 +1,7 @@
 // Force Netlify rebuild with new API URL - 2025-01-27
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
-import Title from "../components/Title";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import Button from "../components/ui/Button";
@@ -142,307 +140,302 @@ export default function Home() {
           </div>
         </div>
 
-          {/* Section utilisateur connecté */}
-          {isAuthenticated && user && (
-            <div className="bg-blue-50 border-2 border-blue-200 
-                           rounded-lg se:rounded-xl 
-                           p-3 xs:p-4 se:p-6 
-                           mb-4 xs:mb-6 sm:mb-8 
-                           old-device-optimized">
-              <div className="flex items-center justify-center gap-2 xs:gap-3 mb-3 xs:mb-4">
-                <span className="text-xl xs:text-2xl se:text-3xl">
+        {/* Section utilisateur connecté */}
+        {isAuthenticated && user && (
+          <Card variant="info" className="text-center">
+            <Card.Content>
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl">
                   {user.role?.name === "medecin" && "🩺"}
                   {user.role?.name === "secretaire" && "👩‍💼"}
                   {user.role?.name === "patient" && "👤"}
                   {user.role?.name === "visiteur" && "👁️"}
-                </span>
-                <h2 className="legacy-text-primary font-bold text-blue-900">
-                  Bonjour {getDisplayName(user)}
-                </h2>
-              </div>
-              <p className="text-blue-700 legacy-text-secondary mb-4 xs:mb-6">
-                Vous êtes connecté en tant que{' '}
-                <strong>
-                  {user.role?.name === "medecin" ? "Médecin" :
-                   user.role?.name === "secretaire" ? "Secrétaire" :
-                   user.role?.name === "patient" ? "Patient" :
-                   user.role?.name === "visiteur" ? "Visiteur" : "Utilisateur"}
-                </strong>
-              </p>
-              <button
-                onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                className="legacy-button bg-blue-600 hover:bg-blue-700 text-white border-blue-600 
-                          w-full sm:w-auto transition-colors duration-200"
-                aria-label="Accéder à votre espace personnel"
-              >
-                📊 Accéder à mon espace
-              </button>
-            </div>
-          )}
-
-          {/* Actions principales */}
-          <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
-            {!isAuthenticated ? (
-              // Mode non connecté
-              <div className="space-y-6">
-                {/* Action principale : Prendre un ticket */}
-                <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
-                  <h3 className="senior-friendly-text font-bold text-blue-900 mb-4">
-                    🎟️ Prendre un ticket rapidement
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-bold text-blue-900">
+                    Bonjour {getDisplayName(user)}
                   </h3>
-                  <button
-                    onClick={handleTakeTicket}
-                    disabled={isLoading}
-                    className={`w-full high-contrast-button touch-target-large gentle-transition ${
-                      isLoading 
-                        ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600 loading-state" 
-                        : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                    }`}
-                    aria-label="Prendre un ticket de consultation en mode anonyme"
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="animate-spin inline-block mr-3">⏳</span>
-                        Création en cours...
-                      </>
-                    ) : (
-                      "Prendre un ticket (mode anonyme)"
-                    )}
-                  </button>
-                  <p className="text-sm text-blue-700 mt-3">
+                  <p className="text-blue-700 text-sm">
+                    {user.role?.name === "medecin" ? "Médecin" :
+                     user.role?.name === "secretaire" ? "Secrétaire" :
+                     user.role?.name === "patient" ? "Patient" :
+                     user.role?.name === "visiteur" ? "Visiteur" : "Utilisateur"}
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate(`/dashboard/${user.role.name}`)}
+                icon="📊"
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                Accéder à mon espace
+              </Button>
+            </Card.Content>
+          </Card>
+        )}
+
+        {/* Actions principales */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {!isAuthenticated ? (
+            <>
+              {/* Action principale : Prendre un ticket */}
+              <Card variant="info" hover gradient>
+                <Card.Content className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                    🎟️
+                  </div>
+                  <h3 className="text-xl font-bold text-blue-900 mb-3">
+                    Prendre un ticket rapidement
+                  </h3>
+                  <p className="text-blue-700 mb-6 text-sm">
                     Mode rapide sans inscription
                   </p>
-                </div>
+                  <Button 
+                    onClick={handleTakeTicket}
+                    loading={isLoading}
+                    icon="🎫"
+                    size="lg"
+                    fullWidth
+                  >
+                    {isLoading ? "Création en cours..." : "Prendre un ticket"}
+                  </Button>
+                </Card.Content>
+              </Card>
 
-                {/* Ou se connecter */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t-2 border-gray-200"></div>
+              {/* Connexion personnalisée */}
+              <Card variant="success" hover gradient>
+                <Card.Content className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                    👤
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-600 font-medium">
-                      OU
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-b from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
-                  <h3 className="senior-friendly-text font-bold text-green-900 mb-4">
-                    👤 Connexion personnalisée
+                  <h3 className="text-xl font-bold text-green-900 mb-3">
+                    Connexion personnalisée
                   </h3>
-                  <p className="text-green-700 text-sm mb-6">
+                  <p className="text-green-700 mb-6 text-sm">
                     Pour un suivi personnalisé et des fonctionnalités avancées
                   </p>
-                  <div className="space-y-4">
-                    <button
+                  <div className="space-y-3">
+                    <Button 
                       onClick={() => navigate("/login")}
-                      className="w-full high-contrast-button touch-target-large bg-green-600 hover:bg-green-700 text-white border-green-600 gentle-transition"
-                      aria-label="Se connecter avec un compte existant"
+                      variant="success"
+                      icon="🔐"
+                      fullWidth
                     >
-                      🔐 Se connecter
-                    </button>
-                    <button
+                      Se connecter
+                    </Button>
+                    <Button 
                       onClick={() => navigate("/register")}
-                      className="w-full high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition"
-                      aria-label="Créer un nouveau compte utilisateur"
+                      variant="outline"
+                      icon="✨"
+                      fullWidth
                     >
-                      ✨ Créer un compte
-                    </button>
+                      Créer un compte
+                    </Button>
                   </div>
-                </div>
-              </div>
-            ) : (
-              // Mode connecté - Actions selon le rôle
-              <div className="space-y-4">
-                {user.role?.name === "patient" && (
-                  <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
-                    <h3 className="senior-friendly-text font-bold text-blue-900 mb-4">
+                </Card.Content>
+              </Card>
+            </>
+          ) : (
+            // Mode connecté - Actions selon le rôle
+            <div className="md:col-span-2">
+              {user.role?.name === "patient" && (
+                <Card variant="info" hover>
+                  <Card.Content className="text-center">
+                    <h3 className="text-xl font-bold text-blue-900 mb-4">
                       🎟️ Prendre un ticket de consultation
                     </h3>
-                    <button
+                    <Button 
                       onClick={handleTakeTicket}
-                      disabled={isLoading}
-                      className="w-full high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 gentle-transition"
-                      aria-label="Prendre un nouveau ticket de consultation"
+                      icon="🎫"
+                      size="lg"
+                      fullWidth
                     >
                       Prendre un ticket de consultation
-                    </button>
-                  </div>
-                )}
-                
-                {["medecin", "secretaire"].includes(user.role?.name) && (
-                  <div className="bg-gradient-to-b from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
-                    <h3 className="senior-friendly-text font-bold text-green-900 mb-4">
+                    </Button>
+                  </Card.Content>
+                </Card>
+              )}
+              
+              {["medecin", "secretaire"].includes(user.role?.name) && (
+                <Card variant="success" hover>
+                  <Card.Content className="text-center">
+                    <h3 className="text-xl font-bold text-green-900 mb-4">
                       ⚙️ Gestion de la file d'attente
                     </h3>
-                    <button
+                    <Button 
                       onClick={handleTakeTicket}
-                      className="w-full high-contrast-button touch-target-large bg-green-600 hover:bg-green-700 text-white border-green-600 gentle-transition"
-                      aria-label="Accéder aux outils de gestion de la file d'attente"
+                      variant="success"
+                      icon="⚙️"
+                      size="lg"
+                      fullWidth
                     >
                       Gérer la file d'attente
-                    </button>
-                  </div>
-                )}
+                    </Button>
+                  </Card.Content>
+                </Card>
+              )}
 
-                {user.role?.name === "visiteur" && (
-                  <div className="bg-gradient-to-b from-yellow-50 to-yellow-100 border-2 border-yellow-200 rounded-xl p-6">
-                    <h3 className="senior-friendly-text font-bold text-yellow-900 mb-4">
+              {user.role?.name === "visiteur" && (
+                <Card variant="warning" hover>
+                  <Card.Content className="text-center">
+                    <h3 className="text-xl font-bold text-yellow-900 mb-4">
                       👁️ Mode visiteur
                     </h3>
-                    <p className="text-yellow-700 senior-friendly-text mb-4">
+                    <p className="text-yellow-700 mb-6">
                       Vous pouvez consulter la file d'attente mais pas prendre de tickets
                     </p>
-                    <button
+                    <Button 
                       onClick={() => navigate("/register")}
-                      className="w-full high-contrast-button touch-target-large bg-blue-600 hover:bg-blue-700 text-white border-blue-600 gentle-transition"
-                      aria-label="Créer un compte patient pour prendre des tickets"
+                      variant="primary"
+                      icon="✨"
+                      size="lg"
+                      fullWidth
                     >
-                      ✨ Devenir patient
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                      Devenir patient
+                    </Button>
+                  </Card.Content>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
 
-          {/* Navigation rapide */}
-          <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-8">
-            <h3 className="senior-friendly-text font-bold text-gray-900 mb-6 text-center">
+        {/* Navigation rapide */}
+        <Card>
+          <Card.Header>
+            <h3 className="text-xl font-bold text-gray-900 text-center">
               🧭 Navigation rapide
             </h3>
-            <div className="space-y-4">
-              <button
+          </Card.Header>
+          <Card.Content>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Button 
                 onClick={() => navigate("/queue")}
-                className="w-full high-contrast-button touch-target-large bg-gray-600 hover:bg-gray-700 text-white border-gray-600 gentle-transition"
-                aria-label="Consulter la file d'attente actuelle"
+                variant="secondary"
+                icon="📋"
+                fullWidth
               >
-                📋 Voir la file d'attente
-              </button>
+                Voir la file d'attente
+              </Button>
 
               {!isAuthenticated && (
-                <button
+                <Button 
                   onClick={() => navigate("/ticket")}
-                  className="w-full high-contrast-button touch-target-large bg-orange-600 hover:bg-orange-700 text-white border-orange-600 gentle-transition"
-                  aria-label="Voir mon ticket actuel"
+                  variant="warning"
+                  icon="🎫"
+                  fullWidth
                 >
-                  🎫 Mon ticket actuel
-                </button>
+                  Mon ticket actuel
+                </Button>
               )}
 
               {isAuthenticated && (
-                <button
+                <Button 
                   onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                  className="w-full high-contrast-button touch-target-large bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 gentle-transition"
-                  aria-label="Accéder à mon tableau de bord personnel"
+                  variant="primary"
+                  icon="📊"
+                  fullWidth
                 >
-                  📊 Mon tableau de bord
-                </button>
+                  Mon tableau de bord
+                </Button>
               )}
             </div>
-          </div>
+          </Card.Content>
+        </Card>
 
-          {/* Informations système simplifiées */}
-          <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6">
-            <h3 className="senior-friendly-text font-bold text-gray-900 mb-4 text-center">
+        {/* Types d'utilisateurs */}
+        <Card>
+          <Card.Header>
+            <h3 className="text-xl font-bold text-gray-900 text-center">
               ℹ️ Types d'utilisateurs
             </h3>
-            <div className="space-y-4 text-left">
-              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+          </Card.Header>
+          <Card.Content>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <span className="text-2xl">🩺</span>
                 <div>
                   <h4 className="font-semibold text-gray-800">Médecins</h4>
-                  <p className="text-sm text-gray-600">Gestion complète des consultations</p>
+                  <p className="text-sm text-gray-600">Gestion consultations</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <span className="text-2xl">👩‍💼</span>
                 <div>
                   <h4 className="font-semibold text-gray-800">Secrétaires</h4>
-                  <p className="text-sm text-gray-600">Assistance et coordination des rendez-vous</p>
+                  <p className="text-sm text-gray-600">Coordination</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <span className="text-2xl">👤</span>
                 <div>
                   <h4 className="font-semibold text-gray-800">Patients</h4>
-                  <p className="text-sm text-gray-600">Prise de tickets et suivi des consultations</p>
+                  <p className="text-sm text-gray-600">Prise de tickets</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <span className="text-2xl">👁️</span>
                 <div>
                   <h4 className="font-semibold text-gray-800">Visiteurs</h4>
-                  <p className="text-sm text-gray-600">Consultation du temps d'attente</p>
+                  <p className="text-sm text-gray-600">Consultation attente</p>
                 </div>
               </div>
             </div>
             
             {!isAuthenticated && (
-              <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   💡 <strong>Conseil :</strong> Créez un compte pour bénéficier de notifications,
                   d'un historique de vos consultations et de fonctionnalités avancées.
                 </p>
               </div>
             )}
-          </div>
+          </Card.Content>
+        </Card>
 
-          {/* Modal de confirmation pour ticket anonyme - Amélioré */}
-          <ConfirmModal
-            isOpen={showTicketModal}
-            title="Choisir un médecin"
-            message={
-              <div className="space-y-6">
-                <div className="help-text">
-                  <p>Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
-                </div>
-                <div>
-                  <label 
-                    htmlFor="doctor-select"
-                    className="block senior-friendly-text font-semibold text-gray-800 mb-3"
-                  >
-                    👨‍⚕️ Médecin disponible :
-                  </label>
-                  <select
-                    id="doctor-select"
-                    value={selectedDoctor || ""}
-                    onChange={(e) => setSelectedDoctor(e.target.value)}
-                    className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
-                    aria-describedby="doctor-help"
-                  >
-                    <option value="">Choisissez un médecin</option>
-                    {DOCTEURS.map((docteur) => (
-                      <option key={docteur} value={docteur}>
-                        {docteur}
-                      </option>
-                    ))}
-                  </select>
-                  <div id="doctor-help" className="mt-2 text-sm text-gray-600">
-                    Cette information est nécessaire pour organiser la file d'attente
-                  </div>
-                </div>
-                <div className="help-text">
-                  <p><strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.</p>
-                </div>
+        {/* Modal de confirmation pour ticket anonyme */}
+        <ConfirmModal
+          isOpen={showTicketModal}
+          title="Choisir un médecin"
+          message={
+            <div className="space-y-6">
+              <div>
+                <p className="text-gray-600 mb-4">Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
+                <select
+                  value={selectedDoctor || ""}
+                  onChange={(e) => setSelectedDoctor(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Choisissez un médecin</option>
+                  {DOCTEURS.map((docteur) => (
+                    <option key={docteur} value={docteur}>
+                      {docteur}
+                    </option>
+                  ))}
+                </select>
               </div>
-            }
-            confirmText="✅ Continuer en mode anonyme"
-            cancelText="✨ Créer un compte à la place"
-            type="info"
-            onConfirm={confirmTakeTicket}
-            onCancel={() => {
-              setShowTicketModal(false);
-              navigate("/register");
-            }}
-          />
+              <p className="text-sm text-gray-600">
+                <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
+              </p>
+            </div>
+          }
+          confirmText="✅ Continuer en mode anonyme"
+          cancelText="✨ Créer un compte à la place"
+          type="info"
+          onConfirm={confirmTakeTicket}
+          onCancel={() => {
+            setShowTicketModal(false);
+            navigate("/register");
+          }}
+        />
 
-          {/* Toasts pour les messages */}
-          <Toast toasts={toasts} removeToast={removeToast} />
-        </div>
-      </AnimatedPage>
-    );
-  }
+        {/* Toasts pour les messages */}
+        <Toast toasts={toasts} removeToast={removeToast} />
+      </div>
+    </AnimatedPage>
+  );
+}
