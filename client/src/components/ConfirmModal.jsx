@@ -12,6 +12,7 @@ export default function ConfirmModal({
 }) {
   const cancelButtonRef = useRef(null);
   const modalRef = useRef(null);
+  const overlayRef = useRef(null);
 
   // Focus management et navigation clavier
   useEffect(() => {
@@ -66,6 +67,13 @@ export default function ConfirmModal({
     }
   }, [isOpen, onCancel]);
 
+  // Gestion du clic à l'extérieur de la modal
+  const handleOverlayClick = (e) => {
+    if (e.target === overlayRef.current) {
+      onCancel();
+    }
+  };
+
   if (!isOpen) return null;
 
   const getButtonStyles = () => {
@@ -106,6 +114,8 @@ export default function ConfirmModal({
 
   return (
     <div 
+      ref={overlayRef}
+      onClick={handleOverlayClick}
       className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center 
                  p-3 xs:p-4 se:p-6 z-50 old-device-optimized"
       role="dialog"
@@ -120,9 +130,34 @@ export default function ConfirmModal({
                    legacy-modal
                    p-4 xs:p-5 se:p-6 sm:p-8 
                    max-w-xs xs:max-w-sm se:max-w-md lg:max-w-lg 
-                   w-full accessible-shadow"
+                   w-full accessible-shadow relative"
       >
-        <div className="flex items-center gap-3 xs:gap-4 mb-4 xs:mb-6">
+        {/* Bouton de fermeture (croix) */}
+        <button
+          onClick={onCancel}
+          className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 
+                     transition-colors duration-200 rounded-full hover:bg-gray-100
+                     focus:outline-none focus:ring-2 focus:ring-gray-300"
+          aria-label="Fermer la fenêtre"
+          title="Fermer"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <div className="flex items-center gap-3 xs:gap-4 mb-4 xs:mb-6 pr-8">
           <span 
             className="text-2xl xs:text-3xl flex-shrink-0" 
             aria-hidden="true"

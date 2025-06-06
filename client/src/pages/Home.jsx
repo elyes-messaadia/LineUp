@@ -408,7 +408,7 @@ export default function Home() {
                 <select
                   value={selectedDoctor || ""}
                   onChange={(e) => setSelectedDoctor(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 legacy-button"
                 >
                   <option value="">Choisissez un médecin</option>
                   {DOCTEURS.map((docteur) => (
@@ -421,15 +421,26 @@ export default function Home() {
               <p className="text-sm text-gray-600">
                 <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
               </p>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setShowTicketModal(false);
+                    navigate("/register");
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 xs:px-4 py-2 xs:py-3 rounded-lg transition legacy-button text-sm xs:text-base"
+                >
+                  ✨ Créer un compte
+                </button>
+              </div>
             </div>
           }
           confirmText="✅ Continuer en mode anonyme"
-          cancelText="✨ Créer un compte à la place"
+          cancelText="❌ Annuler"
           type="info"
           onConfirm={confirmTakeTicket}
           onCancel={() => {
             setShowTicketModal(false);
-            navigate("/register");
+            setSelectedDoctor(null);
           }}
         />
 

@@ -3,6 +3,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
+const { authenticateOptional } = require("./middlewares/auth");
 const Ticket = require("./models/Ticket");
 require("dotenv").config();
 
@@ -69,23 +70,54 @@ connectDB();
 app.use("/auth", authRoutes);
 
 // 🎫 Créer un ticket (version améliorée)
-app.post("/ticket", async (req, res) => {
+app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
-    const { docteur } = req.body;
+    const { docteur, userId } = req.body;
     
-    // Validation améliorée du docteur
-    if (!docteur) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Le champ 'docteur' est requis"
-      });
+    // Si l'utilisateur est authentifié, utiliser ses informations
+    let finalUserId = null;
+    let finalDocteur = docteur;
+    
+    if (req.user) {
+      // Utilisateur authentifié : utiliser son ID
+      finalUserId = req.user._id;
+      
+      // Pour les patients authentifiés, le docteur n'est pas obligatoire (sera assigné par défaut)
+      if (req.user.role.name === 'patient' && !docteur) {
+        finalDocteur = 'Docteur 1'; // Docteur par défaut
+      }
+    } else {
+      // Mode anonyme : vérifier que le docteur est spécifié
+      if (!docteur) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Le champ 'docteur' est requis pour les tickets anonymes"
+        });
+      }
+      finalUserId = userId || null;
     }
 
-    if (!['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(docteur)) {
+    // Validation du docteur
+    if (!['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(finalDocteur)) {
       return res.status(400).json({ 
         success: false,
         message: "Le docteur doit être l'un des suivants : Docteur 1, Docteur 2, Docteur 3"
       });
+    }
+
+    // Vérifier si l'utilisateur authentifié a déjà un ticket en cours
+    if (req.user) {
+      const existingTicket = await Ticket.findOne({
+        userId: req.user._id,
+        status: { $in: ['en_attente', 'en_consultation'] }
+      });
+      
+      if (existingTicket) {
+        return res.status(400).json({
+          success: false,
+          message: "Vous avez déjà un ticket en cours"
+        });
+      }
     }
 
     // Générer un sessionId unique
@@ -105,9 +137,9 @@ app.post("/ticket", async (req, res) => {
     // Créer le nouveau ticket
     const ticket = new Ticket({ 
       number: nextNumber,
-      docteur,
+      docteur: finalDocteur,
       sessionId,
-      userId: req.body.userId || null,
+      userId: finalUserId,
       metadata
     });
 
