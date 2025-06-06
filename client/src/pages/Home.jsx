@@ -402,9 +402,9 @@ export default function Home() {
           isOpen={showTicketModal}
           title="Choisir un médecin"
           message={
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <p className="text-gray-600 mb-4">Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
+                <p className="text-gray-700 mb-3 text-center">Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
                 <select
                   value={selectedDoctor || ""}
                   onChange={(e) => setSelectedDoctor(e.target.value)}
@@ -418,29 +418,21 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-              <p className="text-sm text-gray-600">
-                <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
-              </p>
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => {
-                    setShowTicketModal(false);
-                    navigate("/register");
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 xs:px-4 py-2 xs:py-3 rounded-lg transition legacy-button text-sm xs:text-base"
-                >
-                  ✨ Créer un compte
-                </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+                <p className="text-sm text-blue-800 text-center">
+                  💡 <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
+                </p>
               </div>
             </div>
           }
           confirmText="✅ Continuer en mode anonyme"
-          cancelText="❌ Annuler"
+          cancelText="✨ Créer un compte"
           type="info"
           onConfirm={confirmTakeTicket}
           onCancel={() => {
             setShowTicketModal(false);
             setSelectedDoctor(null);
+            navigate("/register");
           }}
         />
 

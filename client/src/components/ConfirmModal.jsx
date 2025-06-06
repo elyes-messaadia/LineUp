@@ -184,14 +184,14 @@ export default function ConfirmModal({
             ref={cancelButtonRef}
             onClick={onCancel}
             className="legacy-button bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 
-                       transition-colors duration-200 order-2 se:order-1"
+                       transition-colors duration-200 order-2 se:order-1 flex items-center justify-center text-center"
             aria-label={`${cancelText} - Fermer cette boîte de dialogue`}
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className={`legacy-button transition-colors duration-200 order-1 se:order-2 ${getButtonStyles()}`}
+            className={`legacy-button transition-colors duration-200 order-1 se:order-2 flex items-center justify-center text-center ${getButtonStyles()}`}
             aria-label={`${confirmText} - Confirmer cette action`}
           >
             {confirmText}
