@@ -624,5 +624,82 @@
       display: inline;
     }
   }
+
+  /* Protection globale contre overflow horizontal - iPhone 14 Pro Max */
+  .overflow-protection {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  /* Application globale de la protection */
+  html, body, #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* Protection spécifique des conteneurs */
+  .container, .max-w-7xl, .mx-auto {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Protection supplémentaire pour flex et grid */
+  .flex, .grid {
+    min-width: 0;
+  }
+
+  /* FORCER LA DISPARITION des éléments desktop sur mobile - iPhone 14 Pro Max */
+  @media (max-width: 767px) {
+    .force-hide-mobile {
+      display: none !important;
+    }
+    
+    .force-show-mobile {
+      display: block !important;
+    }
+    
+    .force-flex-mobile {
+      display: flex !important;
+    }
+  }
+
+  /* S'assurer que la navigation desktop est invisible sur mobile */
+  @media (max-width: 767px) {
+    nav .hidden.lg\\:flex {
+      display: none !important;
+    }
+  }
+
+  /* Protection spécifique iPhone 14 Pro Max (430px) - BRUTAL */
+  @media (max-width: 430px) {
+    /* Cibler spécifiquement les boutons connexion/inscription */
+    nav a[href="/login"],
+    nav a[href="/register"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+    
+    /* Cibler le conteneur des boutons auth */
+    nav .force-hide-mobile {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
+    
+    /* Menu hamburger FORCEMENT visible */
+    nav button[aria-label="Ouvrir le menu"],
+    nav .force-flex-mobile {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  }
 }
       

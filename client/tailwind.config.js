@@ -11,8 +11,8 @@ export default {
           'xs': '320px',     // Très petits écrans et anciens téléphones
           'se': '375px',     // iPhone SE spécifiquement
           'sm': '390px',     // iPhone 12/13/14 standard
-          'md': '414px',     // iPhone Plus/Pro Max
-          'lg': '768px',     // Tablettes
+          'md': '430px',     // iPhone 14/15 Pro Max et équivalents
+          'lg': '768px',     // Tablettes et desktop pour navigation
           'xl': '1024px',    // Desktop
           '2xl': '1280px',   // Large desktop
           
