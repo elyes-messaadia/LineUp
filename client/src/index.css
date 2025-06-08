@@ -196,6 +196,75 @@
     font-weight: 500;
   }
 
+  /* Classes dashboard unifiées pour cohérence responsive */
+  .dashboard-header {
+    @apply bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8;
+  }
+
+  .dashboard-header-content {
+    @apply flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4;
+  }
+
+  .dashboard-title {
+    @apply text-lg sm:text-xl lg:text-2xl font-bold legacy-text-primary;
+  }
+
+  .dashboard-subtitle {
+    @apply text-sm sm:text-base legacy-text-secondary mt-1 truncate;
+  }
+
+  .dashboard-section {
+    @apply bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8;
+  }
+
+  .dashboard-section-title {
+    @apply text-lg sm:text-xl font-semibold mb-4 legacy-text-primary;
+  }
+
+  .stats-grid {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-lg p-4 border text-center;
+  }
+
+  .stat-value {
+    @apply text-xl sm:text-2xl font-bold mb-1;
+  }
+
+  .stat-label {
+    @apply text-xs sm:text-sm text-gray-600 legacy-text-secondary;
+  }
+
+  .actions-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+
+  .action-button-primary {
+    @apply bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-success {
+    @apply bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-danger {
+    @apply bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-secondary {
+    @apply bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
   @media (max-width: 640px) {
     .senior-friendly-text {
       font-size: 1rem;

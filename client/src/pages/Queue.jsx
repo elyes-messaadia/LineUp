@@ -77,72 +77,78 @@ const formatEstimatedTime = (minutes) => {
   return `~${hours}h${mins.toString().padStart(2, '0')}`;
 };
 
-// Header moderne et épuré avec indicateurs temps réel
+// Header moderne et épuré avec indicateurs temps réel - VERSION RESPONSIVE
 const CleanHeader = ({ stats, currentTime, lastUpdate, error }) => {
   const timeSinceUpdate = Math.floor((currentTime - lastUpdate) / 1000);
   const isStale = timeSinceUpdate > 10; // Plus de 10 secondes
 
   return (
     <div className="bg-white border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 legacy-container">
         
-        {/* Titre principal épuré */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        {/* Layout responsive: stack sur mobile, côte à côte sur desktop */}
+        <div className="space-y-6 lg:space-y-0">
+          
+          {/* Titre principal avec statut connexion */}
+          <div className="space-y-3">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 legacy-text-primary">
               File d'Attente Médicale
             </h1>
-            <div className="flex items-center space-x-4 text-sm">
+            
+            {/* Indicateurs de connexion - Stack sur très petits écrans */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               {/* Indicateur de connexion */}
-              <div className="flex items-center space-x-2">
-                <span className={`w-2 h-2 rounded-full ${
+              <div className="flex items-center space-x-2 min-w-0">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   error ? 'bg-red-500' : 
                   isStale ? 'bg-yellow-500' : 
                   'bg-green-500 old-android-safe'
                 }`}></span>
-                <span className="text-gray-600">
+                <span className="text-gray-600 text-mobile-readable">
                   {error ? 'Connexion impossible' :
                    isStale ? 'Connexion lente' :
                    'Temps réel'}
                 </span>
               </div>
               
-              <span className="text-gray-300">•</span>
+              {/* Séparateur - caché sur très petits écrans */}
+              <span className="text-gray-300 hidden sm:inline">•</span>
               
               {/* Heure de dernière mise à jour */}
-              <span className="text-gray-500 font-mono">
+              <span className="text-gray-500 font-mono text-xs sm:text-sm text-mobile-readable">
                 Mis à jour: {formatTime(lastUpdate)}
               </span>
               
+              {/* Temps écoulé - affiché conditionnellement */}
               {timeSinceUpdate > 0 && (
                 <>
-                  <span className="text-gray-300">•</span>
-                  <span className="text-gray-400">
+                  <span className="text-gray-300 hidden sm:inline">•</span>
+                  <span className="text-gray-400 text-xs sm:text-sm">
                     il y a {timeSinceUpdate}s
                   </span>
                 </>
               )}
             </div>
           </div>
-          
-          {/* Statistiques compactes */}
-          <div className="flex space-x-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.waiting}</div>
-              <div className="text-sm text-gray-500">En attente</div>
+
+          {/* Statistiques - Grid responsive */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mt-6">
+            <div className="text-center bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-100">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{stats.waiting}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1 legacy-text-secondary">En attente</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.inConsultation}</div>
-              <div className="text-sm text-gray-500">En consultation</div>
+            <div className="text-center bg-green-50 rounded-lg p-3 sm:p-4 border border-green-100">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{stats.inConsultation}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1 legacy-text-secondary">En consultation</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
-              <div className="text-sm text-gray-500">Total aujourd'hui</div>
+            <div className="text-center bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-100 col-span-2 sm:col-span-1">
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-600">{stats.total}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1 legacy-text-secondary">Total aujourd'hui</div>
             </div>
             {stats.cancelled > 0 && (
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-                <div className="text-sm text-gray-500">Annulés</div>
+              <div className="text-center bg-red-50 rounded-lg p-3 sm:p-4 border border-red-100 col-span-2 sm:col-span-3 lg:col-span-1">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{stats.cancelled}</div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1 legacy-text-secondary">Annulés</div>
               </div>
             )}
           </div>
@@ -152,79 +158,103 @@ const CleanHeader = ({ stats, currentTime, lastUpdate, error }) => {
   );
 };
 
-// Carte ticket épurée et moderne avec estimation
+// Carte ticket épurée et moderne avec estimation - VERSION RESPONSIVE
 const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatusChanged }) => {
   const config = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.en_attente;
   
   return (
     <div className={`
-      relative p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md
+      relative p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md
       ${config.bgClass}
       ${isMyTicket ? 'ring-2 ring-blue-400 ring-offset-2' : ''}
       ${hasStatusChanged ? 'border-orange-400' : ''}
-      old-device-optimized
+      old-device-optimized legacy-container
     `}>
       
-      {/* Header du ticket */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-3">
-          <div className="text-2xl">{config.icon}</div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-gray-900">#{ticket.number}</span>
+      {/* Header du ticket - Layout responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="text-xl sm:text-2xl flex-shrink-0">{config.icon}</div>
+          <div className="min-w-0 flex-1">
+            {/* Numéro et badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-lg sm:text-xl font-bold text-gray-900 legacy-text-primary">
+                #{ticket.number}
+              </span>
               {isMyTicket && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full flex-shrink-0">
                   Vous
                 </span>
               )}
               {hasStatusChanged && (
-                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full flex-shrink-0">
                   Nouveau
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-500">
+            {/* Docteur */}
+            <div className="text-xs sm:text-sm text-gray-500 legacy-text-secondary truncate">
               {ticket.docteur || 'Docteur général'}
             </div>
           </div>
         </div>
         
-        {/* Badge de statut */}
-        <div className={`px-3 py-1 rounded-full text-sm font-medium ${config.badgeClass}`}>
+        {/* Badge de statut - Pleine largeur sur mobile */}
+        <div className={`
+          px-3 py-2 rounded-full text-xs sm:text-sm font-medium text-center sm:text-left
+          ${config.badgeClass} flex-shrink-0
+        `}>
           {config.label}
         </div>
       </div>
 
-      {/* Informations additionnelles */}
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <div className="flex items-center space-x-4">
+      {/* Informations additionnelles - Stack sur mobile */}
+      <div className="space-y-3 sm:space-y-0">
+        {/* Première ligne d'informations */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
           {position && (
-            <span className="font-medium">
+            <span className="font-medium bg-white px-2 py-1 rounded border border-gray-200">
               Position: {position}
             </span>
           )}
-          <span>
+          <span className="text-mobile-readable">
             Créé: {formatTime(ticket.createdAt)}
           </span>
         </div>
         
-        {/* Estimation et temps d'attente */}
+        {/* Estimation et temps d'attente - Deuxième ligne sur mobile */}
         {ticket.status === "en_attente" && (
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full old-android-safe"></span>
-              <span className="font-medium text-blue-700">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200">
+            <div className="flex items-center space-x-1 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+              <span className="w-2 h-2 bg-blue-500 rounded-full old-android-safe flex-shrink-0"></span>
+              <span className="font-medium text-blue-700 text-xs sm:text-sm">
                 {formatWaitingTime(ticket.createdAt)}
               </span>
             </div>
             {estimatedWait > 0 && (
-              <>
-                <span className="text-gray-300">•</span>
-                <span className="text-orange-600 font-medium">
+              <div className="flex items-center space-x-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
+                <span className="text-orange-600 font-medium text-xs sm:text-sm">
                   {formatEstimatedTime(estimatedWait)}
                 </span>
-              </>
+              </div>
             )}
+          </div>
+        )}
+
+        {/* Statut spécial pour consultations/terminées */}
+        {ticket.status === "en_consultation" && (
+          <div className="bg-green-50 border border-green-200 rounded px-3 py-2 mt-2">
+            <span className="text-green-700 font-medium text-xs sm:text-sm">
+              🩺 En consultation actuellement
+            </span>
+          </div>
+        )}
+        
+        {ticket.status === "termine" && (
+          <div className="bg-gray-50 border border-gray-200 rounded px-3 py-2 mt-2">
+            <span className="text-gray-600 font-medium text-xs sm:text-sm">
+              ✅ Consultation terminée à {formatTime(ticket.updatedAt || ticket.createdAt)}
+            </span>
           </div>
         )}
       </div>
@@ -393,90 +423,122 @@ const Queue = () => {
           />
           
           {/* Contenu principal */}
-          <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 legacy-container">
             
-            {/* Filtres */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-sm border">
-                <button
-                  onClick={() => setViewMode('all')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'all' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Tous ({queue.length})
-                </button>
-                <button
-                  onClick={() => setViewMode('waiting')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'waiting' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  En attente ({stats.waiting})
-                </button>
-                <button
-                  onClick={() => setViewMode('consultation')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'consultation' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  En consultation ({stats.inConsultation})
-                </button>
-                <button
-                  onClick={() => setViewMode('completed')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'completed' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Terminés ({stats.completed + stats.cancelled})
-                </button>
+            {/* Section filtres et actions - Layout responsive */}
+            <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between mb-6 sm:mb-8">
+              
+              {/* Filtres - Stack sur mobile, scroll horizontal si nécessaire */}
+              <div className="w-full lg:w-auto">
+                <div className="flex overflow-x-auto space-x-1 bg-white rounded-lg p-1 shadow-sm border legacy-nav">
+                  <button
+                    onClick={() => setViewMode('all')}
+                    className={`
+                      px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-shrink-0 touch-target-large
+                      ${viewMode === 'all' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <span className="block sm:hidden">📊</span>
+                    <span className="hidden sm:block">Tous ({queue.length})</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('waiting')}
+                    className={`
+                      px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-shrink-0 touch-target-large
+                      ${viewMode === 'waiting' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <span className="block sm:hidden">⏱️</span>
+                    <span className="hidden sm:block">En attente ({stats.waiting})</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('consultation')}
+                    className={`
+                      px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-shrink-0 touch-target-large
+                      ${viewMode === 'consultation' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <span className="block sm:hidden">🩺</span>
+                    <span className="hidden sm:block">En consultation ({stats.inConsultation})</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('completed')}
+                    className={`
+                      px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-shrink-0 touch-target-large
+                      ${viewMode === 'completed' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <span className="block sm:hidden">✅</span>
+                    <span className="hidden sm:block">Terminés ({stats.completed + stats.cancelled})</span>
+                  </button>
+                </div>
               </div>
               
-              {/* Actions */}
-              <div className="flex items-center space-x-3">
-                {/* Indicateur de position personnelle */}
+              {/* Actions - Stack sur mobile */}
+              <div className="w-full lg:w-auto space-y-3 lg:space-y-0 lg:flex lg:items-center lg:space-x-3">
+                
+                {/* Indicateur de position personnelle - Pleine largeur sur mobile */}
                 {myId && getPosition(myId) && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-                    <span className="text-blue-800 font-medium">
-                      Votre position: #{getPosition(myId)}
-                    </span>
-                    {getEstimatedWait(getPosition(myId)) > 0 && (
-                      <span className="text-blue-600 ml-2">
-                        (~{formatEstimatedTime(getEstimatedWait(getPosition(myId)))})
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2 lg:py-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-center lg:text-left">
+                      <span className="text-blue-800 font-medium text-sm sm:text-base">
+                        Votre position: #{getPosition(myId)}
                       </span>
-                    )}
+                      {getEstimatedWait(getPosition(myId)) > 0 && (
+                        <span className="text-blue-600 text-xs sm:text-sm">
+                          (~{formatEstimatedTime(getEstimatedWait(getPosition(myId)))})
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 
-                {/* Bouton test audio */}
-                <button
-                  onClick={() => {
-                    initializeAudio();
-                    testSound('success');
-                    showInfo('🔊 Test audio effectué !');
-                  }}
-                  className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg border border-green-300 transition-colors"
-                  title="Tester les notifications audio"
-                >
-                  🔊 Test son
-                </button>
-                
-                {/* Bouton de mise à jour manuelle */}
-                <button
-                  onClick={forceUpdate}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition-colors"
-                  title="Actualiser manuellement"
-                >
-                  🔄 Actualiser
-                </button>
+                {/* Boutons d'action - Grid sur mobile */}
+                <div className="grid grid-cols-2 lg:flex gap-2 lg:gap-3">
+                  {/* Bouton test audio */}
+                  <button
+                    onClick={() => {
+                      initializeAudio();
+                      testSound('success');
+                      showInfo('🔊 Test audio effectué !');
+                    }}
+                    className="
+                      px-3 sm:px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 
+                      rounded-lg border border-green-300 transition-colors text-xs sm:text-sm
+                      touch-target-large legacy-button
+                    "
+                    title="Tester les notifications audio"
+                  >
+                    <span className="block sm:hidden">🔊</span>
+                    <span className="hidden sm:block">🔊 Test son</span>
+                  </button>
+                  
+                  {/* Bouton de mise à jour manuelle */}
+                  <button
+                    onClick={forceUpdate}
+                    className="
+                      px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 
+                      rounded-lg border border-gray-300 transition-colors text-xs sm:text-sm
+                      touch-target-large legacy-button
+                    "
+                    title="Actualiser manuellement"
+                  >
+                    <span className="block sm:hidden">🔄</span>
+                    <span className="hidden sm:block">🔄 Actualiser</span>
+                  </button>
+                </div>
               </div>
             </div>
 

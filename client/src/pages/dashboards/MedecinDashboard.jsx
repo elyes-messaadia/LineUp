@@ -4,6 +4,7 @@ import Layout from "../../components/Layout";
 import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
+import DashboardHeader from "../../components/DashboardHeader";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 
@@ -246,31 +247,16 @@ export default function MedecinDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-6xl mx-auto">
-          {/* En-tête médecin */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-xl font-bold text-green-800">
-                  🩺 Espace Médecin
-                </h1>
-                <p className="text-green-600">
-                  Bienvenue Dr. {user.fullName || 
-                                 (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
-                                 user.firstName || 
-                                 user.lastName || 
-                                 user.email?.split('@')[0] || 
-                                 'utilisateur'}
-                </p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 underline"
-              >
-                🔒 Déconnexion
-              </button>
-            </div>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 legacy-container">
+          {/* En-tête médecin unifié */}
+          <DashboardHeader
+            title="Espace Médecin"
+            subtitle="Bienvenue Dr. {user}"
+            icon="🩺"
+            user={user}
+            onLogout={handleLogout}
+            colorScheme="green"
+          />
 
           {/* Patient en consultation */}
           {currentPatient ? (
