@@ -1,19 +1,12 @@
-// Configuration API centralisée - FORCER LOCALHOST EN DEV
-const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const isViteDev = import.meta.env.MODE === 'development';
+// Configuration API centralisée - FORCE ABSOLUE LOCALHOST
+// FORCER LOCALHOST EN DÉVELOPPEMENT - PAS DE CONDITION
+const BACKEND_URL = 'http://localhost:5000';
 
-console.log('🔧 Mode détection:', {
+console.log('🔧 API Configuration:', { 
   hostname: window.location.hostname,
-  viteDev: isViteDev,
-  isDev: isDevelopment,
-  viteEnv: import.meta.env.VITE_API_URL
+  mode: import.meta.env.MODE,
+  forcedURL: BACKEND_URL,
+  notice: '🚨 LOCALHOST FORCÉ POUR DEBUG'
 });
-
-// FORCER localhost si on est en développement
-const BACKEND_URL = isDevelopment || isViteDev
-  ? 'http://localhost:5000'
-  : 'https://lineup-backend-xxak.onrender.com';
-
-console.log('🎯 API URL sélectionnée:', BACKEND_URL);
 
 export default BACKEND_URL; 

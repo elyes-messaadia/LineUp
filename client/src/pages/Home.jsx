@@ -10,7 +10,11 @@ import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
 
-const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
+  const DOCTEURS = [
+    { value: 'Docteur 1', label: 'Dr. Martin (Médecin généraliste)', emoji: '👨‍⚕️', disponible: true },
+    { value: 'Docteur 2', label: 'Dr. Dubois (Spécialiste cardio)', emoji: '❤️', disponible: true },
+    { value: 'Docteur 3', label: 'Dr. Rousseau (Médecin familial)', emoji: '👩‍⚕️', disponible: false }
+  ];
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +61,13 @@ export default function Home() {
 
   const confirmTakeTicket = async () => {
     if (!selectedDoctor) {
-      showError("Veuillez sélectionner un docteur");
+      showError("Veuillez sélectionner un médecin");
+      return;
+    }
+
+    const selectedDoctorInfo = DOCTEURS.find(d => d.value === selectedDoctor);
+    if (!selectedDoctorInfo.disponible) {
+      showError("Ce médecin n'est pas disponible aujourd'hui");
       return;
     }
 
@@ -65,7 +75,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      showInfo("Création de votre ticket en cours...");
+      showInfo(`Création de votre ticket pour ${selectedDoctorInfo.label}...`);
       
       console.log('🎯 Using API URL:', BACKEND_URL);
       
@@ -97,7 +107,7 @@ export default function Home() {
         docteur: selectedDoctor
       }));
       
-      showSuccess(`Ticket n°${data.ticket.number} créé avec succès !`, 4000);
+      showSuccess(`Ticket n°${data.ticket.number} créé pour ${selectedDoctorInfo.label} !`, 4000);
       
       // Redirection après un court délai
       setTimeout(() => {
@@ -397,44 +407,88 @@ export default function Home() {
           </Card.Content>
         </Card>
 
-        {/* Modal de confirmation pour ticket anonyme */}
-        <ConfirmModal
-          isOpen={showTicketModal}
-          title="Choisir un médecin"
-          message={
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-700 mb-3 text-center">Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
-                <select
-                  value={selectedDoctor || ""}
-                  onChange={(e) => setSelectedDoctor(e.target.value)}
-                  className="w-full px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 legacy-button"
-                >
-                  <option value="">Choisissez un médecin</option>
-                  {DOCTEURS.map((docteur) => (
-                    <option key={docteur} value={docteur}>
-                      {docteur}
-                    </option>
-                  ))}
-                </select>
+        {/* Modal amélioré de sélection de médecin pour mode anonyme */}
+        {showTicketModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                🎫 Choisir un médecin
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                Sélectionnez le médecin que vous souhaitez consulter :
+              </p>
+
+              <div className="space-y-3 mb-6">
+                {DOCTEURS.map((docteur) => (
+                  <label 
+                    key={docteur.value}
+                    className={`
+                      flex items-center p-4 border rounded-lg cursor-pointer transition-all
+                      ${selectedDoctor === docteur.value 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                      }
+                      ${!docteur.disponible ? 'opacity-50 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="doctor"
+                      value={docteur.value}
+                      checked={selectedDoctor === docteur.value}
+                      onChange={(e) => setSelectedDoctor(e.target.value)}
+                      disabled={!docteur.disponible}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center space-x-3 w-full">
+                      <span className="text-2xl">{docteur.emoji}</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{docteur.label}</p>
+                        <p className={`text-sm ${docteur.disponible ? 'text-green-600' : 'text-red-600'}`}>
+                          {docteur.disponible ? '✅ Disponible aujourd\'hui' : '❌ Non disponible'}
+                        </p>
+                      </div>
+                      {selectedDoctor === docteur.value && (
+                        <div className="text-blue-500">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                ))}
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
                 <p className="text-sm text-blue-800 text-center">
-                  💡 <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
+                  💡 <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi et l'accès aux notifications.
                 </p>
               </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowTicketModal(false);
+                    setSelectedDoctor(null);
+                    navigate("/register");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  ✨ Créer un compte
+                </button>
+                <button
+                  onClick={confirmTakeTicket}
+                  disabled={!selectedDoctor || isLoading}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Création..." : "✅ Continuer anonyme"}
+                </button>
+              </div>
             </div>
-          }
-          confirmText="✅ Continuer en mode anonyme"
-          cancelText="✨ Créer un compte"
-          type="info"
-          onConfirm={confirmTakeTicket}
-          onCancel={() => {
-            setShowTicketModal(false);
-            setSelectedDoctor(null);
-            navigate("/register");
-          }}
-        />
+          </div>
+        )}
 
         {/* Toasts pour les messages */}
         <Toast toasts={toasts} removeToast={removeToast} />
