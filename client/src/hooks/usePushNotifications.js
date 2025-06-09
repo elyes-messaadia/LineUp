@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import BACKEND_URL from '../config/api';
 
-const VAPID_PUBLIC_KEY = 'BK8VJuX8z0P_6G4j6V_OP7Qp1M_1F5t6H5RQP_T6v4I3G5C2c9m1M8tQ4L5F6n7K8J9O0I1U2Y3T4R5E6W7Q8A9';
+const VAPID_PUBLIC_KEY = 'BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0';
 
 export const usePushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);

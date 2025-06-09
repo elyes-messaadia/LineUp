@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Role = require('../models/Role');
-const { authenticate } = require("../middlewares/auth");
+const { authenticateRequired: authenticate } = require("../middlewares/auth");
 const webpush = require('web-push');
 
 const router = express.Router();
@@ -11,8 +11,8 @@ const router = express.Router();
 // Configuration Web Push
 webpush.setVapidDetails(
   'mailto:contact@lineup.app',
-  process.env.VAPID_PUBLIC_KEY || 'BK8VJuX8z0P_6G4j6V_OP7Qp1M_1F5t6H5RQP_T6v4I3G5C2c9m1M8tQ4L5F6n7K8J9O0I1U2Y3T4R5E6W7Q8A9',
-  process.env.VAPID_PRIVATE_KEY || 'u5J4I3O2Y1T8R7E6W5Q4A3S2D1F0G9H8J7K6L5M4N3B2V1C0X9Z8Y7T6R5E4W3Q2'
+  process.env.VAPID_PUBLIC_KEY || 'BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0',
+  process.env.VAPID_PRIVATE_KEY || 'TmybpfdcI33NeNluDq7JWiiLfeu4Q7PZWDR-hqIfn7s'
 );
 
 /**
