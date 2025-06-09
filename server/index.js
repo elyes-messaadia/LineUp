@@ -5,6 +5,7 @@ const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
 const { authenticateOptional } = require("./middlewares/auth");
 const Ticket = require("./models/Ticket");
+const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
 
 const app = express();
@@ -145,6 +146,17 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
 
     // Sauvegarder le ticket
     await ticket.save();
+
+    // Envoyer notification push si utilisateur authentifié
+    if (req.user && req.user._id) {
+      try {
+        await notifyNewTicket(ticket._id);
+        console.log(`🔔 Notification push envoyée pour ticket n°${ticket.number}`);
+      } catch (notificationError) {
+        console.error('⚠️ Erreur notification push:', notificationError);
+        // Ne pas faire échouer la création du ticket pour une erreur de notification
+      }
+    }
 
     // Réponse avec succès
     res.status(201).json({

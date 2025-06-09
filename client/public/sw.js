@@ -91,4 +91,92 @@ self.addEventListener('fetch', (event) => {
           });
       })
   );
+});
+
+// 🔔 Gestion des notifications push
+self.addEventListener('push', (event) => {
+  console.log('📱 Notification push reçue:', event.data?.text());
+  
+  let notificationData = {
+    title: 'LineUp',
+    body: 'Vous avez une nouvelle notification',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    tag: 'lineup-notification',
+    data: {}
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      notificationData = { ...notificationData, ...payload };
+    } catch (error) {
+      console.error('❌ Erreur lors du parsing de la notification:', error);
+      notificationData.body = event.data.text();
+    }
+  }
+
+  const notificationOptions = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    tag: notificationData.tag,
+    data: notificationData.data,
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'view',
+        title: 'Voir',
+        icon: '/icon-192x192.png'
+      },
+      {
+        action: 'dismiss',
+        title: 'Ignorer'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, notificationOptions)
+  );
+});
+
+// 🖱️ Gestion des clics sur les notifications
+self.addEventListener('notificationclick', (event) => {
+  console.log('🖱️ Clic sur la notification:', event.notification.tag);
+  
+  event.notification.close();
+
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  // Action par défaut ou action 'view'
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      // Si une fenêtre est déjà ouverte, la focus
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      
+      // Sinon ouvrir une nouvelle fenêtre
+      if (clients.openWindow) {
+        const targetUrl = event.notification.data?.url || '/';
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+
+// 🔕 Gestion de la fermeture des notifications
+self.addEventListener('notificationclose', (event) => {
+  console.log('🔕 Notification fermée:', event.notification.tag);
+  
+  // Optionnel: envoyer des statistiques d'engagement
+  if (event.notification.data?.trackClose) {
+    // Ici on pourrait envoyer une requête analytics
+    console.log('📊 Tracking fermeture notification');
+  }
 }); 

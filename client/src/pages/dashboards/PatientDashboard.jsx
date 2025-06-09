@@ -7,6 +7,9 @@ import ConfirmModal from "../../components/ConfirmModal";
 import DashboardHeader from "../../components/DashboardHeader";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
+import UserDebugPanel from "../../components/UserDebugPanel";
+import { getDisplayName } from "../../utils/userUtils";
+import NotificationSettings from "../../components/NotificationSettings";
 
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
@@ -370,6 +373,11 @@ export default function PatientDashboard() {
             >
               📋 Voir la file complète
             </button>
+          </div>
+
+          {/* Paramètres des notifications */}
+          <div className="mb-6 sm:mb-8">
+            <NotificationSettings />
           </div>
 
           {/* Actions rapides */}

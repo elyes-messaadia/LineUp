@@ -41,10 +41,20 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  lastLogin: Date,
+  lastLogin: {
+    type: Date,
+    default: null
+  },
   loginCount: {
     type: Number,
     default: 0
+  },
+  pushSubscription: {
+    endpoint: String,
+    keys: {
+      p256dh: String,
+      auth: String
+    }
   }
 }, {
   timestamps: true
