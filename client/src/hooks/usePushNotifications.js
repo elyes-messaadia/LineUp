@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import BACKEND_URL from '../config/api';
 
 const VAPID_PUBLIC_KEY = 'BK8VJuX8z0P_6G4j6V_OP7Qp1M_1F5t6H5RQP_T6v4I3G5C2c9m1M8tQ4L5F6n7K8J9O0I1U2Y3T4R5E6W7Q8A9';
 
@@ -7,6 +8,33 @@ export const usePushNotifications = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastError, setLastError] = useState(null);
+
+  // Vérifier l'abonnement existant de manière robuste
+  const checkExistingSubscription = useCallback(async () => {
+    if (!isSupported) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const existingSubscription = await registration.pushManager.getSubscription();
+      
+      // Mise à jour synchrone des états
+      if (existingSubscription) {
+        setSubscription(existingSubscription);
+        setIsSubscribed(true);
+        console.log('✅ Abonnement push détecté:', existingSubscription.endpoint.substring(0, 50) + '...');
+      } else {
+        setSubscription(null);
+        setIsSubscribed(false);
+        console.log('ℹ️ Aucun abonnement push actif');
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification de l\'abonnement:', error);
+      setSubscription(null);
+      setIsSubscribed(false);
+      setLastError(error.message);
+    }
+  }, [isSupported]);
 
   useEffect(() => {
     // Vérifier le support des notifications push
@@ -15,30 +43,17 @@ export const usePushNotifications = () => {
                        'PushManager' in window && 
                        'Notification' in window;
       setIsSupported(supported);
-    };
-
-    // Vérifier l'abonnement existant
-    const checkExistingSubscription = async () => {
-      if (!isSupported) return;
-
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const existingSubscription = await registration.pushManager.getSubscription();
-        
-        if (existingSubscription) {
-          setSubscription(existingSubscription);
-          setIsSubscribed(true);
-        }
-      } catch (error) {
-        console.error('❌ Erreur lors de la vérification de l\'abonnement:', error);
-      }
+      console.log(`🔔 Support notifications push: ${supported ? '✅' : '❌'}`);
     };
 
     checkSupport();
+  }, []);
+
+  useEffect(() => {
     if (isSupported) {
       checkExistingSubscription();
     }
-  }, [isSupported]);
+  }, [isSupported, checkExistingSubscription]);
 
   // Convertir la clé VAPID en Uint8Array
   const urlBase64ToUint8Array = (base64String) => {
@@ -56,18 +71,24 @@ export const usePushNotifications = () => {
     return outputArray;
   };
 
-  // S'abonner aux notifications
+  // S'abonner aux notifications - Version améliorée
   const subscribe = async () => {
     if (!isSupported) {
-      throw new Error('Les notifications push ne sont pas supportées');
+      const error = 'Les notifications push ne sont pas supportées';
+      setLastError(error);
+      return { success: false, message: error };
     }
 
     setIsLoading(true);
+    setLastError(null);
+
     try {
       // Demander la permission
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        throw new Error('Permission refusée pour les notifications');
+        const error = 'Permission refusée pour les notifications';
+        setLastError(error);
+        return { success: false, message: error };
       }
 
       // Obtenir le service worker
@@ -79,9 +100,11 @@ export const usePushNotifications = () => {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
 
+      console.log('📱 Nouvel abonnement créé:', newSubscription.endpoint.substring(0, 50) + '...');
+
       // Envoyer l'abonnement au serveur
       const token = localStorage.getItem('token');
-      const response = await fetch('/auth/push/subscribe', {
+      const response = await fetch(`${BACKEND_URL}/auth/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,33 +116,43 @@ export const usePushNotifications = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'enregistrement sur le serveur');
+        const errorText = await response.text();
+        throw new Error(`Erreur serveur: ${response.status} - ${errorText}`);
       }
 
+      // ✅ Mise à jour des états SEULEMENT après succès complet
       setSubscription(newSubscription);
       setIsSubscribed(true);
       
+      console.log('✅ Abonnement push activé avec succès');
       return { success: true, message: 'Notifications activées avec succès!' };
     } catch (error) {
       console.error('❌ Erreur lors de l\'abonnement:', error);
+      setLastError(error.message);
+      
+      // En cas d'erreur, s'assurer que les états sont cohérents
+      await checkExistingSubscription();
+      
       return { success: false, message: error.message };
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Se désabonner des notifications
+  // Se désabonner des notifications - Version améliorée et plus robuste
   const unsubscribe = async () => {
-    if (!subscription) return;
+    if (!subscription) {
+      console.log('⚠️ Aucun abonnement à supprimer');
+      return { success: true, message: 'Aucun abonnement actif' };
+    }
 
     setIsLoading(true);
+    setLastError(null);
+
     try {
-      // Désabonner côté client
-      await subscription.unsubscribe();
-      
-      // Désabonner côté serveur
+      // 1. D'abord désabonner côté serveur
       const token = localStorage.getItem('token');
-      const response = await fetch('/auth/push/unsubscribe', {
+      const response = await fetch(`${BACKEND_URL}/auth/push/unsubscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,26 +161,47 @@ export const usePushNotifications = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du désabonnement sur le serveur');
+        const errorText = await response.text();
+        throw new Error(`Erreur serveur: ${response.status} - ${errorText}`);
       }
 
+      // 2. Ensuite désabonner côté client
+      const unsubscribeSuccess = await subscription.unsubscribe();
+      console.log('📱 Désabonnement client:', unsubscribeSuccess ? '✅' : '❌');
+
+      // 3. ✅ Mise à jour immédiate des états après succès
       setSubscription(null);
       setIsSubscribed(false);
       
-      return { success: true, message: 'Notifications désactivées' };
+      console.log('✅ Notifications désactivées avec succès');
+      return { success: true, message: 'Notifications désactivées avec succès' };
     } catch (error) {
       console.error('❌ Erreur lors du désabonnement:', error);
+      setLastError(error.message);
+      
+      // En cas d'erreur, revérifier l'état réel
+      await checkExistingSubscription();
+      
       return { success: false, message: error.message };
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Fonction pour forcer la vérification (utile pour débugger)
+  const refreshStatus = useCallback(async () => {
+    console.log('🔄 Rafraîchissement statut notifications...');
+    await checkExistingSubscription();
+  }, [checkExistingSubscription]);
+
   return {
     isSupported,
     isSubscribed,
     isLoading,
+    lastError,
+    subscription,
     subscribe,
-    unsubscribe
+    unsubscribe,
+    refreshStatus
   };
 }; 

@@ -10,6 +10,7 @@ import BACKEND_URL from "../../config/api";
 import UserDebugPanel from "../../components/UserDebugPanel";
 import { getDisplayName } from "../../utils/userUtils";
 import NotificationSettings from "../../components/NotificationSettings";
+import PushTestPanel from "../../components/PushTestPanel";
 
 export default function PatientDashboard() {
   const [user, setUser] = useState(null);
@@ -378,6 +379,7 @@ export default function PatientDashboard() {
           {/* Paramètres des notifications */}
           <div className="mb-6 sm:mb-8">
             <NotificationSettings />
+            <PushTestPanel />
           </div>
 
           {/* Actions rapides */}
