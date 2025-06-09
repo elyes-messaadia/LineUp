@@ -3,6 +3,8 @@ import BACKEND_URL from '../config/api';
 
 const VAPID_PUBLIC_KEY = 'BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0';
 
+console.log('🔔 Push Notifications Hook - Backend URL:', BACKEND_URL);
+
 export const usePushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);

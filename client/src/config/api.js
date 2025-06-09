@@ -1,20 +1,19 @@
-// Configuration API centralisée - FIX URGENT
-const API_URL = import.meta.env.VITE_API_URL || (
-  import.meta.env.MODE === 'development' 
-    ? 'http://localhost:5000' 
-    : 'https://lineup-backend-xxak.onrender.com'
-);
+// Configuration API centralisée - FORCER LOCALHOST EN DEV
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isViteDev = import.meta.env.MODE === 'development';
 
-// FORCE la bonne URL en production
-const BACKEND_URL = import.meta.env.MODE === 'production' 
-  ? 'https://lineup-backend-xxak.onrender.com'
-  : API_URL;
-
-console.log('🔧 API Configuration:', { 
-  env: import.meta.env.VITE_API_URL, 
-  forced: BACKEND_URL,
-  mode: import.meta.env.MODE,
-  isDev: import.meta.env.MODE === 'development'
+console.log('🔧 Mode détection:', {
+  hostname: window.location.hostname,
+  viteDev: isViteDev,
+  isDev: isDevelopment,
+  viteEnv: import.meta.env.VITE_API_URL
 });
+
+// FORCER localhost si on est en développement
+const BACKEND_URL = isDevelopment || isViteDev
+  ? 'http://localhost:5000'
+  : 'https://lineup-backend-xxak.onrender.com';
+
+console.log('🎯 API URL sélectionnée:', BACKEND_URL);
 
 export default BACKEND_URL; 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useToast } from '../hooks/useToast';
+import BACKEND_URL from '../config/api';
 
 export default function NotificationSettings() {
   const { 
@@ -189,24 +190,25 @@ export default function NotificationSettings() {
               </div>
             )}
 
-            {/* Panel de développement pour debug */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="border-t border-gray-100 pt-4">
-                <div className="text-xs text-gray-400 space-y-2">
-                  <p><strong>Debug:</strong></p>
-                  <p>Support: {isSupported ? '✅' : '❌'}</p>
-                  <p>Abonné: {isSubscribed ? '✅' : '❌'}</p>
-                  <p>Loading: {isActuallyLoading ? '✅' : '❌'}</p>
-                  <button
-                    onClick={handleRefreshStatus}
-                    disabled={isActuallyLoading}
-                    className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    🔄 Rafraîchir statut
-                  </button>
-                </div>
-              </div>
-            )}
+                         {/* Panel de développement pour debug */}
+             {process.env.NODE_ENV === 'development' && (
+               <div className="border-t border-gray-100 pt-4">
+                 <div className="text-xs text-gray-400 space-y-2">
+                   <p><strong>Debug:</strong></p>
+                   <p>Support: {isSupported ? '✅' : '❌'}</p>
+                   <p>Abonné: {isSubscribed ? '✅' : '❌'}</p>
+                   <p>Loading: {isActuallyLoading ? '✅' : '❌'}</p>
+                   <p>API URL: <span className="text-blue-600 font-mono text-xs">{BACKEND_URL}</span></p>
+                   <button
+                     onClick={handleRefreshStatus}
+                     disabled={isActuallyLoading}
+                     className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                   >
+                     🔄 Rafraîchir statut
+                   </button>
+                 </div>
+               </div>
+             )}
           </div>
         </div>
       )}
