@@ -87,8 +87,8 @@ export default function DoctorDashboard({ doctorId }) {
     setUser(parsedUser);
     loadQueue();
 
-    // Actualiser toutes les 3 secondes
-    const interval = setInterval(loadQueue, 3000);
+    // Actualiser toutes les 8 secondes (plus respectueux du backend gratuit)
+    const interval = setInterval(loadQueue, 8000);
     return () => clearInterval(interval);
   }, [navigate, loadQueue, doctorId]); // Ajouter doctorId comme dépendance
 

@@ -185,8 +185,8 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
     // Fetch initial immédiat
     fetchQueue();
     
-    // Démarrer le polling
-    startPolling(3000); // Toutes les 3 secondes
+    // Démarrer le polling avec un intervalle plus intelligent
+    startPolling(8000); // Toutes les 8 secondes pour éviter de réveiller le backend trop souvent
     
     // Cleanup
     return () => {
