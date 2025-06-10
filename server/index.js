@@ -85,7 +85,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       
       // Pour les patients authentifiés, le docteur n'est pas obligatoire (sera assigné par défaut)
       if (req.user.role.name === 'patient' && !docteur) {
-        finalDocteur = 'Docteur 1'; // Docteur par défaut
+        finalDocteur = 'dr-husni-said-habibi'; // Docteur par défaut
       }
     } else {
       // Mode anonyme : vérifier que le docteur est spécifié
@@ -99,10 +99,10 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     }
 
     // Validation du docteur
-    if (!['Docteur 1', 'Docteur 2', 'Docteur 3'].includes(finalDocteur)) {
+    if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(finalDocteur)) {
       return res.status(400).json({ 
         success: false,
-        message: "Le docteur doit être l'un des suivants : Docteur 1, Docteur 2, Docteur 3"
+        message: "Le docteur doit être l'un des suivants : Dr. Husni SAID HABIBI, Dr. Helios BLASCO, Dr. Jean-Eric PANACCIULLI"
       });
     }
 
@@ -363,6 +363,48 @@ app.delete("/reset", async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de la réinitialisation:", error);
     res.status(500).json({ message: "Erreur lors de la réinitialisation" });
+  }
+});
+
+// 📣 Appeler un ticket spécifique en consultation
+app.patch("/ticket/:id/call", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket non trouvé" });
+    }
+    
+    if (ticket.status !== "en_attente") {
+      return res.status(400).json({ message: "Le ticket n'est pas en attente" });
+    }
+
+    // Vérifier qu'aucun autre patient n'est déjà en consultation
+    const currentConsultation = await Ticket.findOne({ status: "en_consultation" });
+    if (currentConsultation) {
+      return res.status(400).json({ 
+        message: "Un patient est déjà en consultation",
+        currentPatient: currentConsultation
+      });
+    }
+
+    // Sauvegarder l'ancien statut pour la notification
+    const previousStatus = ticket.status;
+    
+    // Mettre le ticket en consultation
+    ticket.status = "en_consultation";
+    await ticket.save();
+
+    res.json({ 
+      updated: ticket,
+      notification: {
+        previousStatus,
+        type: "patient_appele",
+        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet"
+      }
+    });
+  } catch (error) {
+    console.error("Erreur lors de l'appel du ticket:", error);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 });
 

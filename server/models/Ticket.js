@@ -14,7 +14,7 @@ const ticketSchema = new mongoose.Schema({
   docteur: {
     type: String,
     required: true,
-    enum: ['Docteur 1', 'Docteur 2', 'Docteur 3']
+    enum: ['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli']
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

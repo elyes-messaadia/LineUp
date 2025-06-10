@@ -8,6 +8,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 import UserDebugPanel from "../../components/UserDebugPanel";
+import { DOCTEURS, getDoctorDisplayName } from "../../config/doctors";
 import { getDisplayName } from "../../utils/userUtils";
 import NotificationSettings from "../../components/NotificationSettings";
 import PushTestPanel from "../../components/PushTestPanel";
@@ -23,11 +24,7 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
-  const DOCTEURS = [
-    { value: 'Docteur 1', label: 'Dr. Martin (Médecin généraliste)', emoji: '👨‍⚕️', disponible: true },
-    { value: 'Docteur 2', label: 'Dr. Dubois (Spécialiste cardio)', emoji: '❤️', disponible: true },
-    { value: 'Docteur 3', label: 'Dr. Rousseau (Médecin familial)', emoji: '👩‍⚕️', disponible: false }
-  ];
+
 
   const loadQueue = useCallback(async () => {
     try {
@@ -283,7 +280,7 @@ export default function PatientDashboard() {
                   <div className="bg-white rounded-lg p-3 border border-yellow-300 sm:col-span-2">
                     <span className="text-xs sm:text-sm text-yellow-600 font-medium">Médecin assigné</span>
                     <p className="text-sm text-yellow-700 font-semibold">
-                      {DOCTEURS.find(d => d.value === myTicket.docteur)?.label || myTicket.docteur}
+                      👨‍⚕️ {getDoctorDisplayName(myTicket.docteur) || myTicket.docteur}
                     </p>
                   </div>
                 )}

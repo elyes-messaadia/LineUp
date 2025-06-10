@@ -7,6 +7,7 @@ import { useToast } from "../hooks/useToast";
 import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
 import BACKEND_URL from "../config/api";
+import { getDoctorDisplayName } from "../config/doctors";
 
 // Constantes
 const API_URL = BACKEND_URL;
@@ -194,7 +195,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
             </div>
             {/* Docteur */}
             <div className="text-xs sm:text-sm text-gray-500 legacy-text-secondary truncate">
-              {ticket.docteur || 'Docteur général'}
+              👨‍⚕️ {getDoctorDisplayName(ticket.docteur) || 'Docteur général'}
             </div>
           </div>
         </div>

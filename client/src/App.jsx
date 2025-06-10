@@ -27,12 +27,18 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDebugPanel from "./components/UserDebugPanel";
 import { getDisplayName } from "./utils/userUtils";
+import { getDoctorDashboardRoute } from "./utils/doctorMapping";
 
 // Dashboards par rôle
 import PatientDashboard from "./pages/dashboards/PatientDashboard";
 import VisiteurDashboard from "./pages/dashboards/VisiteurDashboard";
 import MedecinDashboard from "./pages/dashboards/MedecinDashboard";
 import SecretaireDashboard from "./pages/dashboards/SecretaireDashboard";
+
+// Dashboards spécifiques des médecins
+import DrHusniDashboard from "./pages/dashboards/DrHusniDashboard";
+import DrHeliosDashboard from "./pages/dashboards/DrHeliosDashboard";
+import DrJeanEricDashboard from "./pages/dashboards/DrJeanEricDashboard";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated"));
@@ -149,7 +155,7 @@ function App() {
                   
                   {/* Bouton Mon espace */}
                   <Link 
-                    to={`/dashboard/${user.role?.name}`}
+                    to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <span>📊</span>
@@ -257,7 +263,7 @@ function App() {
                 {/* Actions utilisateur - Grid sur écrans moyens */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <Link 
-                    to={`/dashboard/${user.role?.name}`}
+                    to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors touch-target-large"
                   >
@@ -321,6 +327,11 @@ function App() {
             <Route path="/dashboard/visiteur" element={<VisiteurDashboard />} />
             <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
             <Route path="/dashboard/secretaire" element={<SecretaireDashboard />} />
+            
+            {/* Dashboards spécifiques des médecins */}
+            <Route path="/dashboard/dr-husni-said-habibi" element={<DrHusniDashboard />} />
+            <Route path="/dashboard/dr-helios-blasco" element={<DrHeliosDashboard />} />
+            <Route path="/dashboard/dr-jean-eric-panacciulli" element={<DrJeanEricDashboard />} />
           </Routes>
         </div>
       </main>

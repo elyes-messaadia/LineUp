@@ -9,12 +9,7 @@ import Card from "../components/ui/Card";
 import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
-
-  const DOCTEURS = [
-    { value: 'Docteur 1', label: 'Dr. Martin (Médecin généraliste)', emoji: '👨‍⚕️', disponible: true },
-    { value: 'Docteur 2', label: 'Dr. Dubois (Spécialiste cardio)', emoji: '❤️', disponible: true },
-    { value: 'Docteur 3', label: 'Dr. Rousseau (Médecin familial)', emoji: '👩‍⚕️', disponible: false }
-  ];
+import { DOCTEURS } from "../config/doctors";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
