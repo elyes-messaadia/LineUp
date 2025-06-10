@@ -268,28 +268,23 @@ export default function SecretaireDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="dashboard-container overflow-protection">
-          {/* En-tête secrétaire moderne */}
+        <div className="dashboard-container container-safe overflow-protection">
+          {/* En-tête du dashboard */}
           <div className="dashboard-card mb-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h1 className="dashboard-title text-pink-800">
-                  👩‍💼 Espace Secrétaire
+                <h1 className="dashboard-title text-purple-800 text-overflow-safe">
+                  🏥 Interface Secrétaire
                 </h1>
-                <p className="dashboard-subtitle">
-                  Bienvenue {user.fullName || 
-                            (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
-                            user.firstName || 
-                            user.lastName || 
-                            user.email?.split('@')[0] || 
-                            'utilisateur'}
+                <p className="dashboard-subtitle text-overflow-safe">
+                  Gestion des rendez-vous et de la file d'attente
                 </p>
               </div>
               <button
-                onClick={handleLogout}
-                className="action-button action-button-secondary text-responsive-sm"
+                onClick={() => navigate('/')}
+                className="action-button action-button-secondary text-overflow-safe"
               >
-                🔒 Déconnexion
+                🏠 Retour à l'accueil
               </button>
             </div>
           </div>

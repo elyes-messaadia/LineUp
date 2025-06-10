@@ -280,274 +280,217 @@ export default function PatientDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="dashboard-container overflow-protection">
-          {/* En-tête utilisateur moderne */}
-          <div className="dashboard-card mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="dashboard-title text-blue-800">
-                  🩺 Espace Patient
-                </h1>
-                <p className="dashboard-subtitle">
-                  Bienvenue {getDisplayName(user)} !
-                </p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="action-button action-button-secondary text-responsive-sm"
-              >
-                🔒 Déconnexion
-              </button>
-            </div>
+        <div className="dashboard-container container-safe overflow-protection">
+          {/* En-tête du dashboard */}
+          <div className="mb-6">
+            <h1 className="dashboard-title text-overflow-safe">
+              Bienvenue, {user.nom} {user.prenom}
+            </h1>
+            <p className="dashboard-subtitle text-overflow-safe">
+              Votre numéro de patient : {user.numero}
+            </p>
           </div>
 
-          <Toast toasts={toasts} onRemoveToast={removeToast} />
-
-          <UserDebugPanel 
-            currentUser={user} 
-            currentTicket={myTicket}
-            queue={queue}
-          />
-
-          {/* Mon ticket actuel - Section responsive moderne */}
-          {myTicket ? (
-            <div className="alert-card bg-yellow-50 border border-yellow-200">
-              <h2 className="dashboard-title text-yellow-800 mb-4">
-                🎫 Mon ticket actuel
-              </h2>
-              
-              {/* Informations du ticket - Grid moderne */}
-              <div className="info-grid mb-4">
-                <div className="stats-card border-yellow-300">
-                  <span className="text-responsive-sm text-yellow-600 font-medium">Numéro</span>
-                  <p className="stats-number text-yellow-800">
-                    #{myTicket.number || 'N/A'}
-                  </p>
-                </div>
-                <div className="stats-card border-yellow-300">
-                  <span className="text-responsive-sm text-yellow-600 font-medium">Statut</span>
-                  <p className="text-responsive-base font-semibold text-yellow-800">
-                    {myTicket.status === "en_attente" ? "⏱️ En attente" :
-                     myTicket.status === "en_consultation" ? "🩺 En consultation" :
-                     myTicket.status === "termine" ? "✅ Terminé" : 
-                     myTicket.status === "desiste" ? "❌ Désisté" : "❌ Annulé"}
-                  </p>
-                </div>
-                {myPosition && (
-                  <div className="stats-card border-yellow-300 sm:col-span-2">
-                    <span className="text-responsive-sm text-yellow-600 font-medium">Position dans la file</span>
-                    <p className="stats-number text-yellow-800">#{myPosition}</p>
-                  </div>
-                )}
-                {myTicket.docteur && (
-                  <div className="stats-card border-yellow-300 sm:col-span-2">
-                    <span className="text-responsive-sm text-yellow-600 font-medium">Médecin assigné</span>
-                    <p className="text-responsive-base text-yellow-700 font-semibold">
-                      👨‍⚕️ {getDoctorDisplayName(myTicket.docteur) || myTicket.docteur}
+          {/* Affichage du ticket actuel si il y en a un */}
+          {myTicket && (
+            <div className="alert-card bg-blue-50 border-l-4 border-blue-400 text-overflow-safe">
+              <div className="p-1">
+                <div className="flex items-center">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-responsive-lg font-medium text-blue-800 text-overflow-safe">
+                      Ticket en cours : #{myTicket.number}
+                    </p>
+                    <p className="text-responsive-base text-blue-700 text-overflow-safe">
+                      {myTicket.status === 'appelé' ? '🔔 Vous êtes appelé(e) !' : 
+                       myTicket.status === 'en_cours' ? '⏳ Consultation en cours' : 
+                       `📍 Position dans la file : ${myPosition || 'N/A'}`}
+                    </p>
+                    <p className="text-responsive-sm text-blue-600 text-overflow-safe">
+                      Docteur {getDoctorDisplayName(myTicket.docteur) || myTicket.docteur}
                     </p>
                   </div>
-                )}
-                <div className="stats-card border-yellow-300 sm:col-span-2">
-                  <span className="text-responsive-sm text-yellow-600 font-medium">Créé le</span>
-                  <p className="text-responsive-sm text-yellow-700">
-                    {myTicket.createdAt ? 
-                      new Date(myTicket.createdAt).toLocaleString('fr-FR', {
-                        day: '2-digit',
-                        month: '2-digit', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 
-                      'Date non disponible'
-                    }
-                  </p>
                 </div>
               </div>
-
-              {/* Actions selon le statut */}
-              {myTicket.status === "en_attente" && (
-                <div className="dashboard-nav mt-4">
-                  <button
-                    onClick={() => navigate("/queue")}
-                    className="action-button action-button-success w-full sm:w-auto"
-                  >
-                    📋 Voir ma position en temps réel
-                  </button>
-                  <button
-                    onClick={handleCancelTicket}
-                    disabled={isLoading}
-                    className="action-button action-button-danger w-full sm:w-auto"
-                  >
-                    ❌ Annuler mon ticket
-                  </button>
-                </div>
-              )}
-
-              {myTicket.status === "en_consultation" && (
-                <div className="mt-4 alert-card bg-green-100 border border-green-300">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">🩺</div>
-                    <div>
-                      <p className="text-green-800 font-semibold text-responsive-base">
-                        Vous êtes en consultation !
-                      </p>
-                      <p className="text-green-700 text-responsive-sm">
-                        Rendez-vous chez le médecin
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="dashboard-card text-center">
-              <div className="text-4xl sm:text-6xl mb-4">🎫</div>
-              <h2 className="dashboard-title text-gray-800 mb-3">
-                Aucun ticket actif
-              </h2>
-              <p className="dashboard-subtitle mb-6 max-w-md mx-auto">
-                Vous n'avez pas de ticket en cours. Prenez un ticket pour rejoindre la file d'attente.
-              </p>
-              <button
-                onClick={handleTakeTicket}
-                disabled={isLoading}
-                className="action-button action-button-primary w-full sm:w-auto"
-              >
-                {isLoading ? (
-                  <>
-                    <span className="animate-spin inline-block mr-2">⏳</span>
-                    Création...
-                  </>
-                ) : (
-                  "🎟️ Prendre un ticket"
-                )}
-              </button>
             </div>
           )}
 
-          {/* Statistiques de la file - Section moderne */}
-          <div className="dashboard-card">
-            <h3 className="dashboard-title text-gray-800 mb-4">
-              📊 État de la file d'attente
-            </h3>
-            
-            {/* Grid des statistiques modernes */}
-            <div className="stats-grid mb-6">
-              <div className="stats-card border-blue-200">
-                <div className="stats-number text-blue-600">{waitingCount}</div>
-                <div className="stats-label">En attente</div>
-              </div>
-              <div className="stats-card border-green-200">
-                <div className="stats-number text-green-600">
-                  {queue.filter(t => t.status === "en_consultation").length}
+          {/* Informations détaillées du ticket actuel */}
+          {myTicket && (
+            <div className="dashboard-section">
+              <h2 className="dashboard-section-title text-overflow-safe">Informations de votre consultation</h2>
+              <div className="info-grid">
+                <div className="stats-card">
+                  <div className="stats-number text-overflow-safe">#{myTicket.number}</div>
+                  <div className="stats-label text-overflow-safe">Numéro de ticket</div>
                 </div>
-                <div className="stats-label">En consultation</div>
-              </div>
-              <div className="stats-card border-gray-200">
-                <div className="stats-number text-gray-600">
-                  {queue.filter(t => t.status === "termine").length}
+                
+                <div className="stats-card">
+                  <div className="stats-number text-overflow-safe">{myPosition || 'N/A'}</div>
+                  <div className="stats-label text-overflow-safe">Position dans la file</div>
                 </div>
-                <div className="stats-label">Terminés</div>
+                
+                <div className="stats-card">
+                  <div className="stats-number text-overflow-safe">{myTicket.status === 'appelé' ? '🔔 Vous êtes appelé(e) !' : 
+                   myTicket.status === 'en_cours' ? '⏳ Consultation en cours' : 
+                   `📍 Position dans la file : ${myPosition || 'N/A'}`}</div>
+                  <div className="stats-label text-overflow-safe">Statut actuel</div>
+                </div>
+                
+                <div className="stats-card">
+                  <div className="stats-number text-overflow-safe">{myTicket.tempsAttenteEstime || 'Calcul...'}</div>
+                  <div className="stats-label text-overflow-safe">Temps d'attente estimé</div>
+                </div>
               </div>
             </div>
-            
-            <button
-              onClick={() => navigate("/queue")}
-              className="action-button action-button-secondary w-full"
-            >
-              📋 Voir la file complète
-            </button>
-          </div>
+          )}
 
-          {/* Paramètres des notifications */}
+          {/* Statistiques de la file d'attente */}
+          {queue && (
+            <div className="dashboard-section">
+              <h2 className="dashboard-section-title text-overflow-safe">État de la file d'attente</h2>
+              <div className="stats-grid">
+                <div className="stats-card">
+                  <div className="stats-number text-blue-600 text-overflow-safe">{waitingCount}</div>
+                  <div className="stats-label text-overflow-safe">Patients en attente</div>
+                </div>
+                
+                <div className="stats-card">
+                  <div className="stats-number text-green-600 text-overflow-safe">{queue.filter(t => t.status === "en_consultation").length}</div>
+                  <div className="stats-label text-overflow-safe">Consultations en cours</div>
+                </div>
+                
+                <div className="stats-card">
+                  <div className="stats-number text-orange-600 text-overflow-safe">{queue.filter(t => t.status === "termine").length}</div>
+                  <div className="stats-label text-overflow-safe">Terminés</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actions disponibles */}
           <div className="dashboard-section">
-            <NotificationSettings />
-            <PushTestPanel />
-          </div>
+            <h2 className="dashboard-section-title text-overflow-safe">Actions disponibles</h2>
+            <div className="actions-grid">
+              {!myTicket ? (
+                <button
+                  onClick={handleTakeTicket}
+                  className="action-button action-button-primary text-overflow-safe"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Traitement...' : '🎫 Prendre un ticket'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleCancelTicket}
+                  className="action-button action-button-danger text-overflow-safe"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Traitement...' : '❌ Annuler mon ticket'}
+                </button>
+              )}
 
-          {/* Actions rapides modernes */}
-          <div className="dashboard-card">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
-            <div className="dashboard-nav">
               <button
-                onClick={() => navigate("/")}
-                className="action-button action-button-secondary text-left"
+                onClick={loadQueue}
+                className="action-button action-button-secondary text-overflow-safe"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Actualisation...' : '🔄 Actualiser'}
+              </button>
+              
+              <button
+                onClick={() => navigate('/')}
+                className="action-button action-button-secondary text-overflow-safe"
               >
                 🏠 Retour à l'accueil
               </button>
+            </div>
+          </div>
+
+          {/* Navigation vers autres dashboards */}
+          <div className="dashboard-section">
+            <h2 className="dashboard-section-title text-overflow-safe">Informations complémentaires</h2>
+            <div className="dashboard-nav">
               <button
-                onClick={() => navigate("/queue")}
-                className="action-button action-button-secondary text-left"
+                onClick={() => navigate('/notifications')}
+                className="action-button action-button-secondary text-overflow-safe"
               >
-                📋 File d'attente en temps réel
+                ℹ️ Informations pratiques
+              </button>
+              
+              <button
+                onClick={() => navigate('/historique')}
+                className="action-button action-button-secondary text-overflow-safe"
+              >
+                📋 Mon historique
               </button>
             </div>
           </div>
 
-          {/* Modales responsives */}
-          {showTicketModal && (
-            <div className="modal-overlay-fullscreen">
-              <div className="modal-responsive bg-white rounded-lg p-6 accessible-shadow">
-                <h3 className="dashboard-title text-gray-800 mb-4">
-                  🎫 Prendre un ticket de consultation
-                </h3>
-                <p className="dashboard-subtitle mb-6">
-                  Choisissez le médecin que vous souhaitez consulter :
+          {/* Message d'erreur */}
+          {toasts.length > 0 && (
+            <div className="alert-card bg-red-50 border-l-4 border-red-400 text-overflow-safe">
+              <div className="p-1">
+                <p className="text-responsive-base text-red-800 text-overflow-safe">
+                  ❌ {toasts[toasts.length - 1].message}
                 </p>
-                
-                <div className="space-y-3 mb-6">
-                  {DOCTEURS.filter(doctor => doctor.disponible).map((doctor) => (
-                    <label
-                      key={doctor.value}
-                      className={`
-                        dashboard-card cursor-pointer transition-all
-                        ${selectedDoctor === doctor.value ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}
-                      `}
-                    >
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          name="doctor"
-                          value={doctor.value}
-                          checked={selectedDoctor === doctor.value}
-                          onChange={(e) => setSelectedDoctor(e.target.value)}
-                          className="mr-3 h-4 w-4 text-blue-600"
-                        />
-                        <div>
-                          <div className="text-responsive-base font-medium text-gray-900">
-                            {doctor.label}
-                          </div>
-                          <div className="text-responsive-sm text-gray-500">
-                            {doctor.specialite}
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+              </div>
+            </div>
+          )}
 
-                <div className="dashboard-nav">
-                  <button
-                    onClick={confirmTakeTicket}
-                    disabled={!selectedDoctor || isLoading}
-                    className="action-button action-button-primary flex-1"
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="animate-spin mr-2">⏳</span>
-                        Création...
-                      </>
-                    ) : (
-                      "✅ Confirmer"
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setShowTicketModal(false)}
-                    disabled={isLoading}
-                    className="action-button action-button-secondary flex-1"
-                  >
-                    ❌ Annuler
-                  </button>
+          {/* Message de succès */}
+          {toasts.length > 0 && toasts[toasts.length - 1].type === 'success' && (
+            <div className="alert-card bg-green-50 border-l-4 border-green-400 text-overflow-safe">
+              <div className="p-1">
+                <p className="text-responsive-base text-green-800 text-overflow-safe">
+                  ✅ {toasts[toasts.length - 1].message}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Modal pour prendre un ticket */}
+          {showTicketModal && (
+            <div className="modal-overlay-fullscreen animate-overlay">
+              <div className="modal-responsive animate-in bg-white p-6 rounded-lg shadow-xl">
+                <h2 className="dashboard-title mb-4 text-overflow-safe">Prendre un ticket</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-responsive-base font-medium text-gray-700 mb-2 text-overflow-safe">
+                      Choisir un docteur
+                    </label>
+                    <select
+                      value={selectedDoctor}
+                      onChange={(e) => setSelectedDoctor(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-overflow-safe"
+                      required
+                    >
+                      <option value="">-- Sélectionner un docteur --</option>
+                      {DOCTEURS.filter(doctor => doctor.disponible).map((doctor) => (
+                        <option key={doctor.value} value={doctor.value} className="text-overflow-safe">
+                          Dr. {doctor.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="actions-grid">
+                    <button
+                      onClick={confirmTakeTicket}
+                      disabled={!selectedDoctor || isLoading}
+                      className="action-button action-button-primary text-overflow-safe"
+                    >
+                      {isLoading ? 'Création...' : '✅ Confirmer'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowTicketModal(false);
+                        setSelectedDoctor('');
+                      }}
+                      className="action-button action-button-secondary text-overflow-safe"
+                    >
+                      ❌ Annuler
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

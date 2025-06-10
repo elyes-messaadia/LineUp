@@ -97,204 +97,319 @@ export default function VisiteurDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="dashboard-container overflow-protection">
-          {/* En-tête utilisateur moderne */}
-          <div className="dashboard-card mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="dashboard-title text-purple-800">
-                  👁️ Espace Visiteur
-                </h1>
-                <p className="dashboard-subtitle">
-                  Bienvenue {user.fullName}
+        <div className="dashboard-container container-safe overflow-protection">
+          {/* En-tête du dashboard */}
+          <div className="mb-6">
+            <h1 className="dashboard-title text-overflow-safe">
+              👁️ Vue visiteur - File d'attente en temps réel
+            </h1>
+            <p className="dashboard-subtitle text-overflow-safe">
+              Consultez l'état actuel de la file d'attente sans vous identifier
+            </p>
+          </div>
+
+          {/* Statistiques générales */}
+          <div className="dashboard-section">
+            <h2 className="dashboard-section-title text-overflow-safe">Statistiques en temps réel</h2>
+            <div className="stats-grid">
+              <div className="stats-card">
+                <div className="stats-number text-blue-600 text-overflow-safe">{stats.total}</div>
+                <div className="stats-label text-overflow-safe">Total patients en file</div>
+              </div>
+              
+              <div className="stats-card">
+                <div className="stats-number text-green-600 text-overflow-safe">{stats.enConsultation}</div>
+                <div className="stats-label text-overflow-safe">En consultation</div>
+              </div>
+              
+              <div className="stats-card">
+                <div className="stats-number text-orange-600 text-overflow-safe">{stats.enAttente}</div>
+                <div className="stats-label text-overflow-safe">En attente</div>
+              </div>
+              
+              <div className="stats-card">
+                <div className="stats-number text-purple-600 text-overflow-safe">{stats.tempsAttenteMoyen}</div>
+                <div className="stats-label text-overflow-safe">Temps d'attente moyen</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Analyse de la journée */}
+          <div className="dashboard-section">
+            <h2 className="dashboard-section-title text-overflow-safe">Analyse de la journée</h2>
+            <div className="info-grid">
+              <div className="stats-card">
+                <div className="stats-number text-indigo-600 text-overflow-safe">{analyseDuJour.tauxOccupation}%</div>
+                <div className="stats-label text-overflow-safe">Taux d'occupation</div>
+              </div>
+              
+              <div className="stats-card">
+                <div className="stats-number text-teal-600 text-overflow-safe">{analyseDuJour.patientsTraites}</div>
+                <div className="stats-label text-overflow-safe">Patients traités</div>
+              </div>
+              
+              <div className="stats-card">
+                <div className="stats-number text-rose-600 text-overflow-safe">{analyseDuJour.consultationLaPlusLongue}</div>
+                <div className="stats-label text-overflow-safe">Consultation la plus longue</div>
+              </div>
+            </div>
+          </div>
+
+          {/* File d'attente détaillée */}
+          <div className="dashboard-section">
+            <h2 className="dashboard-section-title text-overflow-safe">File d'attente actuelle</h2>
+            
+            {loading ? (
+              <div className="dashboard-card text-center">
+                <div className="text-4xl mb-4">⏳</div>
+                <p className="text-responsive-base text-gray-600 text-overflow-safe">
+                  Chargement des données en cours...
                 </p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="action-button action-button-secondary text-responsive-sm"
-              >
-                🔒 Déconnexion
-              </button>
-            </div>
-          </div>
-
-          <Toast toasts={toasts} onRemoveToast={removeToast} />
-
-          {/* Statistiques générales modernes */}
-          <div className="dashboard-card mb-6">
-            <h2 className="dashboard-title text-gray-800 mb-4">
-              📊 Statistiques en temps réel
-            </h2>
-            <div className="stats-grid">
-              <div className="stats-card border-blue-200 accessible-shadow">
-                <div className="stats-number text-blue-600">{waitingCount}</div>
-                <div className="stats-label">En attente</div>
-              </div>
-              <div className="stats-card border-green-200 accessible-shadow">
-                <div className="stats-number text-green-600">{inConsultationCount}</div>
-                <div className="stats-label">En consultation</div>
-              </div>
-              <div className="stats-card border-gray-200 accessible-shadow">
-                <div className="stats-number text-gray-600">{completedToday}</div>
-                <div className="stats-label">Terminées</div>
-              </div>
-              <div className="stats-card border-yellow-200 accessible-shadow">
-                <div className="stats-number text-yellow-600">{totalToday}</div>
-                <div className="stats-label">Total du jour</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Temps d'attente estimé */}
-          {waitingCount > 0 && (
-            <div className="alert-card bg-orange-50 border border-orange-200">
-              <h3 className="text-responsive-lg font-semibold text-orange-800 mb-2">⏱️ Temps d'attente estimé</h3>
-              <p className="text-responsive-base text-orange-700">
-                Si vous preniez un ticket maintenant, vous seriez en position <strong>{waitingCount + 1}</strong> 
-                {" "}avec une attente d'environ <strong>{getEstimatedTime(waitingCount + 1)}</strong>.
-              </p>
-            </div>
-          )}
-
-          {/* File d'attente en temps réel */}
-          <div className="dashboard-card">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
-              <h2 className="text-responsive-lg font-semibold text-gray-800">
-                📋 File d'attente en temps réel
-              </h2>
-              <span className="text-responsive-sm text-gray-500">
-                Mise à jour : {new Date(currentTime).toLocaleTimeString()}
-              </span>
-            </div>
-
-            {queueLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin text-2xl mb-2">⏳</div>
-                <p className="text-responsive-sm text-gray-500">Chargement de la file d'attente...</p>
-              </div>
-            ) : queue.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">🎯</div>
-                <p className="text-responsive-base">Aucun patient dans la file d'attente</p>
+            ) : tickets.length > 0 ? (
+              <div className="dashboard-grid">
+                {tickets.map((ticket, index) => (
+                  <div key={ticket.id} className="ticket-card">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-responsive-lg font-semibold text-overflow-safe">
+                          Position #{index + 1}
+                        </h3>
+                        <p className="text-responsive-base text-gray-600 text-overflow-safe">
+                          Ticket #{ticket.numero}
+                        </p>
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-overflow-safe ${
+                          ticket.status === 'appelé' ? 'bg-green-100 text-green-800' :
+                          ticket.status === 'en_cours' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {getStatusDisplay(ticket.status)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="info-grid">
+                      <div>
+                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Docteur</p>
+                        <p className="text-responsive-base font-medium text-overflow-safe">
+                          Dr. {ticket.docteurNom}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Cabinet</p>
+                        <p className="text-responsive-base font-medium text-overflow-safe">
+                          {ticket.cabinetNom}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Temps d'attente</p>
+                        <p className="text-responsive-base font-medium text-overflow-safe">
+                          {ticket.tempsAttenteActuel || 'Calcul...'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Heure création</p>
+                        <p className="text-responsive-base font-medium text-overflow-safe">
+                          {new Date(ticket.heureCreation).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Indicateur visuel pour les tickets prioritaires */}
+                    {ticket.priorite && (
+                      <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded">
+                        <p className="text-responsive-sm text-red-700 text-overflow-safe">
+                          🚨 Prioritaire : {ticket.priorite}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {queue
-                  .filter(t => t.status !== "desiste") // Masquer les tickets annulés
-                  .map((ticket, index) => {
-                    let statusInfo;
-                    let bgColor;
-                    
-                    switch (ticket.status) {
-                      case "en_consultation":
-                        statusInfo = { text: "En consultation", color: "text-green-700", bg: "bg-green-100" };
-                        bgColor = "bg-green-50 border-green-200";
-                        break;
-                      case "termine":
-                        statusInfo = { text: "Terminé", color: "text-gray-700", bg: "bg-gray-100" };
-                        bgColor = "bg-gray-50 border-gray-200";
-                        break;
-                      default: // en_attente
-                        const position = queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1;
-                        statusInfo = { 
-                          text: position ? `Position ${position}` : "En attente", 
-                          color: "text-blue-700", 
-                          bg: "bg-blue-100" 
-                        };
-                        bgColor = "bg-blue-50 border-blue-200";
-                    }
-
-                    return (
-                      <div key={ticket._id} className={`ticket-card ${bgColor}`}>
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                          <div className="flex items-center gap-3">
-                            <span className="text-responsive-base font-semibold text-gray-800">
-                              🎫 Ticket n°{ticket.number}
-                            </span>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.color}`}>
-                              {statusInfo.text}
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col sm:items-end gap-1">
-                            {ticket.user && (
-                              <div className="text-responsive-sm text-gray-600">
-                                👤 {ticket.user.fullName}
-                              </div>
-                            )}
-                            {ticket.docteur && (
-                              <div className="text-responsive-sm text-gray-600">
-                                👨‍⚕️ {ticket.docteur}
-                              </div>
-                            )}
-                            <div className="text-responsive-sm text-gray-500">
-                              ⏰ {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div className="dashboard-card text-center">
+                <div className="text-4xl mb-4">📭</div>
+                <h3 className="text-responsive-lg font-semibold text-gray-800 mb-2 text-overflow-safe">
+                  Aucun patient en attente
+                </h3>
+                <p className="text-responsive-base text-gray-600 text-overflow-safe">
+                  La file d'attente est actuellement vide.
+                </p>
               </div>
             )}
           </div>
 
           {/* Actions rapides */}
-          <div className="dashboard-card">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
-            <div className="dashboard-nav">
+          <div className="dashboard-section">
+            <h2 className="dashboard-section-title text-overflow-safe">Actions rapides</h2>
+            <div className="actions-grid">
               <button
-                onClick={() => navigate("/")}
-                className="action-button action-button-secondary text-left"
+                onClick={rafraichirDonnees}
+                disabled={loading}
+                className="action-button action-button-primary text-overflow-safe"
+              >
+                {loading ? 'Actualisation...' : '🔄 Actualiser les données'}
+              </button>
+              
+              <button
+                onClick={() => setShowFiltreDocteurModal(true)}
+                className="action-button action-button-secondary text-overflow-safe"
+              >
+                🔍 Filtrer par docteur
+              </button>
+              
+              <button
+                onClick={() => setShowStatistiquesModal(true)}
+                className="action-button action-button-secondary text-overflow-safe"
+              >
+                📊 Statistiques détaillées
+              </button>
+              
+              <button
+                onClick={() => navigate('/')}
+                className="action-button action-button-secondary text-overflow-safe"
               >
                 🏠 Retour à l'accueil
               </button>
-              <button
-                onClick={() => navigate("/queue")}
-                className="action-button action-button-primary text-left"
-              >
-                📋 File d'attente publique
-              </button>
-              <button
-                onClick={loadQueue}
-                className="action-button action-button-success text-left"
-              >
-                🔄 Actualiser
-              </button>
             </div>
           </div>
 
-          {/* Informations complémentaires */}
-          <div className="dashboard-card">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">📈 Analyse de la journée</h3>
-            <div className="info-grid">
-              <div className="stats-card border-purple-200">
-                <div className="text-responsive-sm text-purple-600 font-medium">Taux d'occupation</div>
-                <div className="text-responsive-lg font-bold text-purple-800">
-                  {totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0}%
-                </div>
-              </div>
-              <div className="stats-card border-indigo-200">
-                <div className="text-responsive-sm text-indigo-600 font-medium">Temps moyen estimé</div>
-                <div className="text-responsive-lg font-bold text-indigo-800">
-                  {getEstimatedTime(1)}
-                </div>
-              </div>
+          {/* Aide contextuelle */}
+          <div className="dashboard-section">
+            <div className="help-text">
+              <h3 className="text-responsive-lg font-semibold mb-2 text-overflow-safe">
+                💡 À propos de cette vue
+              </h3>
+              <ul className="text-responsive-sm space-y-1 text-overflow-safe">
+                <li>• Les données se mettent à jour automatiquement toutes les 30 secondes</li>
+                <li>• Les positions peuvent changer selon les priorités médicales</li>
+                <li>• Cette vue est disponible sans connexion pour informer les visiteurs</li>
+                <li>• Pour prendre un ticket, vous devez vous connecter en tant que patient</li>
+              </ul>
             </div>
           </div>
 
-          {/* Aide pour visiteurs */}
-          <div className="help-text">
-            <h4 className="text-responsive-base font-semibold mb-2">💡 Informations pour les visiteurs</h4>
-            <p className="text-responsive-sm">
-              Cet espace vous permet de consulter en temps réel l'état de la file d'attente. 
-              Les données sont automatiquement mises à jour toutes les 3 secondes pour vous offrir 
-              les informations les plus récentes.
-            </p>
-          </div>
+          {/* Message d'erreur */}
+          {erreur && (
+            <div className="alert-card bg-red-50 border-l-4 border-red-400 text-overflow-safe">
+              <div className="p-1">
+                <p className="text-responsive-base text-red-800 text-overflow-safe">
+                  ❌ {erreur}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Modal filtre par docteur */}
+          {showFiltreDocteurModal && (
+            <div className="modal-overlay-fullscreen animate-overlay">
+              <div className="modal-responsive animate-in bg-white p-6 rounded-lg shadow-xl">
+                <h2 className="dashboard-title mb-4 text-overflow-safe">Filtrer par docteur</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-responsive-base font-medium text-gray-700 mb-2 text-overflow-safe">
+                      Sélectionner un docteur
+                    </label>
+                    <select
+                      value={filtreDocteur}
+                      onChange={(e) => setFiltreDocteur(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-overflow-safe"
+                    >
+                      <option value="">-- Tous les docteurs --</option>
+                      {docteurs.map(docteur => (
+                        <option key={docteur.id} value={docteur.id} className="text-overflow-safe">
+                          Dr. {docteur.nom} {docteur.prenom} - {docteur.specialite}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="actions-grid">
+                    <button
+                      onClick={() => {
+                        appliquerFiltre();
+                        setShowFiltreDocteurModal(false);
+                      }}
+                      className="action-button action-button-primary text-overflow-safe"
+                    >
+                      ✅ Appliquer le filtre
+                    </button>
+                    <button
+                      onClick={() => setShowFiltreDocteurModal(false)}
+                      className="action-button action-button-secondary text-overflow-safe"
+                    >
+                      ❌ Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal statistiques détaillées */}
+          {showStatistiquesModal && (
+            <div className="modal-overlay-fullscreen animate-overlay">
+              <div className="modal-responsive animate-in bg-white p-6 rounded-lg shadow-xl max-w-4xl">
+                <h2 className="dashboard-title mb-4 text-overflow-safe">Statistiques détaillées</h2>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="dashboard-section-title text-overflow-safe">Répartition par docteur</h3>
+                    <div className="stats-grid">
+                      {statistiquesDetailees.parDocteur.map((stat, index) => (
+                        <div key={index} className="stats-card">
+                          <div className="stats-number text-overflow-safe">{stat.nombrePatients}</div>
+                          <div className="stats-label text-overflow-safe">
+                            Dr. {stat.docteurNom}
+                          </div>
+                          <p className="text-responsive-sm text-gray-500 mt-1 text-overflow-safe">
+                            Temps moyen: {stat.tempsMoyen}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="dashboard-section-title text-overflow-safe">Tendances horaires</h3>
+                    <div className="info-grid">
+                      <div className="stats-card">
+                        <div className="stats-number text-orange-600 text-overflow-safe">
+                          {statistiquesDetailees.creteAfflux.heure}
+                        </div>
+                        <div className="stats-label text-overflow-safe">Heure de pointe</div>
+                      </div>
+                      <div className="stats-card">
+                        <div className="stats-number text-green-600 text-overflow-safe">
+                          {statistiquesDetailees.creteAfflux.nombre}
+                        </div>
+                        <div className="stats-label text-overflow-safe">Patients à cette heure</div>
+                      </div>
+                      <div className="stats-card">
+                        <div className="stats-number text-blue-600 text-overflow-safe">
+                          {statistiquesDetailees.periodeCalme.debut}-{statistiquesDetailees.periodeCalme.fin}
+                        </div>
+                        <div className="stats-label text-overflow-safe">Période la plus calme</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <button
+                      onClick={() => setShowStatistiquesModal(false)}
+                      className="action-button action-button-secondary w-full text-overflow-safe"
+                    >
+                      ✅ Fermer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </AnimatedPage>
     </Layout>
