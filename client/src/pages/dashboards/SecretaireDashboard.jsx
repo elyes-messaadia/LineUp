@@ -5,6 +5,7 @@ import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import DoctorQueueSelector from "../../components/DoctorQueueSelector";
+import ResetQueueButton from "../../components/ResetQueueButton";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 import { getDoctorDisplayName } from "../../config/doctors";
@@ -230,6 +231,16 @@ export default function SecretaireDashboard() {
     navigate("/");
   };
 
+  const handleResetComplete = (result) => {
+    showSuccess(`✅ ${result.message} - ${result.deletedCount} ticket(s) supprimé(s)`, 5000);
+    fetchQueue(); // Recharger la file
+    fetchStats(); // Recharger les statistiques
+  };
+
+  const handleResetError = (error) => {
+    showError(`❌ Erreur de réinitialisation: ${error}`, 5000);
+  };
+
   // Estimation du temps d'attente
   const getEstimatedTime = (position) => {
     const avgConsultationTime = 15; // 15 minutes par consultation
@@ -339,7 +350,7 @@ export default function SecretaireDashboard() {
           </div>
 
           {/* Actions principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <button
               onClick={handleCreateTicket}
               disabled={isLoading}
@@ -375,6 +386,16 @@ export default function SecretaireDashboard() {
             >
               ⚙️ Gestion admin
             </button>
+
+            {/* Bouton de réinitialisation */}
+            <div className="flex items-center justify-center">
+              <ResetQueueButton
+                selectedDoctor={selectedDoctor}
+                onResetComplete={handleResetComplete}
+                onError={handleResetError}
+                className="w-full h-full flex flex-col items-center justify-center p-4"
+              />
+            </div>
           </div>
 
           {/* Actions par docteur */}
