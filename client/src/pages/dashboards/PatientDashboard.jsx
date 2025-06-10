@@ -31,15 +31,52 @@ export default function PatientDashboard() {
     }
   }, []);
 
-  const loadMyTicket = useCallback(() => {
-    const stored = localStorage.getItem("lineup_ticket");
-    if (stored) {
-      try {
-        const parsedTicket = JSON.parse(stored);
-        setMyTicket(parsedTicket);
-      } catch (error) {
-        localStorage.removeItem("lineup_ticket");
+  const loadMyTicket = useCallback(async () => {
+    try {
+      // D'abord, essayer de récupérer le ticket depuis le serveur (pour les patients connectés)
+      const token = localStorage.getItem("token");
+      if (token) {
+        const res = await fetch(`${BACKEND_URL}/patient/my-ticket`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setMyTicket(data.ticket);
+          localStorage.setItem("lineup_ticket", JSON.stringify(data.ticket));
+          return;
+        } else if (res.status === 404) {
+          // Aucun ticket actif côté serveur, nettoyer localStorage
+          localStorage.removeItem("lineup_ticket");
+          setMyTicket(null);
+          return;
+        }
       }
+      
+      // Fallback : chercher dans localStorage pour les tickets anonymes
+      const stored = localStorage.getItem("lineup_ticket");
+      if (stored) {
+        try {
+          const parsedTicket = JSON.parse(stored);
+          // Vérifier que le ticket dans localStorage est encore valide
+          if (parsedTicket.status === 'en_attente' || parsedTicket.status === 'en_consultation') {
+            setMyTicket(parsedTicket);
+          } else {
+            // Ticket terminé/annulé, le supprimer
+            localStorage.removeItem("lineup_ticket");
+            setMyTicket(null);
+          }
+        } catch (error) {
+          localStorage.removeItem("lineup_ticket");
+          setMyTicket(null);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur chargement ticket:", error);
+      // En cas d'erreur réseau, ne pas utiliser localStorage pour éviter d'afficher de vieux tickets
+      setMyTicket(null);
     }
   }, []);
 
@@ -112,10 +149,14 @@ export default function PatientDashboard() {
       }
 
       const data = await res.json();
-      localStorage.setItem("lineup_ticket", JSON.stringify(data));
-      setMyTicket(data);
       
-      showSuccess(`Ticket n°${data.number} créé avec succès !`, 4000);
+      // Vérifier la structure de la réponse et normaliser
+      const ticketData = data.ticket || data; // Compatibilité avec les deux formats
+      
+      localStorage.setItem("lineup_ticket", JSON.stringify(ticketData));
+      setMyTicket(ticketData);
+      
+      showSuccess(`Ticket n°${ticketData.number} créé avec succès !`, 4000);
       loadQueue();
 
     } catch (error) {
@@ -125,7 +166,16 @@ export default function PatientDashboard() {
         showError("Session expirée. Veuillez vous reconnecter.", 5000);
         handleLogout();
       } else if (error.message.includes("400")) {
-        showError("Données invalides. Vérifiez votre profil.", 5000);
+        if (error.message.includes("déjà un ticket")) {
+          showWarning("Vous avez déjà un ticket en cours ! Chargement...", 3000);
+          // Recharger pour détecter le ticket existant
+          setTimeout(() => {
+            loadMyTicket();
+            loadQueue();
+          }, 1000);
+        } else {
+          showError("Données invalides. Vérifiez votre profil.", 5000);
+        }
       } else {
         showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
       }
@@ -251,13 +301,14 @@ export default function PatientDashboard() {
               
               <div className="space-y-2">
                 <p className="text-yellow-700">
-                  <strong>Numéro :</strong> {myTicket.number}
+                  <strong>Numéro :</strong> #{myTicket.number || 'N/A'}
                 </p>
                 <p className="text-yellow-700">
                   <strong>Statut :</strong> {
-                    myTicket.status === "en_attente" ? "En attente" :
-                    myTicket.status === "en_consultation" ? "En consultation" :
-                    myTicket.status === "termine" ? "Terminé" : "Annulé"
+                    myTicket.status === "en_attente" ? "⏱️ En attente" :
+                    myTicket.status === "en_consultation" ? "🩺 En consultation" :
+                    myTicket.status === "termine" ? "✅ Terminé" : 
+                    myTicket.status === "desiste" ? "❌ Désisté" : "❌ Annulé"
                   }
                 </p>
                 {myPosition && (
@@ -266,7 +317,16 @@ export default function PatientDashboard() {
                   </p>
                 )}
                 <p className="text-yellow-700">
-                  <strong>Créé le :</strong> {new Date(myTicket.createdAt).toLocaleString()}
+                  <strong>Créé le :</strong> {myTicket.createdAt ? 
+                    new Date(myTicket.createdAt).toLocaleString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 
+                    'Date non disponible'
+                  }
                 </p>
               </div>
 
