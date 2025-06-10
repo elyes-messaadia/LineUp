@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Title from "../components/Title";
 import Toast from "../components/Toast";
-import DoctorQuickLogin from "../components/DoctorQuickLogin";
+import QuickDoctorAccess from "../components/QuickDoctorAccess";
 import { useToast } from "../hooks/useToast";
 import { getWelcomeMessage, debugUserData } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
@@ -120,7 +120,12 @@ export default function Login() {
           </div>
 
           {/* Connexions rapides des docteurs */}
-          <DoctorQuickLogin onQuickLogin={handleQuickLogin} isLoading={isLoading} />
+                            <QuickDoctorAccess 
+                    mode="login"
+                    onQuickLogin={handleQuickLogin} 
+                    isExternalLoading={isLoading}
+                    title="Connexions rapides médecins"
+                  />
 
           {/* Boutons de test simplifié */}
           <div className="mb-8">

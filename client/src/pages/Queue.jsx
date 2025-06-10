@@ -10,6 +10,7 @@ import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
 import BACKEND_URL from "../config/api";
 import { getDoctorDisplayName } from "../config/doctors";
+import { formatTime } from "../utils/dateUtils";
 
 // Constantes
 const API_URL = BACKEND_URL;
@@ -52,12 +53,6 @@ const STATUS_CONFIG = {
 };
 
 // Utilitaires
-const formatTime = (date) => {
-  return new Date(date).toLocaleTimeString('fr-FR', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-};
 
 const formatWaitingTime = (createdAt) => {
   const now = new Date();

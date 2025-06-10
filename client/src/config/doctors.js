@@ -6,6 +6,7 @@ export const DOCTEURS = [
     label: 'Dr. Husni SAID HABIBI', 
     fullName: 'Dr. Husni SAID HABIBI',
     emoji: '👨‍⚕️', 
+    color: 'green',
     disponible: true,
     specialite: 'Médecin généraliste',
     // Informations de connexion
@@ -21,6 +22,7 @@ export const DOCTEURS = [
     label: 'Dr. Helios BLASCO', 
     fullName: 'Dr. Helios BLASCO',
     emoji: '🩺', 
+    color: 'blue',
     disponible: true,
     specialite: 'Médecin généraliste',
     credentials: {
@@ -35,6 +37,7 @@ export const DOCTEURS = [
     label: 'Dr. Jean-Eric PANACCIULLI', 
     fullName: 'Dr. Jean-Eric PANACCIULLI',
     emoji: '👩‍⚕️', 
+    color: 'purple',
     disponible: true,
     specialite: 'Médecin généraliste',
     credentials: {
@@ -59,4 +62,9 @@ export const getAvailableDoctors = () => {
 export const getDoctorDisplayName = (doctorId) => {
   const doctor = getDoctorById(doctorId);
   return doctor ? doctor.fullName : doctorId;
+};
+
+// Fonction pour obtenir les informations complètes d'un docteur
+export const getDoctorInfo = (doctorId) => {
+  return getDoctorById(doctorId);
 }; 

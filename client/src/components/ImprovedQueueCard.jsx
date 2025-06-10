@@ -1,12 +1,5 @@
 import { getDoctorDisplayName, getDoctorById } from '../config/doctors';
-
-const formatTime = (date) => {
-  if (!date) return '';
-  return new Date(date).toLocaleTimeString('fr-FR', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-};
+import { formatTime } from '../utils/dateUtils';
 
 const formatWaitingTime = (createdAt) => {
   if (!createdAt) return '';
