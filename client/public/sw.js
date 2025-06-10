@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
 
   // Ne pas intercepter les requêtes vers l'API
   if (event.request.url.includes('/api/') || 
-      event.request.url.includes('localhost:5000') || 
+      event.request.url.includes('lineup-backend-xxak.onrender.com') || 
       event.request.url.includes('lineup-backend')) {
     return;
   }
