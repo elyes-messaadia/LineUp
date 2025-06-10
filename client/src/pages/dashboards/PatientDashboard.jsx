@@ -24,8 +24,6 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
-
-
   const loadQueue = useCallback(async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/queue`);
@@ -198,8 +196,12 @@ export default function PatientDashboard() {
         } else {
           showError("Données invalides. Vérifiez votre profil.", 5000);
         }
+      } else if (error.message.includes("429")) {
+        showWarning("Trop de demandes. Veuillez attendre quelques instants.", 3000);
+      } else if (error.message.includes("500") || error.message.includes("502") || error.message.includes("503")) {
+        showError("Erreur du serveur. Essayez dans quelques instants.", 5000);
       } else {
-        showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
+        showError(`Impossible de créer le ticket : ${error.message}`, 5000);
       }
     } finally {
       setIsLoading(false);
@@ -208,46 +210,33 @@ export default function PatientDashboard() {
 
   const handleCancelTicket = () => {
     if (!myTicket) {
-      showError("Aucun ticket à annuler");
+      showError("Aucun ticket actif trouvé");
       return;
     }
-    
-    if (myTicket.status === "en_consultation") {
-      showWarning("Impossible d'annuler un ticket en consultation");
-      return;
-    }
-    
     setShowCancelModal(true);
   };
 
   const confirmCancelTicket = async () => {
-    if (!myTicket) return;
-
     setShowCancelModal(false);
     setIsLoading(true);
 
     try {
-      showWarning("Annulation de votre ticket en cours...");
-
-      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
+      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}/cancel`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" }
       });
 
-      if (res.ok || res.status === 404) {
+      if (res.ok) {
         localStorage.removeItem("lineup_ticket");
         setMyTicket(null);
-        showSuccess("Ticket annulé avec succès !", 4000);
-        loadQueue();
+        showSuccess("Ticket annulé avec succès");
+        loadQueue(); // Actualiser la file
       } else {
-        throw new Error(`Erreur ${res.status}`);
+        throw new Error("Erreur lors de l'annulation");
       }
-
     } catch (error) {
       console.error("Erreur annulation:", error);
-      showError("Impossible d'annuler le ticket. Veuillez réessayer.", 5000);
+      showError("Erreur lors de l'annulation du ticket");
     } finally {
       setIsLoading(false);
     }
@@ -258,15 +247,18 @@ export default function PatientDashboard() {
     localStorage.removeItem("token");
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("lineup_ticket");
-    showInfo("Déconnexion réussie");
     navigate("/");
   };
 
   const getMyPosition = () => {
-    if (!myTicket) return null;
-    const activeTickets = queue.filter(t => t.status === "en_attente");
-    const myIndex = activeTickets.findIndex(t => t._id === myTicket._id);
-    return myIndex !== -1 ? myIndex + 1 : null;
+    if (!myTicket || myTicket.status !== "en_attente") return null;
+    
+    const waitingTickets = queue
+      .filter(t => t.status === "en_attente" && t.docteur === myTicket.docteur)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    
+    const position = waitingTickets.findIndex(t => t._id === myTicket._id) + 1;
+    return position > 0 ? position : null;
   };
 
   const myPosition = getMyPosition();
@@ -276,9 +268,9 @@ export default function PatientDashboard() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="text-center">
+          <div className="dashboard-container text-center">
             <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p>Chargement...</p>
+            <p className="text-responsive-base">Chargement...</p>
           </div>
         </AnimatedPage>
       </Layout>
@@ -288,35 +280,53 @@ export default function PatientDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 legacy-container">
-          {/* En-tête utilisateur unifié */}
-          <DashboardHeader
-            title="Espace Patient"
-            subtitle="Bienvenue {user}"
-            icon="👤"
-            user={user}
-            onLogout={handleLogout}
-            colorScheme="blue"
+        <div className="dashboard-container overflow-protection">
+          {/* En-tête utilisateur moderne */}
+          <div className="dashboard-card mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <h1 className="dashboard-title text-blue-800">
+                  🩺 Espace Patient
+                </h1>
+                <p className="dashboard-subtitle">
+                  Bienvenue {getDisplayName(user)} !
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="action-button action-button-secondary text-responsive-sm"
+              >
+                🔒 Déconnexion
+              </button>
+            </div>
+          </div>
+
+          <Toast toasts={toasts} onRemoveToast={removeToast} />
+
+          <UserDebugPanel 
+            currentUser={user} 
+            currentTicket={myTicket}
+            queue={queue}
           />
 
-          {/* Mon ticket actuel - Section responsive */}
+          {/* Mon ticket actuel - Section responsive moderne */}
           {myTicket ? (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-yellow-800 mb-4 legacy-text-primary">
+            <div className="alert-card bg-yellow-50 border border-yellow-200">
+              <h2 className="dashboard-title text-yellow-800 mb-4">
                 🎫 Mon ticket actuel
               </h2>
               
-              {/* Informations du ticket - Grid responsive */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                <div className="bg-white rounded-lg p-3 border border-yellow-300">
-                  <span className="text-xs sm:text-sm text-yellow-600 font-medium">Numéro</span>
-                  <p className="text-lg sm:text-xl font-bold text-yellow-800">
+              {/* Informations du ticket - Grid moderne */}
+              <div className="info-grid mb-4">
+                <div className="stats-card border-yellow-300">
+                  <span className="text-responsive-sm text-yellow-600 font-medium">Numéro</span>
+                  <p className="stats-number text-yellow-800">
                     #{myTicket.number || 'N/A'}
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-3 border border-yellow-300">
-                  <span className="text-xs sm:text-sm text-yellow-600 font-medium">Statut</span>
-                  <p className="text-sm sm:text-base font-semibold text-yellow-800">
+                <div className="stats-card border-yellow-300">
+                  <span className="text-responsive-sm text-yellow-600 font-medium">Statut</span>
+                  <p className="text-responsive-base font-semibold text-yellow-800">
                     {myTicket.status === "en_attente" ? "⏱️ En attente" :
                      myTicket.status === "en_consultation" ? "🩺 En consultation" :
                      myTicket.status === "termine" ? "✅ Terminé" : 
@@ -324,22 +334,22 @@ export default function PatientDashboard() {
                   </p>
                 </div>
                 {myPosition && (
-                  <div className="bg-white rounded-lg p-3 border border-yellow-300 sm:col-span-2">
-                    <span className="text-xs sm:text-sm text-yellow-600 font-medium">Position dans la file</span>
-                    <p className="text-lg sm:text-xl font-bold text-yellow-800">#{myPosition}</p>
+                  <div className="stats-card border-yellow-300 sm:col-span-2">
+                    <span className="text-responsive-sm text-yellow-600 font-medium">Position dans la file</span>
+                    <p className="stats-number text-yellow-800">#{myPosition}</p>
                   </div>
                 )}
                 {myTicket.docteur && (
-                  <div className="bg-white rounded-lg p-3 border border-yellow-300 sm:col-span-2">
-                    <span className="text-xs sm:text-sm text-yellow-600 font-medium">Médecin assigné</span>
-                    <p className="text-sm text-yellow-700 font-semibold">
+                  <div className="stats-card border-yellow-300 sm:col-span-2">
+                    <span className="text-responsive-sm text-yellow-600 font-medium">Médecin assigné</span>
+                    <p className="text-responsive-base text-yellow-700 font-semibold">
                       👨‍⚕️ {getDoctorDisplayName(myTicket.docteur) || myTicket.docteur}
                     </p>
                   </div>
                 )}
-                <div className="bg-white rounded-lg p-3 border border-yellow-300 sm:col-span-2">
-                  <span className="text-xs sm:text-sm text-yellow-600 font-medium">Créé le</span>
-                  <p className="text-sm text-yellow-700">
+                <div className="stats-card border-yellow-300 sm:col-span-2">
+                  <span className="text-responsive-sm text-yellow-600 font-medium">Créé le</span>
+                  <p className="text-responsive-sm text-yellow-700">
                     {myTicket.createdAt ? 
                       new Date(myTicket.createdAt).toLocaleString('fr-FR', {
                         day: '2-digit',
@@ -356,25 +366,17 @@ export default function PatientDashboard() {
 
               {/* Actions selon le statut */}
               {myTicket.status === "en_attente" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <div className="dashboard-nav mt-4">
                   <button
                     onClick={() => navigate("/queue")}
-                    className="
-                      bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 
-                      transition-colors font-medium text-sm sm:text-base
-                      touch-target-large legacy-button
-                    "
+                    className="action-button action-button-success w-full sm:w-auto"
                   >
                     📋 Voir ma position en temps réel
                   </button>
                   <button
                     onClick={handleCancelTicket}
                     disabled={isLoading}
-                    className="
-                      bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 
-                      transition-colors disabled:bg-gray-400 font-medium text-sm sm:text-base
-                      touch-target-large legacy-button
-                    "
+                    className="action-button action-button-danger w-full sm:w-auto"
                   >
                     ❌ Annuler mon ticket
                   </button>
@@ -382,14 +384,14 @@ export default function PatientDashboard() {
               )}
 
               {myTicket.status === "en_consultation" && (
-                <div className="mt-4 p-4 bg-green-100 rounded-lg border border-green-300">
+                <div className="mt-4 alert-card bg-green-100 border border-green-300">
                   <div className="flex items-center space-x-3">
                     <div className="text-2xl">🩺</div>
                     <div>
-                      <p className="text-green-800 font-semibold text-sm sm:text-base">
+                      <p className="text-green-800 font-semibold text-responsive-base">
                         Vous êtes en consultation !
                       </p>
-                      <p className="text-green-700 text-xs sm:text-sm">
+                      <p className="text-green-700 text-responsive-sm">
                         Rendez-vous chez le médecin
                       </p>
                     </div>
@@ -398,22 +400,18 @@ export default function PatientDashboard() {
               )}
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 sm:mb-8 text-center">
+            <div className="dashboard-card text-center">
               <div className="text-4xl sm:text-6xl mb-4">🎫</div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 legacy-text-primary">
+              <h2 className="dashboard-title text-gray-800 mb-3">
                 Aucun ticket actif
               </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-6 legacy-text-secondary max-w-md mx-auto">
+              <p className="dashboard-subtitle mb-6 max-w-md mx-auto">
                 Vous n'avez pas de ticket en cours. Prenez un ticket pour rejoindre la file d'attente.
               </p>
               <button
                 onClick={handleTakeTicket}
                 disabled={isLoading}
-                className="
-                  bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 
-                  transition-colors disabled:bg-gray-400 font-medium text-sm sm:text-base
-                  touch-target-large legacy-button w-full sm:w-auto
-                "
+                className="action-button action-button-primary w-full sm:w-auto"
               >
                 {isLoading ? (
                   <>
@@ -427,167 +425,145 @@ export default function PatientDashboard() {
             </div>
           )}
 
-          {/* Statistiques de la file - Section responsive */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 legacy-text-primary">
+          {/* Statistiques de la file - Section moderne */}
+          <div className="dashboard-card">
+            <h3 className="dashboard-title text-gray-800 mb-4">
               📊 État de la file d'attente
             </h3>
             
-            {/* Grid des statistiques */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border border-blue-200 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{waitingCount}</div>
-                <div className="text-xs sm:text-sm text-gray-600 legacy-text-secondary">En attente</div>
+            {/* Grid des statistiques modernes */}
+            <div className="stats-grid mb-6">
+              <div className="stats-card border-blue-200">
+                <div className="stats-number text-blue-600">{waitingCount}</div>
+                <div className="stats-label">En attente</div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-green-200 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">
+              <div className="stats-card border-green-200">
+                <div className="stats-number text-green-600">
                   {queue.filter(t => t.status === "en_consultation").length}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-600 legacy-text-secondary">En consultation</div>
+                <div className="stats-label">En consultation</div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center col-span-2 sm:col-span-1">
-                <div className="text-xl sm:text-2xl font-bold text-gray-600 mb-1">
+              <div className="stats-card border-gray-200">
+                <div className="stats-number text-gray-600">
                   {queue.filter(t => t.status === "termine").length}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-600 legacy-text-secondary">Terminés</div>
+                <div className="stats-label">Terminés</div>
               </div>
             </div>
             
             <button
               onClick={() => navigate("/queue")}
-              className="
-                w-full bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 
-                transition-colors font-medium text-sm sm:text-base
-                touch-target-large legacy-button
-              "
+              className="action-button action-button-secondary w-full"
             >
               📋 Voir la file complète
             </button>
           </div>
 
           {/* Paramètres des notifications */}
-          <div className="mb-6 sm:mb-8">
+          <div className="dashboard-section">
             <NotificationSettings />
             <PushTestPanel />
           </div>
 
-          {/* Actions rapides */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
-            <div className="space-y-2">
+          {/* Actions rapides modernes */}
+          <div className="dashboard-card">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
+            <div className="dashboard-nav">
               <button
                 onClick={() => navigate("/")}
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                className="action-button action-button-secondary text-left"
               >
                 🏠 Retour à l'accueil
               </button>
               <button
                 onClick={() => navigate("/queue")}
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                className="action-button action-button-secondary text-left"
               >
                 📋 File d'attente en temps réel
               </button>
             </div>
           </div>
 
-          {/* Modales */}
-          {/* Modale améliorée de sélection de médecin */}
+          {/* Modales responsives */}
           {showTicketModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="modal-overlay-fullscreen">
+              <div className="modal-responsive bg-white rounded-lg p-6 accessible-shadow">
+                <h3 className="dashboard-title text-gray-800 mb-4">
                   🎫 Prendre un ticket de consultation
                 </h3>
-                
-                <p className="text-gray-600 mb-6">
+                <p className="dashboard-subtitle mb-6">
                   Choisissez le médecin que vous souhaitez consulter :
                 </p>
-
+                
                 <div className="space-y-3 mb-6">
-                  {DOCTEURS.map((docteur) => (
-                    <label 
-                      key={docteur.value}
+                  {DOCTEURS.filter(doctor => doctor.disponible).map((doctor) => (
+                    <label
+                      key={doctor.value}
                       className={`
-                        flex items-center p-4 border rounded-lg cursor-pointer transition-all
-                        ${selectedDoctor === docteur.value 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                        }
-                        ${!docteur.disponible ? 'opacity-50 cursor-not-allowed' : ''}
+                        dashboard-card cursor-pointer transition-all
+                        ${selectedDoctor === doctor.value ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}
                       `}
                     >
-                      <input
-                        type="radio"
-                        name="doctor"
-                        value={docteur.value}
-                        checked={selectedDoctor === docteur.value}
-                        onChange={(e) => setSelectedDoctor(e.target.value)}
-                        disabled={!docteur.disponible}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center space-x-3 w-full">
-                        <span className="text-2xl">{docteur.emoji}</span>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{docteur.label}</p>
-                          <p className={`text-sm ${docteur.disponible ? 'text-green-600' : 'text-red-600'}`}>
-                            {docteur.disponible ? '✅ Disponible aujourd\'hui' : '❌ Non disponible'}
-                          </p>
-                        </div>
-                        {selectedDoctor === docteur.value && (
-                          <div className="text-blue-500">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="doctor"
+                          value={doctor.value}
+                          checked={selectedDoctor === doctor.value}
+                          onChange={(e) => setSelectedDoctor(e.target.value)}
+                          className="mr-3 h-4 w-4 text-blue-600"
+                        />
+                        <div>
+                          <div className="text-responsive-base font-medium text-gray-900">
+                            {doctor.label}
                           </div>
-                        )}
+                          <div className="text-responsive-sm text-gray-500">
+                            {doctor.specialite}
+                          </div>
+                        </div>
                       </div>
                     </label>
                   ))}
                 </div>
 
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => {
-                      setShowTicketModal(false);
-                      setSelectedDoctor("");
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    Annuler
-                  </button>
+                <div className="dashboard-nav">
                   <button
                     onClick={confirmTakeTicket}
                     disabled={!selectedDoctor || isLoading}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="action-button action-button-primary flex-1"
                   >
-                    {isLoading ? "Création..." : "Confirmer"}
+                    {isLoading ? (
+                      <>
+                        <span className="animate-spin mr-2">⏳</span>
+                        Création...
+                      </>
+                    ) : (
+                      "✅ Confirmer"
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowTicketModal(false)}
+                    disabled={isLoading}
+                    className="action-button action-button-secondary flex-1"
+                  >
+                    ❌ Annuler
                   </button>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Modale de confirmation d'annulation */}
           <ConfirmModal
             isOpen={showCancelModal}
-            title="Annuler le ticket"
-            message={`Êtes-vous sûr de vouloir annuler votre ticket n°${myTicket?.number} ? Cette action est irréversible.`}
-            confirmText="Oui, annuler"
-            cancelText="Non, garder mon ticket"
-            type="danger"
+            title="🚨 Annuler mon ticket"
+            message="Êtes-vous sûr de vouloir annuler votre ticket ? Cette action est irréversible."
             onConfirm={confirmCancelTicket}
             onCancel={() => setShowCancelModal(false)}
+            confirmText="Oui, annuler"
+            cancelText="Non, garder"
+            isLoading={isLoading}
           />
-
-          {/* Notifications */}
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
         </div>
       </AnimatedPage>
     </Layout>

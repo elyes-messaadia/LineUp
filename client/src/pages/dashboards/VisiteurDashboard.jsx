@@ -85,9 +85,9 @@ export default function VisiteurDashboard() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="text-center">
+          <div className="dashboard-container text-center">
             <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p>Chargement...</p>
+            <p className="text-responsive-base">Chargement...</p>
           </div>
         </AnimatedPage>
       </Layout>
@@ -97,52 +97,59 @@ export default function VisiteurDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-4xl mx-auto">
-          {/* En-tête utilisateur */}
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center">
+        <div className="dashboard-container overflow-protection">
+          {/* En-tête utilisateur moderne */}
+          <div className="dashboard-card mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h1 className="text-xl font-bold text-purple-800">
+                <h1 className="dashboard-title text-purple-800">
                   👁️ Espace Visiteur
                 </h1>
-                <p className="text-purple-600">
+                <p className="dashboard-subtitle">
                   Bienvenue {user.fullName}
                 </p>
               </div>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 underline"
+                className="action-button action-button-secondary text-responsive-sm"
               >
                 🔒 Déconnexion
               </button>
             </div>
           </div>
 
-          {/* Statistiques générales */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">{waitingCount}</p>
-              <p className="text-sm text-blue-800">En attente</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{inConsultationCount}</p>
-              <p className="text-sm text-green-800">En consultation</p>
-            </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-gray-600">{completedToday}</p>
-              <p className="text-sm text-gray-800">Terminées</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-yellow-600">{totalToday}</p>
-              <p className="text-sm text-yellow-800">Total du jour</p>
+          <Toast toasts={toasts} onRemoveToast={removeToast} />
+
+          {/* Statistiques générales modernes */}
+          <div className="dashboard-card mb-6">
+            <h2 className="dashboard-title text-gray-800 mb-4">
+              📊 Statistiques en temps réel
+            </h2>
+            <div className="stats-grid">
+              <div className="stats-card border-blue-200 accessible-shadow">
+                <div className="stats-number text-blue-600">{waitingCount}</div>
+                <div className="stats-label">En attente</div>
+              </div>
+              <div className="stats-card border-green-200 accessible-shadow">
+                <div className="stats-number text-green-600">{inConsultationCount}</div>
+                <div className="stats-label">En consultation</div>
+              </div>
+              <div className="stats-card border-gray-200 accessible-shadow">
+                <div className="stats-number text-gray-600">{completedToday}</div>
+                <div className="stats-label">Terminées</div>
+              </div>
+              <div className="stats-card border-yellow-200 accessible-shadow">
+                <div className="stats-number text-yellow-600">{totalToday}</div>
+                <div className="stats-label">Total du jour</div>
+              </div>
             </div>
           </div>
 
           {/* Temps d'attente estimé */}
           {waitingCount > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-orange-800 mb-2">⏱️ Temps d'attente estimé</h3>
-              <p className="text-orange-700">
+            <div className="alert-card bg-orange-50 border border-orange-200">
+              <h3 className="text-responsive-lg font-semibold text-orange-800 mb-2">⏱️ Temps d'attente estimé</h3>
+              <p className="text-responsive-base text-orange-700">
                 Si vous preniez un ticket maintenant, vous seriez en position <strong>{waitingCount + 1}</strong> 
                 {" "}avec une attente d'environ <strong>{getEstimatedTime(waitingCount + 1)}</strong>.
               </p>
@@ -150,20 +157,25 @@ export default function VisiteurDashboard() {
           )}
 
           {/* File d'attente en temps réel */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">
+          <div className="dashboard-card">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+              <h2 className="text-responsive-lg font-semibold text-gray-800">
                 📋 File d'attente en temps réel
               </h2>
-              <span className="text-sm text-gray-500">
+              <span className="text-responsive-sm text-gray-500">
                 Mise à jour : {new Date(currentTime).toLocaleTimeString()}
               </span>
             </div>
 
-            {queue.length === 0 ? (
+            {queueLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin text-2xl mb-2">⏳</div>
+                <p className="text-responsive-sm text-gray-500">Chargement de la file d'attente...</p>
+              </div>
+            ) : queue.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">🎯</div>
-                <p>Aucun patient dans la file d'attente</p>
+                <p className="text-responsive-base">Aucun patient dans la file d'attente</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -193,26 +205,36 @@ export default function VisiteurDashboard() {
                     }
 
                     return (
-                      <div key={ticket._id} className={`border rounded-lg p-3 ${bgColor}`}>
-                        <div className="flex justify-between items-center">
+                      <div key={ticket._id} className={`ticket-card ${bgColor}`}>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                           <div className="flex items-center gap-3">
-                            <span className="font-semibold text-gray-800">
+                            <span className="text-responsive-base font-semibold text-gray-800">
                               🎫 Ticket n°{ticket.number}
                             </span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.color}`}>
                               {statusInfo.text}
-                            </span>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(ticket.createdAt).toLocaleTimeString()}
+                          
+                          <div className="flex flex-col sm:items-end gap-1">
+                            {ticket.user && (
+                              <div className="text-responsive-sm text-gray-600">
+                                👤 {ticket.user.fullName}
+                              </div>
+                            )}
+                            {ticket.docteur && (
+                              <div className="text-responsive-sm text-gray-600">
+                                👨‍⚕️ {ticket.docteur}
+                              </div>
+                            )}
+                            <div className="text-responsive-sm text-gray-500">
+                              ⏰ {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
                           </div>
                         </div>
-                        
-                        {ticket.status === "en_attente" && (
-                          <div className="mt-2 text-sm text-gray-600">
-                            Temps d'attente estimé : {getEstimatedTime(queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1)}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -220,65 +242,59 @@ export default function VisiteurDashboard() {
             )}
           </div>
 
-          {/* Informations pour créer un compte */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-blue-800 mb-2">💡 Conseil</h3>
-            <p className="text-blue-700 text-sm">
-              En tant que visiteur, vous pouvez seulement consulter la file d'attente. 
-              Pour prendre un ticket, vous devez <strong>créer un compte Patient</strong> ou vous 
-              rendre directement à l'accueil.
-            </p>
-            <div className="mt-3 flex gap-2">
-              <button
-                onClick={() => navigate("/register")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
-              >
-                ✨ Créer un compte Patient
-              </button>
+          {/* Actions rapides */}
+          <div className="dashboard-card">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
+            <div className="dashboard-nav">
               <button
                 onClick={() => navigate("/")}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm"
+                className="action-button action-button-secondary text-left"
               >
                 🏠 Retour à l'accueil
               </button>
-            </div>
-          </div>
-
-          {/* Actions rapides */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">⚡ Actions disponibles</h3>
-            <div className="space-y-2">
               <button
                 onClick={() => navigate("/queue")}
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                className="action-button action-button-primary text-left"
               >
-                📋 File d'attente page complète
+                📋 File d'attente publique
               </button>
               <button
-                onClick={() => navigate("/register")}
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                onClick={loadQueue}
+                className="action-button action-button-success text-left"
               >
-                ✨ Devenir patient
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-              >
-                🏠 Retour à l'accueil
+                🔄 Actualiser
               </button>
             </div>
           </div>
 
-          {/* Notifications */}
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
+          {/* Informations complémentaires */}
+          <div className="dashboard-card">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-3">📈 Analyse de la journée</h3>
+            <div className="info-grid">
+              <div className="stats-card border-purple-200">
+                <div className="text-responsive-sm text-purple-600 font-medium">Taux d'occupation</div>
+                <div className="text-responsive-lg font-bold text-purple-800">
+                  {totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0}%
+                </div>
+              </div>
+              <div className="stats-card border-indigo-200">
+                <div className="text-responsive-sm text-indigo-600 font-medium">Temps moyen estimé</div>
+                <div className="text-responsive-lg font-bold text-indigo-800">
+                  {getEstimatedTime(1)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Aide pour visiteurs */}
+          <div className="help-text">
+            <h4 className="text-responsive-base font-semibold mb-2">💡 Informations pour les visiteurs</h4>
+            <p className="text-responsive-sm">
+              Cet espace vous permet de consulter en temps réel l'état de la file d'attente. 
+              Les données sont automatiquement mises à jour toutes les 3 secondes pour vous offrir 
+              les informations les plus récentes.
+            </p>
+          </div>
         </div>
       </AnimatedPage>
     </Layout>

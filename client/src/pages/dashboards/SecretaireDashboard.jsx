@@ -201,8 +201,8 @@ export default function SecretaireDashboard() {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({ 
-          userId: user._id,
-          docteur: selectedDoctorForTicket
+          docteur: selectedDoctorForTicket,
+          anonymous: true
         })
       });
 
@@ -212,7 +212,7 @@ export default function SecretaireDashboard() {
       }
 
       const data = await res.json();
-      showSuccess(`Ticket n°${data.ticket.number} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} !`, 4000);
+      showSuccess(`Ticket n°${data.number} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} !`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -232,16 +232,14 @@ export default function SecretaireDashboard() {
   };
 
   const handleResetComplete = (result) => {
-    showSuccess(`✅ ${result.message} - ${result.deletedCount} ticket(s) supprimé(s)`, 5000);
-    fetchQueue(); // Recharger la file
-    fetchStats(); // Recharger les statistiques
+    showSuccess(result.message, 4000);
+    fetchQueue();
   };
 
   const handleResetError = (error) => {
-    showError(`❌ Erreur de réinitialisation: ${error}`, 5000);
+    showError(error, 5000);
   };
 
-  // Estimation du temps d'attente
   const getEstimatedTime = (position) => {
     const avgConsultationTime = 15; // 15 minutes par consultation
     const totalMinutes = position * avgConsultationTime;
@@ -258,9 +256,9 @@ export default function SecretaireDashboard() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="text-center">
+          <div className="dashboard-container text-center">
             <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p>Chargement...</p>
+            <p className="text-responsive-base">Chargement...</p>
           </div>
         </AnimatedPage>
       </Layout>
@@ -270,15 +268,15 @@ export default function SecretaireDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-6xl mx-auto">
-          {/* En-tête secrétaire */}
-          <div className="bg-pink-50 border border-pink-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center">
+        <div className="dashboard-container overflow-protection">
+          {/* En-tête secrétaire moderne */}
+          <div className="dashboard-card mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h1 className="text-xl font-bold text-pink-800">
+                <h1 className="dashboard-title text-pink-800">
                   👩‍💼 Espace Secrétaire
                 </h1>
-                <p className="text-pink-600">
+                <p className="dashboard-subtitle">
                   Bienvenue {user.fullName || 
                             (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '') ||
                             user.firstName || 
@@ -289,30 +287,34 @@ export default function SecretaireDashboard() {
               </div>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 underline"
+                className="action-button action-button-secondary text-responsive-sm"
               >
                 🔒 Déconnexion
               </button>
             </div>
           </div>
 
-          {/* Sélecteur de file d'attente par docteur */}
-          <DoctorQueueSelector 
-            selectedDoctor={selectedDoctor}
-            onDoctorChange={setSelectedDoctor}
-          />
+          <Toast toasts={toasts} onRemoveToast={removeToast} />
 
-          {/* Sélection docteur pour créer un ticket */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">
+          {/* Sélecteur de file d'attente par docteur */}
+          <div className="dashboard-section">
+            <DoctorQueueSelector 
+              selectedDoctor={selectedDoctor}
+              onDoctorChange={setSelectedDoctor}
+            />
+          </div>
+
+          {/* Sélection docteur pour créer un ticket - Modernisé */}
+          <div className="dashboard-card mb-6">
+            <h3 className="text-responsive-lg font-semibold text-blue-800 mb-3">
               🎟️ Création de ticket
             </h3>
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-blue-700">Docteur pour le nouveau ticket :</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <span className="text-responsive-base text-blue-700">Docteur pour le nouveau ticket :</span>
               <select
                 value={selectedDoctorForTicket}
                 onChange={(e) => setSelectedDoctorForTicket(e.target.value)}
-                className="px-3 py-2 border border-blue-300 rounded-md bg-white text-blue-800"
+                className="px-3 py-2 border border-blue-300 rounded-md bg-white text-blue-800 text-responsive-base min-w-48"
               >
                 <option value="dr-husni-said-habibi">{getDoctorDisplayName('dr-husni-said-habibi')}</option>
                 <option value="dr-helios-blasco">{getDoctorDisplayName('dr-helios-blasco')}</option>
@@ -321,94 +323,102 @@ export default function SecretaireDashboard() {
             </div>
           </div>
 
-          {/* Statistiques du jour */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">{stats.waitingCount}</p>
-              <p className="text-sm text-blue-800">En attente</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-yellow-600">{stats.inConsultationCount}</p>
-              <p className="text-sm text-yellow-800">En consultation</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{stats.completedToday}</p>
-              <p className="text-sm text-green-800">Terminées</p>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{stats.cancelledToday}</p>
-              <p className="text-sm text-red-800">Annulées</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats.totalToday}</p>
-              <p className="text-sm text-purple-800">Total du jour</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-orange-600">{stats.averageWaitTime}</p>
-              <p className="text-sm text-orange-800">Attente (min)</p>
+          {/* Statistiques du jour - Grid moderne */}
+          <div className="dashboard-card mb-6">
+            <h2 className="dashboard-title text-gray-800 mb-4">
+              📊 Statistiques du jour
+            </h2>
+            <div className="stats-grid">
+              <div className="stats-card border-blue-200 accessible-shadow">
+                <div className="stats-number text-blue-600">{stats.waitingCount}</div>
+                <div className="stats-label">En attente</div>
+              </div>
+              <div className="stats-card border-yellow-200 accessible-shadow">
+                <div className="stats-number text-yellow-600">{stats.inConsultationCount}</div>
+                <div className="stats-label">En consultation</div>
+              </div>
+              <div className="stats-card border-green-200 accessible-shadow">
+                <div className="stats-number text-green-600">{stats.completedToday}</div>
+                <div className="stats-label">Terminées</div>
+              </div>
+              <div className="stats-card border-red-200 accessible-shadow">
+                <div className="stats-number text-red-600">{stats.cancelledToday}</div>
+                <div className="stats-label">Annulées</div>
+              </div>
+              <div className="stats-card border-purple-200 accessible-shadow">
+                <div className="stats-number text-purple-600">{stats.totalToday}</div>
+                <div className="stats-label">Total du jour</div>
+              </div>
+              <div className="stats-card border-orange-200 accessible-shadow">
+                <div className="stats-number text-orange-600">{stats.averageWaitTime}</div>
+                <div className="stats-label">Attente (min)</div>
+              </div>
             </div>
           </div>
 
-          {/* Actions principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <button
-              onClick={handleCreateTicket}
-              disabled={isLoading}
-              className="p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:bg-gray-400"
-            >
-              🎟️ Créer un ticket
-              <div className="text-xs mt-1 opacity-75">
-                pour {getDoctorDisplayName(selectedDoctorForTicket)}
+          {/* Actions principales modernes */}
+          <div className="dashboard-card mb-6">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">⚡ Actions principales</h3>
+            <div className="actions-grid">
+              <button
+                onClick={handleCreateTicket}
+                disabled={isLoading}
+                className="action-button action-button-primary text-center"
+              >
+                <div>🎟️ Créer un ticket</div>
+                <div className="text-responsive-sm opacity-75 mt-1">
+                  pour {getDoctorDisplayName(selectedDoctorForTicket)}
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleCallNext()}
+                disabled={isLoading}
+                className="action-button action-button-success text-center"
+              >
+                <div>📢 Appeler le suivant</div>
+                <div className="text-responsive-sm opacity-75 mt-1">
+                  (prochain global)
+                </div>
+              </button>
+
+              <button
+                onClick={() => navigate("/queue")}
+                className="action-button action-button-primary text-center"
+              >
+                📋 File complète
+              </button>
+
+              <button
+                onClick={() => navigate("/admin")}
+                className="action-button action-button-secondary text-center"
+              >
+                ⚙️ Gestion admin
+              </button>
+
+              {/* Bouton de réinitialisation intégré */}
+              <div className="flex items-center justify-center">
+                <ResetQueueButton
+                  selectedDoctor={selectedDoctor}
+                  onResetComplete={handleResetComplete}
+                  onError={handleResetError}
+                  className="action-button action-button-danger w-full h-full flex flex-col items-center justify-center"
+                />
               </div>
-            </button>
-
-            <button
-              onClick={() => handleCallNext()}
-              disabled={isLoading}
-              className="p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:bg-gray-400"
-            >
-              📢 Appeler le suivant
-              <div className="text-xs mt-1 opacity-75">
-                (prochain global)
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate("/queue")}
-              className="p-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
-            >
-              📋 File complète
-            </button>
-
-            <button
-              onClick={() => navigate("/admin")}
-              className="p-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
-            >
-              ⚙️ Gestion admin
-            </button>
-
-            {/* Bouton de réinitialisation */}
-            <div className="flex items-center justify-center">
-              <ResetQueueButton
-                selectedDoctor={selectedDoctor}
-                onResetComplete={handleResetComplete}
-                onError={handleResetError}
-                className="w-full h-full flex flex-col items-center justify-center p-4"
-              />
             </div>
           </div>
 
-          {/* Actions par docteur */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-gray-800 mb-4">📢 Appels par médecin</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Actions par docteur modernes */}
+          <div className="dashboard-card mb-6">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">📢 Appels par médecin</h3>
+            <div className="dashboard-grid">
               <button
                 onClick={() => handleCallNext('dr-husni-said-habibi')}
                 disabled={isLoading}
-                className="p-3 bg-orange-100 border border-orange-200 text-orange-800 rounded-lg hover:bg-orange-200 transition font-medium disabled:bg-gray-200"
+                className="action-button action-button-secondary border-orange-200 text-orange-800 hover:bg-orange-50 text-center"
               >
-                📞 Dr. Husni
-                <div className="text-xs mt-1 opacity-75">
+                <div>📞 Dr. Husni</div>
+                <div className="text-responsive-sm opacity-75 mt-1">
                   Appeler le suivant
                 </div>
               </button>
@@ -416,10 +426,10 @@ export default function SecretaireDashboard() {
               <button
                 onClick={() => handleCallNext('dr-helios-blasco')}
                 disabled={isLoading}
-                className="p-3 bg-teal-100 border border-teal-200 text-teal-800 rounded-lg hover:bg-teal-200 transition font-medium disabled:bg-gray-200"
+                className="action-button action-button-secondary border-teal-200 text-teal-800 hover:bg-teal-50 text-center"
               >
-                📞 Dr. Helios
-                <div className="text-xs mt-1 opacity-75">
+                <div>📞 Dr. Helios</div>
+                <div className="text-responsive-sm opacity-75 mt-1">
                   Appeler le suivant
                 </div>
               </button>
@@ -427,20 +437,20 @@ export default function SecretaireDashboard() {
               <button
                 onClick={() => handleCallNext('dr-jean-eric-panacciulli')}
                 disabled={isLoading}
-                className="p-3 bg-cyan-100 border border-cyan-200 text-cyan-800 rounded-lg hover:bg-cyan-200 transition font-medium disabled:bg-gray-200"
+                className="action-button action-button-secondary border-cyan-200 text-cyan-800 hover:bg-cyan-50 text-center"
               >
-                📞 Dr. Jean-Eric
-                <div className="text-xs mt-1 opacity-75">
+                <div>📞 Dr. Jean-Eric</div>
+                <div className="text-responsive-sm opacity-75 mt-1">
                   Appeler le suivant
                 </div>
               </button>
             </div>
           </div>
 
-          {/* État actuel par docteur */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-gray-800 mb-4">👨‍⚕️ État des consultations par médecin</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* État actuel par docteur moderne */}
+          <div className="dashboard-card mb-6">
+            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">👨‍⚕️ État des consultations par médecin</h3>
+            <div className="dashboard-grid">
               {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
                 const doctorQueue = queue.filter(t => t.docteur === doctorId);
                 const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
@@ -448,48 +458,47 @@ export default function SecretaireDashboard() {
                 const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
                 
                 return (
-                  <div key={doctorId} className="border border-gray-200 rounded-lg p-3">
-                    <h4 className="font-medium text-gray-700 mb-2 text-sm">
+                  <div key={doctorId} className="dashboard-card bg-gray-50">
+                    <h4 className="text-responsive-base font-semibold text-gray-800 mb-3">
                       {getDoctorDisplayName(doctorId)}
                     </h4>
                     
-                    {/* Patient en consultation */}
-                    {inConsultation ? (
-                      <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
-                        <p className="text-xs text-green-700 font-semibold">
-                          🩺 En consultation: #{inConsultation.number}
-                        </p>
-                        <p className="text-xs text-green-600">
-                          Depuis {new Date(inConsultation.updatedAt).toLocaleTimeString()}
-                        </p>
+                    <div className="space-y-3">
+                      {/* Patient en consultation */}
+                      {inConsultation ? (
+                        <div className="alert-card bg-yellow-50 border border-yellow-200">
+                          <div className="text-responsive-sm text-yellow-800 font-medium">🩺 En consultation</div>
+                          <div className="text-responsive-sm text-yellow-700 mt-1">
+                            Ticket n°{inConsultation.number}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="alert-card bg-green-50 border border-green-200">
+                          <div className="text-responsive-sm text-green-800 font-medium">✅ Libre</div>
+                        </div>
+                      )}
+
+                      {/* Patient suivant */}
+                      {nextPatient ? (
+                        <div className="alert-card bg-blue-50 border border-blue-200">
+                          <div className="text-responsive-sm text-blue-800 font-medium">⏳ Prochain patient</div>
+                          <div className="text-responsive-sm text-blue-700 mt-1">
+                            Ticket n°{nextPatient.number}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="alert-card bg-gray-50 border border-gray-200">
+                          <div className="text-responsive-sm text-gray-600">Aucun patient en attente</div>
+                        </div>
+                      )}
+
+                      {/* Nombre en attente */}
+                      <div className="info-grid">
+                        <div className="stats-card border-gray-200">
+                          <div className="stats-number text-gray-600">{waiting.length}</div>
+                          <div className="stats-label">En attente</div>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="bg-gray-50 border border-gray-200 rounded p-2 mb-2">
-                        <p className="text-xs text-gray-500">💤 Libre</p>
-                      </div>
-                    )}
-                    
-                    {/* Prochain patient */}
-                    {nextPatient ? (
-                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                        <p className="text-xs text-blue-700 font-semibold">
-                          ⏭️ Suivant: #{nextPatient.number}
-                        </p>
-                        <p className="text-xs text-blue-600">
-                          Attente: {getEstimatedTime(1)}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                        <p className="text-xs text-yellow-600">📭 Aucun patient en attente</p>
-                      </div>
-                    )}
-                    
-                    {/* Indicateur file */}
-                    <div className="mt-2 text-center">
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                        {waiting.length} en attente
-                      </span>
                     </div>
                   </div>
                 );
@@ -497,152 +506,84 @@ export default function SecretaireDashboard() {
             </div>
           </div>
 
-          {/* File d'attente résumée */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-gray-800">📋 File d'attente</h3>
-              <span className="text-sm text-gray-500">
-                Mise à jour automatique toutes les 5 secondes
-              </span>
-            </div>
-            
-            {queue.filter(t => t.status === "en_attente").length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">🎯</div>
-                <p>Aucun patient en attente</p>
-                <button
-                  onClick={handleCreateTicket}
-                  className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                >
-                  🎟️ Créer le premier ticket
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {queue
-                  .filter(t => t.status === "en_attente")
-                  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                  .map((ticket, index) => (
-                    <div key={ticket._id} className={`flex justify-between items-center p-3 rounded-lg border ${
-                      index === 0 ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          index === 0 ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                        }`}>
-                          Position {index + 1}
-                        </span>
-                        <span className="font-semibold">Ticket n°{ticket.number}</span>
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          👨‍⚕️ {getDoctorDisplayName(ticket.docteur)}
-                        </span>
-                        {index === 0 && <span className="text-green-600 font-semibold">⬅️ SUIVANT</span>}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <span>{new Date(ticket.createdAt).toLocaleTimeString()}</span>
-                        <span className="ml-2">({getEstimatedTime(index + 1)} d'attente)</span>
+          {/* Queue détaillée si sélectionnée */}
+          {selectedDoctor && (
+            <div className="dashboard-card">
+              <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
+                📋 File de {getDoctorDisplayName(selectedDoctor)}
+              </h3>
+              {queue.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">🎯</div>
+                  <p className="text-responsive-base">Aucun patient dans cette file</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {queue.map((ticket, index) => (
+                    <div key={ticket._id} className="ticket-card">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-responsive-base font-semibold text-gray-800">
+                            🎫 Ticket n°{ticket.number}
+                          </span>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            ticket.status === "en_consultation" ? "bg-green-100 text-green-700" :
+                            ticket.status === "en_attente" ? "bg-blue-100 text-blue-700" :
+                            ticket.status === "termine" ? "bg-gray-100 text-gray-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>
+                            {ticket.status === "en_attente" ? "En attente" :
+                             ticket.status === "en_consultation" ? "En consultation" :
+                             ticket.status === "termine" ? "Terminé" : "Annulé"}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col sm:items-end gap-1">
+                          <div className="text-responsive-sm text-gray-500">
+                            ⏰ {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          {ticket.status === "en_attente" && (
+                            <div className="text-responsive-sm text-blue-600">
+                              Position {queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
-              </div>
-            )}
-          </div>
-
-          {/* Tableau de bord rapide */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Actions fréquentes */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">⚡ Actions fréquentes</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={handleCreateTicket}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg transition"
-                >
-                  🎟️ Créer un ticket pour un patient
-                </button>
-                <button
-                  onClick={() => navigate("/queue")}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                >
-                  📋 Voir la file détaillée
-                </button>
-                <button
-                  onClick={() => navigate("/admin")}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-purple-100 rounded-lg transition"
-                >
-                  👥 Gérer les utilisateurs
-                </button>
-                <button
-                  onClick={() => navigate("/")}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                >
-                  🏠 Retour à l'accueil
-                </button>
-              </div>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Informations utiles */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">ℹ️ Informations</h3>
-              <div className="space-y-3">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <strong>Temps moyen par consultation :</strong> 15 minutes
-                  </p>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-800">
-                    <strong>Heure de pointe :</strong> 9h-11h et 14h-16h
-                  </p>
-                </div>
-                <div className="p-3 bg-yellow-50 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Capacité recommandée :</strong> 4 patients/heure max
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Modales de confirmation */}
+          {/* Modales responsives */}
           <ConfirmModal
             isOpen={showCallModal}
-            title="Appeler le patient suivant"
-            message={selectedDoctorForCall ? 
-              `Voulez-vous appeler le patient suivant pour ${getDoctorDisplayName(selectedDoctorForCall)} ? Assurez-vous que le médecin est prêt.` :
-              "Voulez-vous appeler le patient suivant en consultation ? Assurez-vous que le médecin est prêt."
-            }
-            confirmText="Oui, appeler"
-            cancelText="Annuler"
-            type="info"
+            title="📢 Appeler le patient suivant"
+            message={`Êtes-vous sûr de vouloir appeler le patient suivant pour ${getDoctorDisplayName(selectedDoctorForCall)} ?`}
             onConfirm={confirmCallNext}
             onCancel={() => {
               setShowCallModal(false);
               setSelectedDoctorForCall(null);
             }}
+            confirmText="Oui, appeler"
+            cancelText="Annuler"
+            isLoading={isLoading}
           />
 
           <ConfirmModal
             isOpen={showCreateTicketModal}
-            title="Créer un ticket"
-            message={`Voulez-vous créer un ticket pour ${getDoctorDisplayName(selectedDoctorForTicket)} pour un patient qui se présente à l'accueil ?`}
-            confirmText="Oui, créer"
-            cancelText="Annuler"
-            type="info"
+            title="🎟️ Créer un nouveau ticket"
+            message={`Créer un ticket pour ${getDoctorDisplayName(selectedDoctorForTicket)} ?`}
             onConfirm={confirmCreateTicket}
             onCancel={() => setShowCreateTicketModal(false)}
+            confirmText="Créer le ticket"
+            cancelText="Annuler"
+            isLoading={isLoading}
           />
-
-          {/* Notifications */}
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
         </div>
       </AnimatedPage>
     </Layout>
