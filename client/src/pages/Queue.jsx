@@ -4,6 +4,7 @@ import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import NetworkError from "../components/NetworkError";
 import DoctorQueueSelector from "../components/DoctorQueueSelector";
+import ImprovedQueueCard from "../components/ImprovedQueueCard";
 import { useToast } from "../hooks/useToast";
 import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
@@ -598,13 +599,14 @@ const Queue = () => {
                     const estimatedWait = position ? getEstimatedWait(position) : 0;
                     
                     return (
-                      <CleanTicketCard
+                      <ImprovedQueueCard
                         key={`${ticket._id}-${ticket.status}-${ticket.updatedAt || ticket.createdAt}`}
                         ticket={ticket}
                         isMyTicket={ticket._id === myId}
                         position={position}
                         estimatedWait={estimatedWait}
                         hasStatusChanged={recentChanges.has(ticket._id)}
+                        showDetailedDoctorInfo={true}
                       />
                     );
                   })
