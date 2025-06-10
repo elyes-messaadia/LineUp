@@ -31,20 +31,34 @@ export default function DoctorDashboard({ doctorId }) {
   const loadQueue = useCallback(async () => {
     try {
       // Charger seulement la file de ce docteur
+      console.log(`🔍 Chargement queue pour ${doctorId}...`);
       const res = await fetch(`${BACKEND_URL}/queue?docteur=${doctorId}`);
       if (res.ok) {
         const doctorQueue = await res.json();
+        console.log(`✅ Queue chargée pour ${doctorId}: ${doctorQueue.length} tickets`);
+        
+        // Vérifier que tous les tickets appartiennent bien au bon docteur
+        const wrongTickets = doctorQueue.filter(ticket => ticket.docteur !== doctorId);
+        if (wrongTickets.length > 0) {
+          console.error(`❌ ERREUR FILTRAGE: ${wrongTickets.length} tickets n'appartiennent pas à ${doctorId}:`, wrongTickets);
+          showError(`Erreur de filtrage: ${wrongTickets.length} tickets d'autres médecins apparaissent dans votre file!`);
+        }
+        
         setMyQueue(doctorQueue);
         
         // Trouver le patient actuel en consultation
         const current = doctorQueue.find(ticket => ticket.status === "en_consultation");
         setCurrentPatient(current);
+      } else {
+        console.error(`❌ Erreur chargement queue pour ${doctorId}: ${res.status}`);
+        showError(`Erreur chargement de votre file d'attente (${res.status})`);
       }
       
       // Charger également la file globale pour les statistiques générales (optionnel)
       const globalRes = await fetch(`${BACKEND_URL}/queue`);
       if (globalRes.ok) {
         const globalData = await globalRes.json();
+        console.log(`📊 File globale: ${globalData.length} tickets total`);
         setQueue(globalData);
       }
     } catch (error) {
@@ -54,6 +68,8 @@ export default function DoctorDashboard({ doctorId }) {
   }, [doctorId, showError]);
 
   useEffect(() => {
+    console.log(`🔄 DoctorDashboard useEffect triggered for doctorId: ${doctorId}`);
+    
     const userData = localStorage.getItem("user");
     const isAuthenticated = localStorage.getItem("isAuthenticated");
 
@@ -74,7 +90,7 @@ export default function DoctorDashboard({ doctorId }) {
     // Actualiser toutes les 3 secondes
     const interval = setInterval(loadQueue, 3000);
     return () => clearInterval(interval);
-  }, [navigate, loadQueue]);
+  }, [navigate, loadQueue, doctorId]); // Ajouter doctorId comme dépendance
 
   // Appeler le patient suivant
   const handleCallNext = async () => {
@@ -243,7 +259,7 @@ export default function DoctorDashboard({ doctorId }) {
           {waitingPatients.length > 0 && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                👥 Votre file d'attente ({waitingPatients.length} patients)
+                👥 Votre file d'attente ({waitingPatients.length} patients) - Dr. {doctorId}
               </h3>
               
               <div className="space-y-3">
@@ -263,6 +279,12 @@ export default function DoctorDashboard({ doctorId }) {
                       </span>
                       <span className="text-gray-600">
                         Arrivé à {formatTime(ticket.createdAt)}
+                      </span>
+                      {/* Afficher le docteur pour déboguer */}
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        ticket.docteur === doctorId ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {ticket.docteur === doctorId ? '✅' : '❌'} {ticket.docteur}
                       </span>
                       {index === 0 && <span className="text-sm text-amber-600 font-medium">← Suivant</span>}
                     </div>
