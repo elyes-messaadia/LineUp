@@ -54,6 +54,11 @@ export default function PatientDashboard() {
           setMyTicket(data.ticket);
           localStorage.setItem("lineup_ticket", JSON.stringify(data.ticket));
           return;
+        } else if (res.status === 404) {
+          // Aucun ticket actif côté serveur, nettoyer localStorage
+          localStorage.removeItem("lineup_ticket");
+          setMyTicket(null);
+          return;
         }
       }
       
@@ -62,23 +67,23 @@ export default function PatientDashboard() {
       if (stored) {
         try {
           const parsedTicket = JSON.parse(stored);
-          setMyTicket(parsedTicket);
+          // Vérifier que le ticket dans localStorage est encore valide
+          if (parsedTicket.status === 'en_attente' || parsedTicket.status === 'en_consultation') {
+            setMyTicket(parsedTicket);
+          } else {
+            // Ticket terminé/annulé, le supprimer
+            localStorage.removeItem("lineup_ticket");
+            setMyTicket(null);
+          }
         } catch (error) {
           localStorage.removeItem("lineup_ticket");
+          setMyTicket(null);
         }
       }
     } catch (error) {
       console.error("Erreur chargement ticket:", error);
-      // Fallback vers localStorage en cas d'erreur
-      const stored = localStorage.getItem("lineup_ticket");
-      if (stored) {
-        try {
-          const parsedTicket = JSON.parse(stored);
-          setMyTicket(parsedTicket);
-        } catch (e) {
-          localStorage.removeItem("lineup_ticket");
-        }
-      }
+      // En cas d'erreur réseau, ne pas utiliser localStorage pour éviter d'afficher de vieux tickets
+      setMyTicket(null);
     }
   }, []);
 
@@ -305,14 +310,17 @@ export default function PatientDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                 <div className="bg-white rounded-lg p-3 border border-yellow-300">
                   <span className="text-xs sm:text-sm text-yellow-600 font-medium">Numéro</span>
-                  <p className="text-lg sm:text-xl font-bold text-yellow-800">#{myTicket.number}</p>
+                  <p className="text-lg sm:text-xl font-bold text-yellow-800">
+                    #{myTicket.number || 'N/A'}
+                  </p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-yellow-300">
                   <span className="text-xs sm:text-sm text-yellow-600 font-medium">Statut</span>
                   <p className="text-sm sm:text-base font-semibold text-yellow-800">
                     {myTicket.status === "en_attente" ? "⏱️ En attente" :
                      myTicket.status === "en_consultation" ? "🩺 En consultation" :
-                     myTicket.status === "termine" ? "✅ Terminé" : "❌ Annulé"}
+                     myTicket.status === "termine" ? "✅ Terminé" : 
+                     myTicket.status === "desiste" ? "❌ Désisté" : "❌ Annulé"}
                   </p>
                 </div>
                 {myPosition && (
@@ -331,7 +339,18 @@ export default function PatientDashboard() {
                 )}
                 <div className="bg-white rounded-lg p-3 border border-yellow-300 sm:col-span-2">
                   <span className="text-xs sm:text-sm text-yellow-600 font-medium">Créé le</span>
-                  <p className="text-sm text-yellow-700">{new Date(myTicket.createdAt).toLocaleString()}</p>
+                  <p className="text-sm text-yellow-700">
+                    {myTicket.createdAt ? 
+                      new Date(myTicket.createdAt).toLocaleString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : 
+                      'Date non disponible'
+                    }
+                  </p>
                 </div>
               </div>
 
