@@ -3,6 +3,7 @@ import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
 import NetworkError from "../components/NetworkError";
+import DoctorQueueSelector from "../components/DoctorQueueSelector";
 import { useToast } from "../hooks/useToast";
 import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
@@ -270,6 +271,7 @@ const Queue = () => {
   const [myId, setMyId] = useState(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [recentChanges, setRecentChanges] = useState(new Set());
+  const [selectedDoctor, setSelectedDoctor] = useState(null); // null = toutes les files
   
   // ===== HOOKS PERSONNALISÉS (toujours dans le même ordre) =====
   const { 
@@ -335,7 +337,7 @@ const Queue = () => {
     forceUpdate,
     getPosition,
     getEstimatedWait
-  } = useRealTimeQueue(handleStatusChanges);
+  } = useRealTimeQueue(handleStatusChanges, selectedDoctor);
 
   // ===== EFFETS =====
   // Timer pour l'horloge (optimisé)
@@ -425,6 +427,12 @@ const Queue = () => {
           
           {/* Contenu principal */}
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 legacy-container">
+            
+            {/* Sélecteur de file d'attente par docteur */}
+            <DoctorQueueSelector 
+              selectedDoctor={selectedDoctor}
+              onDoctorChange={setSelectedDoctor}
+            />
             
             {/* Section filtres et actions - Layout responsive */}
             <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between mb-6 sm:mb-8">

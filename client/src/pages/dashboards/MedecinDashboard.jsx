@@ -58,7 +58,19 @@ export default function MedecinDashboard() {
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/queue`);
+      // Essayer de trouver l'ID docteur pour ce médecin
+      const { getDoctorIdFromUser } = await import("../../utils/doctorMapping");
+      const doctorId = getDoctorIdFromUser(user);
+      
+      let res;
+      if (doctorId) {
+        // Si on peut identifier le docteur, charger sa file spécifique
+        res = await fetch(`${BACKEND_URL}/queue?docteur=${doctorId}`);
+      } else {
+        // Sinon, charger la file globale (comportement de fallback)
+        res = await fetch(`${BACKEND_URL}/queue`);
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
@@ -118,7 +130,16 @@ export default function MedecinDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      const res = await fetch(`${BACKEND_URL}/next`, {
+      // Essayer de trouver l'ID docteur pour ce médecin
+      const { getDoctorIdFromUser } = await import("../../utils/doctorMapping");
+      const doctorId = getDoctorIdFromUser(user);
+      
+      let url = `${BACKEND_URL}/next`;
+      if (doctorId) {
+        url = `${BACKEND_URL}/next?docteur=${doctorId}`;
+      }
+
+      const res = await fetch(url, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -126,17 +147,18 @@ export default function MedecinDashboard() {
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        const errorData = await res.json();
+        throw new Error(errorData.message || `Erreur ${res.status}`);
       }
 
       const data = await res.json();
       playNotificationSound(); // Jouer le son quand on appelle un patient
-      showSuccess(`Patient n°${data.called.number} appelé en consultation !`, 4000);
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation !`, 4000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur appel patient:", error);
-      showError("Impossible d'appeler le patient suivant", 5000);
+      showError(error.message || "Impossible d'appeler le patient suivant", 5000);
     } finally {
       setIsLoading(false);
     }

@@ -38,14 +38,46 @@ export default function PatientDashboard() {
     }
   }, []);
 
-  const loadMyTicket = useCallback(() => {
-    const stored = localStorage.getItem("lineup_ticket");
-    if (stored) {
-      try {
-        const parsedTicket = JSON.parse(stored);
-        setMyTicket(parsedTicket);
-      } catch (error) {
-        localStorage.removeItem("lineup_ticket");
+  const loadMyTicket = useCallback(async () => {
+    try {
+      // D'abord, essayer de récupérer le ticket depuis le serveur (pour les patients connectés)
+      const token = localStorage.getItem("token");
+      if (token) {
+        const res = await fetch(`${BACKEND_URL}/patient/my-ticket`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setMyTicket(data.ticket);
+          localStorage.setItem("lineup_ticket", JSON.stringify(data.ticket));
+          return;
+        }
+      }
+      
+      // Fallback : chercher dans localStorage pour les tickets anonymes
+      const stored = localStorage.getItem("lineup_ticket");
+      if (stored) {
+        try {
+          const parsedTicket = JSON.parse(stored);
+          setMyTicket(parsedTicket);
+        } catch (error) {
+          localStorage.removeItem("lineup_ticket");
+        }
+      }
+    } catch (error) {
+      console.error("Erreur chargement ticket:", error);
+      // Fallback vers localStorage en cas d'erreur
+      const stored = localStorage.getItem("lineup_ticket");
+      if (stored) {
+        try {
+          const parsedTicket = JSON.parse(stored);
+          setMyTicket(parsedTicket);
+        } catch (e) {
+          localStorage.removeItem("lineup_ticket");
+        }
       }
     }
   }, []);
@@ -133,10 +165,14 @@ export default function PatientDashboard() {
       }
 
       const data = await res.json();
-      localStorage.setItem("lineup_ticket", JSON.stringify(data));
-      setMyTicket(data);
       
-      showSuccess(`Ticket n°${data.number} créé pour ${selectedDoctorInfo.label} !`, 4000);
+      // Vérifier la structure de la réponse et normaliser
+      const ticketData = data.ticket || data; // Compatibilité avec les deux formats
+      
+      localStorage.setItem("lineup_ticket", JSON.stringify(ticketData));
+      setMyTicket(ticketData);
+      
+      showSuccess(`Ticket n°${ticketData.number} créé pour ${selectedDoctorInfo.label} !`, 4000);
       setSelectedDoctor(""); // Réinitialiser la sélection
       loadQueue();
 
@@ -147,7 +183,16 @@ export default function PatientDashboard() {
         showError("Session expirée. Veuillez vous reconnecter.", 5000);
         handleLogout();
       } else if (error.message.includes("400")) {
-        showError("Données invalides. Vérifiez votre profil.", 5000);
+        if (error.message.includes("déjà un ticket")) {
+          showWarning("Vous avez déjà un ticket en cours ! Chargement...", 3000);
+          // Recharger pour détecter le ticket existant
+          setTimeout(() => {
+            loadMyTicket();
+            loadQueue();
+          }, 1000);
+        } else {
+          showError("Données invalides. Vérifiez votre profil.", 5000);
+        }
       } else {
         showError("Impossible de créer le ticket. Veuillez réessayer.", 5000);
       }

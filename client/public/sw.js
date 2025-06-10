@@ -49,9 +49,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Gérer spécialement les routes React SPA
+  const url = new URL(event.request.url);
+  const isReactRoute = url.pathname.startsWith('/dashboard/') || 
+                       url.pathname.startsWith('/queue') ||
+                       url.pathname.startsWith('/login') ||
+                       url.pathname.startsWith('/register');
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        // Pour les routes React qui retournent 404, servir index.html
+        if (isReactRoute && (!response || response.status === 404)) {
+          return caches.match('/index.html').then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            return fetch('/index.html');
+          });
+        }
+
         // Vérifier si la réponse est valide
         if (!response || response.status === 404 || response.type !== 'basic') {
           return response;
@@ -80,11 +97,24 @@ self.addEventListener('fetch', (event) => {
             if (response) {
               return response;
             }
+            
+            // Pour les routes React, servir index.html du cache
+            if (isReactRoute) {
+              return caches.match('/index.html').then(cachedResponse => {
+                if (cachedResponse) {
+                  return cachedResponse;
+                }
+                // Si pas d'index.html en cache, retourner la page hors-ligne
+                return caches.match(OFFLINE_URL);
+              });
+            }
+            
             // Si pas en cache, retourner la page hors-ligne
             if (event.request.mode === 'navigate') {
               return caches.match(OFFLINE_URL);
             }
-            return new Response('', {
+            
+            return new Response('Resource not available offline', {
               status: 408,
               statusText: 'Request timed out.'
             });

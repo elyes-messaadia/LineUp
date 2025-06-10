@@ -116,7 +116,14 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       if (existingTicket) {
         return res.status(400).json({
           success: false,
-          message: "Vous avez déjà un ticket en cours"
+          message: "Vous avez déjà un ticket en cours",
+          existingTicket: {
+            _id: existingTicket._id,
+            number: existingTicket.number,
+            status: existingTicket.status,
+            docteur: existingTicket.docteur,
+            createdAt: existingTicket.createdAt
+          }
         });
       }
     }
@@ -220,10 +227,24 @@ app.get("/ticket/:id", async (req, res) => {
   }
 });
 
-// 📋 Obtenir la file d'attente
+// 📋 Obtenir la file d'attente (globale ou par docteur)
 app.get("/queue", async (req, res) => {
   try {
-    const queue = await Ticket.find().sort({ createdAt: 1 });
+    const { docteur } = req.query;
+    let query = {};
+    
+    // Si un docteur est spécifié, filtrer par docteur
+    if (docteur) {
+      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Docteur non valide" 
+        });
+      }
+      query.docteur = docteur;
+    }
+    
+    const queue = await Ticket.find(query).sort({ createdAt: 1 });
     res.json(queue);
   } catch (error) {
     console.error("Erreur lors de la récupération de la file:", error);
@@ -291,11 +312,34 @@ app.patch("/ticket/:id/resume", async (req, res) => {
   }
 });
 
-// 📣 Appeler le patient suivant
+// 📣 Appeler le patient suivant (par docteur)
 app.delete("/next", async (req, res) => {
   try {
-    // 1. Trouver le ticket en consultation actuel s'il existe
-    const currentTicket = await Ticket.findOne({ status: "en_consultation" });
+    const { docteur } = req.query;
+    
+    // Validation du docteur requis
+    if (!docteur) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Le paramètre 'docteur' est requis" 
+      });
+    }
+    
+    if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Docteur non valide" 
+      });
+    }
+
+    let terminatedNotification = null;
+
+    // 1. Trouver le ticket en consultation actuel pour ce docteur
+    const currentTicket = await Ticket.findOne({ 
+      status: "en_consultation", 
+      docteur: docteur 
+    });
+    
     if (currentTicket) {
       // Sauvegarder l'ancien statut pour la notification
       const previousStatus = currentTicket.status;
@@ -305,15 +349,19 @@ app.delete("/next", async (req, res) => {
       await currentTicket.save();
 
       // Préparer la notification pour le patient terminé
-      const terminatedNotification = {
+      terminatedNotification = {
         previousStatus,
         type: "consultation_terminee",
         message: "✅ Votre consultation est terminée"
       };
     }
 
-    // 2. Trouver et appeler le prochain patient
-    const nextTicket = await Ticket.findOne({ status: "en_attente" }).sort({ createdAt: 1 });
+    // 2. Trouver et appeler le prochain patient pour ce docteur
+    const nextTicket = await Ticket.findOne({ 
+      status: "en_attente", 
+      docteur: docteur 
+    }).sort({ createdAt: 1 });
+    
     if (nextTicket) {
       // Sauvegarder l'ancien statut pour la notification
       const previousStatus = nextTicket.status;
@@ -338,7 +386,8 @@ app.delete("/next", async (req, res) => {
           ticket: nextTicket,
           notification: calledNotification
         },
-        message: "Patient suivant appelé avec succès"
+        message: `Patient suivant appelé avec succès pour ${docteur}`,
+        docteur: docteur
       });
     } else {
       res.status(404).json({ 
@@ -346,7 +395,8 @@ app.delete("/next", async (req, res) => {
           ticket: currentTicket,
           notification: terminatedNotification
         } : null,
-        message: "Aucun patient en attente" 
+        message: `Aucun patient en attente pour ${docteur}`,
+        docteur: docteur
       });
     }
   } catch (error) {
@@ -355,11 +405,32 @@ app.delete("/next", async (req, res) => {
   }
 });
 
-// ✅ Réinitialiser la file
+// ✅ Réinitialiser la file (globale ou par docteur)
 app.delete("/reset", async (req, res) => {
   try {
-    await Ticket.deleteMany();
-    res.sendStatus(200);
+    const { docteur } = req.query;
+    let query = {};
+    let message = "File globale réinitialisée";
+    
+    // Si un docteur est spécifié, ne réinitialiser que sa file
+    if (docteur) {
+      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Docteur non valide" 
+        });
+      }
+      query.docteur = docteur;
+      message = `File de ${docteur} réinitialisée`;
+    }
+    
+    const result = await Ticket.deleteMany(query);
+    res.json({ 
+      success: true,
+      message: message,
+      deletedCount: result.deletedCount,
+      docteur: docteur || "tous"
+    });
   } catch (error) {
     console.error("Erreur lors de la réinitialisation:", error);
     res.status(500).json({ message: "Erreur lors de la réinitialisation" });
@@ -378,11 +449,15 @@ app.patch("/ticket/:id/call", async (req, res) => {
       return res.status(400).json({ message: "Le ticket n'est pas en attente" });
     }
 
-    // Vérifier qu'aucun autre patient n'est déjà en consultation
-    const currentConsultation = await Ticket.findOne({ status: "en_consultation" });
+    // Vérifier qu'aucun autre patient n'est déjà en consultation avec ce docteur
+    const currentConsultation = await Ticket.findOne({ 
+      status: "en_consultation", 
+      docteur: ticket.docteur 
+    });
+    
     if (currentConsultation) {
       return res.status(400).json({ 
-        message: "Un patient est déjà en consultation",
+        message: `Un patient est déjà en consultation avec ${ticket.docteur}`,
         currentPatient: currentConsultation
       });
     }
@@ -435,6 +510,80 @@ app.patch("/ticket/:id/finish", async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de la finalisation:", error);
     res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// 📊 Statistiques par docteur
+app.get("/stats", async (req, res) => {
+  try {
+    const { docteur } = req.query;
+    
+    if (docteur) {
+      // Statistiques pour un docteur spécifique
+      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Docteur non valide" 
+        });
+      }
+      
+      const stats = await Ticket.aggregate([
+        { $match: { docteur: docteur } },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+      
+      // Formatage des statistiques
+      const formattedStats = {
+        docteur: docteur,
+        en_attente: 0,
+        en_consultation: 0,
+        termine: 0,
+        desiste: 0,
+        total: 0
+      };
+      
+      stats.forEach(stat => {
+        formattedStats[stat._id] = stat.count;
+        formattedStats.total += stat.count;
+      });
+      
+      res.json(formattedStats);
+    } else {
+      // Statistiques globales par docteur
+      const statsByDoctor = await Ticket.aggregate([
+        {
+          $group: {
+            _id: {
+              docteur: "$docteur",
+              status: "$status"
+            },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $group: {
+            _id: "$_id.docteur",
+            stats: {
+              $push: {
+                status: "$_id.status",
+                count: "$count"
+              }
+            },
+            total: { $sum: "$count" }
+          }
+        }
+      ]);
+      
+      res.json(statsByDoctor);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des statistiques:", error);
+    res.status(500).json({ message: "Erreur de récupération des statistiques" });
   }
 });
 

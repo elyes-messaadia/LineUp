@@ -23,18 +23,22 @@ export default function DrJeanEricDashboard() {
   // Charger les données de base
   const loadQueue = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/queue`);
+      // Charger seulement la file de ce docteur
+      const res = await fetch(`${BACKEND_URL}/queue?docteur=${DOCTOR_ID}`);
       if (res.ok) {
-        const data = await res.json();
-        setQueue(data);
-        
-        // Filtrer les tickets pour ce médecin
-        const doctorQueue = data.filter(ticket => ticket.docteur === DOCTOR_ID);
+        const doctorQueue = await res.json();
         setMyQueue(doctorQueue);
         
         // Trouver le patient actuel en consultation
         const current = doctorQueue.find(ticket => ticket.status === "en_consultation");
         setCurrentPatient(current);
+      }
+      
+      // Charger également la file globale pour les statistiques générales (optionnel)
+      const globalRes = await fetch(`${BACKEND_URL}/queue`);
+      if (globalRes.ok) {
+        const globalData = await globalRes.json();
+        setQueue(globalData);
       }
     } catch (error) {
       console.error("Erreur chargement queue:", error);
@@ -72,7 +76,7 @@ export default function DrJeanEricDashboard() {
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
 
     if (!nextPatient) {
-      showWarning("Aucun patient en attente");
+      showWarning("Aucun patient en attente dans votre file");
       return;
     }
 
@@ -84,8 +88,8 @@ export default function DrJeanEricDashboard() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${BACKEND_URL}/ticket/${nextPatient._id}/call`, {
-        method: "PATCH",
+      const res = await fetch(`${BACKEND_URL}/next?docteur=${DOCTOR_ID}`, {
+        method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
@@ -93,14 +97,16 @@ export default function DrJeanEricDashboard() {
       });
 
       if (res.ok) {
-        showSuccess(`Patient n°${nextPatient.number} appelé en consultation`);
+        const data = await res.json();
+        showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation !`);
         loadQueue();
       } else {
-        throw new Error(`Erreur ${res.status}`);
+        const errorData = await res.json();
+        throw new Error(errorData.message || `Erreur ${res.status}`);
       }
     } catch (error) {
       console.error("Erreur appel patient:", error);
-      showError("Impossible d'appeler le patient");
+      showError(error.message || "Impossible d'appeler le patient");
     } finally {
       setIsLoading(false);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import BACKEND_URL from '../config/api';
 
-export function useRealTimeQueue(onStatusChange = null) {
+export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
   const [queue, setQueue] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,7 +94,13 @@ export function useRealTimeQueue(onStatusChange = null) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       
-      const response = await fetch(`${BACKEND_URL}/queue`, {
+      // Construire l'URL avec le paramètre docteur si spécifié
+      let url = `${BACKEND_URL}/queue`;
+      if (selectedDoctor) {
+        url += `?docteur=${selectedDoctor}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -156,7 +162,7 @@ export function useRealTimeQueue(onStatusChange = null) {
         }
       }
     }
-  }, []); // Pas de dépendances pour éviter les re-créations
+  }, [selectedDoctor]); // Inclure selectedDoctor pour refetch quand il change
 
   // Fonction pour forcer une mise à jour
   const forceUpdate = useCallback(() => {
@@ -180,10 +186,17 @@ export function useRealTimeQueue(onStatusChange = null) {
     }
   }, []);
 
-  // Effet principal - exécuté une seule fois
+  // Effet principal - se relance quand selectedDoctor change
   useEffect(() => {
     isActiveRef.current = true;
     isMountedRef.current = true;
+    
+    // Reset de l'état lors du changement de docteur
+    if (selectedDoctor !== null) {
+      setIsLoading(true);
+      setQueue([]);
+      previousQueueRef.current = [];
+    }
     
     // Fetch initial
     fetchQueue();
@@ -197,7 +210,7 @@ export function useRealTimeQueue(onStatusChange = null) {
       isMountedRef.current = false;
       stopPolling();
     };
-  }, []); // Dépendances vides pour éviter les re-exécutions
+  }, [selectedDoctor, fetchQueue, startPolling, stopPolling]); // Dépendances nécessaires
 
   // Gestion de la visibilité de la page (optimisation performance)
   useEffect(() => {

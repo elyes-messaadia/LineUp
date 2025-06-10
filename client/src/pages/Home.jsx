@@ -8,6 +8,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import ResponsiveContainer from "../components/ui/ResponsiveContainer";
 import ResponsiveText from "../components/ui/ResponsiveText";
+import DoctorQuickAccess from "../components/DoctorQuickAccess";
 import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
@@ -186,6 +187,11 @@ export default function Home() {
               </Button>
             </Card.Content>
           </Card>
+        )}
+
+        {/* Accès rapide médecins */}
+        {!isAuthenticated && (
+          <DoctorQuickAccess />
         )}
 
         {/* Actions principales */}

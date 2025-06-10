@@ -8,10 +8,11 @@ export const DOCTEURS = [
     emoji: '👨‍⚕️', 
     disponible: true,
     specialite: 'Médecin généraliste',
-    // Informations de connexion (optionnel pour l'avenir)
+    // Informations de connexion
     credentials: {
       username: 'husni.said.habibi',
-      email: 'husni.said.habibi@lineup.medical'
+      email: 'husni.said.habibi@lineup.medical',
+      password: 'husni123' // Mot de passe de développement
     }
   },
   { 
@@ -24,7 +25,8 @@ export const DOCTEURS = [
     specialite: 'Médecin généraliste',
     credentials: {
       username: 'helios.blasco',
-      email: 'helios.blasco@lineup.medical'
+      email: 'helios.blasco@lineup.medical',
+      password: 'helios123' // Mot de passe de développement
     }
   },
   { 
@@ -37,7 +39,8 @@ export const DOCTEURS = [
     specialite: 'Médecin généraliste',
     credentials: {
       username: 'jean.eric.panacciulli',
-      email: 'jean.eric.panacciulli@lineup.medical'
+      email: 'jean.eric.panacciulli@lineup.medical',
+      password: 'jeaneric123' // Mot de passe de développement
     }
   }
 ];
