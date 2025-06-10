@@ -4,16 +4,22 @@ import Layout from "../../components/Layout";
 import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
+import DoctorQueueSelector from "../../components/DoctorQueueSelector";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
+import { getDoctorDisplayName } from "../../config/doctors";
 
 export default function SecretaireDashboard() {
   const [user, setUser] = useState(null);
   const [queue, setQueue] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null); // null = toutes les files
+  const [selectedDoctorForTicket, setSelectedDoctorForTicket] = useState('dr-husni-said-habibi'); // Docteur par défaut pour nouveaux tickets
+  const [selectedDoctorForCall, setSelectedDoctorForCall] = useState(null); // Docteur pour appel patient
   const [isLoading, setIsLoading] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
   const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [stats, setStats] = useState({});
+  const [allStats, setAllStats] = useState({}); // Statistiques par docteur
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
@@ -43,18 +49,37 @@ export default function SecretaireDashboard() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, [navigate, selectedDoctor]); // Ajouter selectedDoctor comme dépendance
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/queue`);
+      // Charger la file selon le docteur sélectionné
+      let url = `${BACKEND_URL}/queue`;
+      if (selectedDoctor) {
+        url += `?docteur=${selectedDoctor}`;
+      }
+      
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
         fetchStats();
+        fetchAllStats();
       }
     } catch (error) {
       console.error("Erreur chargement queue:", error);
+    }
+  };
+
+  const fetchAllStats = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setAllStats(data);
+      }
+    } catch (error) {
+      console.error("Erreur chargement statistiques:", error);
     }
   };
 
@@ -75,7 +100,31 @@ export default function SecretaireDashboard() {
     });
   };
 
-  const handleCallNext = () => {
+  const handleCallNext = (doctorId = null) => {
+    // Si un docteur spécifique est demandé
+    if (doctorId) {
+      const doctorQueue = queue.filter(t => t.docteur === doctorId);
+      const nextPatient = doctorQueue
+        .filter(t => t.status === "en_attente")
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+
+      if (!nextPatient) {
+        showWarning(`Aucun patient en attente pour ${getDoctorDisplayName(doctorId)}`);
+        return;
+      }
+
+      const currentPatient = doctorQueue.find(t => t.status === "en_consultation");
+      if (currentPatient) {
+        showWarning(`${getDoctorDisplayName(doctorId)} a déjà un patient en consultation.`);
+        return;
+      }
+
+      setSelectedDoctorForCall(doctorId);
+      setShowCallModal(true);
+      return;
+    }
+
+    // Logique globale si aucun docteur spécifique
     const nextPatient = queue
       .filter(t => t.status === "en_attente")
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
@@ -85,12 +134,15 @@ export default function SecretaireDashboard() {
       return;
     }
 
-    const currentPatient = queue.find(t => t.status === "en_consultation");
+    // Vérifier si le docteur de ce patient est libre
+    const doctorQueue = queue.filter(t => t.docteur === nextPatient.docteur);
+    const currentPatient = doctorQueue.find(t => t.status === "en_consultation");
     if (currentPatient) {
-      showWarning("Un patient est déjà en consultation. Coordonnez-vous avec le médecin.");
+      showWarning(`${getDoctorDisplayName(nextPatient.docteur)} a déjà un patient en consultation.`);
       return;
     }
 
+    setSelectedDoctorForCall(nextPatient.docteur);
     setShowCallModal(true);
   };
 
@@ -101,7 +153,11 @@ export default function SecretaireDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      const res = await fetch(`${BACKEND_URL}/next`, {
+      if (!selectedDoctorForCall) {
+        throw new Error("Aucun docteur sélectionné");
+      }
+
+      const res = await fetch(`${BACKEND_URL}/next?docteur=${selectedDoctorForCall}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -109,18 +165,20 @@ export default function SecretaireDashboard() {
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        const errorData = await res.json();
+        throw new Error(errorData.message || `Erreur ${res.status}`);
       }
 
       const data = await res.json();
-      showSuccess(`Patient n°${data.called.number} appelé en consultation !`, 4000);
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation pour ${getDoctorDisplayName(selectedDoctorForCall)} !`, 4000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur appel patient:", error);
-      showError("Impossible d'appeler le patient suivant", 5000);
+      showError(error.message || "Impossible d'appeler le patient suivant", 5000);
     } finally {
       setIsLoading(false);
+      setSelectedDoctorForCall(null);
     }
   };
 
@@ -141,20 +199,24 @@ export default function SecretaireDashboard() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify({ userId: user._id })
+        body: JSON.stringify({ 
+          userId: user._id,
+          docteur: selectedDoctorForTicket
+        })
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        const errorData = await res.json();
+        throw new Error(errorData.message || `Erreur ${res.status}`);
       }
 
       const data = await res.json();
-      showSuccess(`Ticket n°${data.number} créé pour un patient !`, 4000);
+      showSuccess(`Ticket n°${data.ticket.number} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} !`, 4000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur création ticket:", error);
-      showError("Impossible de créer le ticket", 5000);
+      showError(error.message || "Impossible de créer le ticket", 5000);
     } finally {
       setIsLoading(false);
     }
@@ -223,6 +285,31 @@ export default function SecretaireDashboard() {
             </div>
           </div>
 
+          {/* Sélecteur de file d'attente par docteur */}
+          <DoctorQueueSelector 
+            selectedDoctor={selectedDoctor}
+            onDoctorChange={setSelectedDoctor}
+          />
+
+          {/* Sélection docteur pour créer un ticket */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">
+              🎟️ Création de ticket
+            </h3>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-blue-700">Docteur pour le nouveau ticket :</span>
+              <select
+                value={selectedDoctorForTicket}
+                onChange={(e) => setSelectedDoctorForTicket(e.target.value)}
+                className="px-3 py-2 border border-blue-300 rounded-md bg-white text-blue-800"
+              >
+                <option value="dr-husni-said-habibi">{getDoctorDisplayName('dr-husni-said-habibi')}</option>
+                <option value="dr-helios-blasco">{getDoctorDisplayName('dr-helios-blasco')}</option>
+                <option value="dr-jean-eric-panacciulli">{getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
+              </select>
+            </div>
+          </div>
+
           {/* Statistiques du jour */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
@@ -252,21 +339,27 @@ export default function SecretaireDashboard() {
           </div>
 
           {/* Actions principales */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <button
               onClick={handleCreateTicket}
               disabled={isLoading}
               className="p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:bg-gray-400"
             >
               🎟️ Créer un ticket
+              <div className="text-xs mt-1 opacity-75">
+                pour {getDoctorDisplayName(selectedDoctorForTicket)}
+              </div>
             </button>
 
             <button
-              onClick={handleCallNext}
+              onClick={() => handleCallNext()}
               disabled={isLoading}
               className="p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:bg-gray-400"
             >
               📢 Appeler le suivant
+              <div className="text-xs mt-1 opacity-75">
+                (prochain global)
+              </div>
             </button>
 
             <button
@@ -284,47 +377,102 @@ export default function SecretaireDashboard() {
             </button>
           </div>
 
-          {/* État actuel */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Patient en consultation */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">👨‍⚕️ Patient en consultation</h3>
-              {queue.find(t => t.status === "en_consultation") ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-green-700 font-semibold">
-                    Ticket n°{queue.find(t => t.status === "en_consultation").number}
-                  </p>
-                  <p className="text-sm text-green-600">
-                    Depuis : {new Date(queue.find(t => t.status === "en_consultation").updatedAt).toLocaleTimeString()}
-                  </p>
+          {/* Actions par docteur */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-4">📢 Appels par médecin</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => handleCallNext('dr-husni-said-habibi')}
+                disabled={isLoading}
+                className="p-3 bg-orange-100 border border-orange-200 text-orange-800 rounded-lg hover:bg-orange-200 transition font-medium disabled:bg-gray-200"
+              >
+                📞 Dr. Husni
+                <div className="text-xs mt-1 opacity-75">
+                  Appeler le suivant
                 </div>
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                  <p className="text-gray-500">Aucun patient en consultation</p>
+              </button>
+              
+              <button
+                onClick={() => handleCallNext('dr-helios-blasco')}
+                disabled={isLoading}
+                className="p-3 bg-teal-100 border border-teal-200 text-teal-800 rounded-lg hover:bg-teal-200 transition font-medium disabled:bg-gray-200"
+              >
+                📞 Dr. Helios
+                <div className="text-xs mt-1 opacity-75">
+                  Appeler le suivant
                 </div>
-              )}
+              </button>
+              
+              <button
+                onClick={() => handleCallNext('dr-jean-eric-panacciulli')}
+                disabled={isLoading}
+                className="p-3 bg-cyan-100 border border-cyan-200 text-cyan-800 rounded-lg hover:bg-cyan-200 transition font-medium disabled:bg-gray-200"
+              >
+                📞 Dr. Jean-Eric
+                <div className="text-xs mt-1 opacity-75">
+                  Appeler le suivant
+                </div>
+              </button>
             </div>
+          </div>
 
-            {/* Prochain patient */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">⏭️ Prochain patient</h3>
-              {queue.filter(t => t.status === "en_attente")[0] ? (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-blue-700 font-semibold">
-                    Ticket n°{queue.filter(t => t.status === "en_attente")[0].number}
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Arrivé à : {new Date(queue.filter(t => t.status === "en_attente")[0].createdAt).toLocaleTimeString()}
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Attente : {getEstimatedTime(1)}
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                  <p className="text-gray-500">Aucun patient en attente</p>
-                </div>
-              )}
+          {/* État actuel par docteur */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-800 mb-4">👨‍⚕️ État des consultations par médecin</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
+                const doctorQueue = queue.filter(t => t.docteur === doctorId);
+                const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
+                const waiting = doctorQueue.filter(t => t.status === "en_attente");
+                const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+                
+                return (
+                  <div key={doctorId} className="border border-gray-200 rounded-lg p-3">
+                    <h4 className="font-medium text-gray-700 mb-2 text-sm">
+                      {getDoctorDisplayName(doctorId)}
+                    </h4>
+                    
+                    {/* Patient en consultation */}
+                    {inConsultation ? (
+                      <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
+                        <p className="text-xs text-green-700 font-semibold">
+                          🩺 En consultation: #{inConsultation.number}
+                        </p>
+                        <p className="text-xs text-green-600">
+                          Depuis {new Date(inConsultation.updatedAt).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 border border-gray-200 rounded p-2 mb-2">
+                        <p className="text-xs text-gray-500">💤 Libre</p>
+                      </div>
+                    )}
+                    
+                    {/* Prochain patient */}
+                    {nextPatient ? (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                        <p className="text-xs text-blue-700 font-semibold">
+                          ⏭️ Suivant: #{nextPatient.number}
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          Attente: {getEstimatedTime(1)}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                        <p className="text-xs text-yellow-600">📭 Aucun patient en attente</p>
+                      </div>
+                    )}
+                    
+                    {/* Indicateur file */}
+                    <div className="mt-2 text-center">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        {waiting.length} en attente
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -364,6 +512,9 @@ export default function SecretaireDashboard() {
                           Position {index + 1}
                         </span>
                         <span className="font-semibold">Ticket n°{ticket.number}</span>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          👨‍⚕️ {getDoctorDisplayName(ticket.docteur)}
+                        </span>
                         {index === 0 && <span className="text-green-600 font-semibold">⬅️ SUIVANT</span>}
                       </div>
                       <div className="text-sm text-gray-600">
@@ -436,18 +587,24 @@ export default function SecretaireDashboard() {
           <ConfirmModal
             isOpen={showCallModal}
             title="Appeler le patient suivant"
-            message="Voulez-vous appeler le patient suivant en consultation ? Assurez-vous que le médecin est prêt."
+            message={selectedDoctorForCall ? 
+              `Voulez-vous appeler le patient suivant pour ${getDoctorDisplayName(selectedDoctorForCall)} ? Assurez-vous que le médecin est prêt.` :
+              "Voulez-vous appeler le patient suivant en consultation ? Assurez-vous que le médecin est prêt."
+            }
             confirmText="Oui, appeler"
             cancelText="Annuler"
             type="info"
             onConfirm={confirmCallNext}
-            onCancel={() => setShowCallModal(false)}
+            onCancel={() => {
+              setShowCallModal(false);
+              setSelectedDoctorForCall(null);
+            }}
           />
 
           <ConfirmModal
             isOpen={showCreateTicketModal}
             title="Créer un ticket"
-            message="Voulez-vous créer un ticket pour un patient qui se présente à l'accueil ?"
+            message={`Voulez-vous créer un ticket pour ${getDoctorDisplayName(selectedDoctorForTicket)} pour un patient qui se présente à l'accueil ?`}
             confirmText="Oui, créer"
             cancelText="Annuler"
             type="info"

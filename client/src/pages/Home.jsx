@@ -6,11 +6,13 @@ import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import ResponsiveContainer from "../components/ui/ResponsiveContainer";
+import ResponsiveText from "../components/ui/ResponsiveText";
+import DoctorQuickAccess from "../components/DoctorQuickAccess";
 import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
-
-const DOCTEURS = ['Docteur 1', 'Docteur 2', 'Docteur 3'];
+import { DOCTEURS } from "../config/doctors";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +59,13 @@ export default function Home() {
 
   const confirmTakeTicket = async () => {
     if (!selectedDoctor) {
-      showError("Veuillez sélectionner un docteur");
+      showError("Veuillez sélectionner un médecin");
+      return;
+    }
+
+    const selectedDoctorInfo = DOCTEURS.find(d => d.value === selectedDoctor);
+    if (!selectedDoctorInfo.disponible) {
+      showError("Ce médecin n'est pas disponible aujourd'hui");
       return;
     }
 
@@ -65,7 +73,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      showInfo("Création de votre ticket en cours...");
+      showInfo(`Création de votre ticket pour ${selectedDoctorInfo.label}...`);
       
       console.log('🎯 Using API URL:', BACKEND_URL);
       
@@ -97,7 +105,7 @@ export default function Home() {
         docteur: selectedDoctor
       }));
       
-      showSuccess(`Ticket n°${data.ticket.number} créé avec succès !`, 4000);
+      showSuccess(`Ticket n°${data.ticket.number} créé pour ${selectedDoctorInfo.label} !`, 4000);
       
       // Redirection après un court délai
       setTimeout(() => {
@@ -113,30 +121,36 @@ export default function Home() {
     }
   };
 
-  return (
+      return (
     <AnimatedPage>
-      <div className="max-w-4xl mx-auto space-y-8">
+      <ResponsiveContainer>
         {/* Hero Section */}
-        <div className="text-center space-y-6">
-          <div className="inline-flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <span className="text-white text-2xl">🏥</span>
+        <div className="text-center space-y-4 md:space-y-6">
+          <div className="inline-flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-2xl p-3 md:p-4 shadow-lg border border-white/50 w-full max-w-sm mx-auto md:max-w-none md:w-auto">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xl md:text-2xl">🏥</span>
             </div>
-            <div className="text-left">
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <div className="text-left min-w-0">
+              <ResponsiveText 
+                as="h1" 
+                variant="h1" 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate"
+              >
                 LineUp
-              </h1>
-              <p className="text-gray-600">Gestion de file d'attente médicale</p>
+              </ResponsiveText>
+              <ResponsiveText variant="subtitle" className="truncate">
+                Gestion de file d'attente médicale
+              </ResponsiveText>
             </div>
           </div>
           
-          <div className="space-y-4">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+          <div className="space-y-3 md:space-y-4">
+            <ResponsiveText as="h2" variant="h2" className="text-gray-900 px-2">
               Bienvenue sur votre plateforme de gestion
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            </ResponsiveText>
+            <ResponsiveText variant="body-large" className="text-gray-600 max-w-2xl mx-auto px-4">
               Prenez un ticket, suivez votre position en temps réel et gérez vos consultations en toute simplicité
-            </p>
+            </ResponsiveText>
           </div>
         </div>
 
@@ -144,15 +158,15 @@ export default function Home() {
         {isAuthenticated && user && (
           <Card variant="info" className="text-center">
             <Card.Content>
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl">
+              <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl flex-shrink-0">
                   {user.role?.name === "medecin" && "🩺"}
                   {user.role?.name === "secretaire" && "👩‍💼"}
                   {user.role?.name === "patient" && "👤"}
                   {user.role?.name === "visiteur" && "👁️"}
                 </div>
-                <div className="text-left">
-                  <h3 className="text-lg font-bold text-blue-900">
+                <div className="text-center sm:text-left min-w-0">
+                  <h3 className="text-lg font-bold text-blue-900 truncate">
                     Bonjour {getDisplayName(user)}
                   </h3>
                   <p className="text-blue-700 text-sm">
@@ -167,7 +181,7 @@ export default function Home() {
                 onClick={() => navigate(`/dashboard/${user.role.name}`)}
                 icon="📊"
                 size="lg"
-                className="w-full sm:w-auto"
+                className="w-full"
               >
                 Accéder à mon espace
               </Button>
@@ -175,8 +189,13 @@ export default function Home() {
           </Card>
         )}
 
+        {/* Accès rapide médecins */}
+        {!isAuthenticated && (
+          <DoctorQuickAccess />
+        )}
+
         {/* Actions principales */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
           {!isAuthenticated ? (
             <>
               {/* Action principale : Prendre un ticket */}
@@ -397,48 +416,136 @@ export default function Home() {
           </Card.Content>
         </Card>
 
-        {/* Modal de confirmation pour ticket anonyme */}
-        <ConfirmModal
-          isOpen={showTicketModal}
-          title="Choisir un médecin"
-          message={
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-700 mb-3 text-center">Veuillez sélectionner le médecin que vous souhaitez consulter :</p>
-                <select
-                  value={selectedDoctor || ""}
-                  onChange={(e) => setSelectedDoctor(e.target.value)}
-                  className="w-full px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 legacy-button"
-                >
-                  <option value="">Choisissez un médecin</option>
-                  {DOCTEURS.map((docteur) => (
-                    <option key={docteur} value={docteur}>
-                      {docteur}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-                <p className="text-sm text-blue-800 text-center">
-                  💡 <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi.
+        {/* Modal amélioré de sélection de médecin pour mode anonyme */}
+        {showTicketModal && (
+          <div className="modal-overlay-fullscreen animate-overlay">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in relative">
+              {/* Bouton de fermeture */}
+              <button
+                onClick={() => {
+                  setShowTicketModal(false);
+                  setSelectedDoctor(null);
+                }}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 z-10"
+                aria-label="Fermer la modal"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4">
+                  <span className="text-3xl">👩‍⚕️</span>
+                  <div className="text-left">
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Choisir un médecin
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Sélection rapide pour votre ticket
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 text-sm">
+                  Sélectionnez le médecin que vous souhaitez consulter :
                 </p>
               </div>
+
+              <div className="space-y-3 mb-6">
+                {DOCTEURS.map((docteur) => (
+                  <label 
+                    key={docteur.value}
+                    className={`
+                      flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-[1.02]
+                      ${selectedDoctor === docteur.value 
+                        ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200' 
+                        : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                      }
+                      ${!docteur.disponible ? 'opacity-50 cursor-not-allowed hover:scale-100' : ''}
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="doctor"
+                      value={docteur.value}
+                      checked={selectedDoctor === docteur.value}
+                      onChange={(e) => setSelectedDoctor(e.target.value)}
+                      disabled={!docteur.disponible}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center space-x-4 w-full">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                        <span className="text-2xl">{docteur.emoji}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{docteur.label}</p>
+                        <p className="text-sm text-gray-600 mb-1">{docteur.specialite}</p>
+                        <div className="flex items-center space-x-1">
+                          <div className={`w-2 h-2 rounded-full ${docteur.disponible ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <p className={`text-xs font-medium ${docteur.disponible ? 'text-green-600' : 'text-red-600'}`}>
+                            {docteur.disponible ? 'Disponible aujourd\'hui' : 'Non disponible'}
+                          </p>
+                        </div>
+                      </div>
+                      {selectedDoctor === docteur.value && (
+                        <div className="flex-shrink-0 text-blue-500 bg-blue-100 rounded-full p-2">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center space-x-2 justify-center">
+                  <span className="text-blue-500 text-lg">💡</span>
+                  <p className="text-sm text-blue-800 font-medium">
+                    <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi et l'accès aux notifications.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    setShowTicketModal(false);
+                    setSelectedDoctor(null);
+                    navigate("/register");
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+                >
+                  <span>✨</span>
+                  <span>Créer un compte</span>
+                </button>
+                <button
+                  onClick={confirmTakeTicket}
+                  disabled={!selectedDoctor || isLoading}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 shadow-lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Création...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>✅</span>
+                      <span>Continuer anonyme</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          }
-          confirmText="✅ Continuer en mode anonyme"
-          cancelText="✨ Créer un compte"
-          type="info"
-          onConfirm={confirmTakeTicket}
-          onCancel={() => {
-            setShowTicketModal(false);
-            setSelectedDoctor(null);
-            navigate("/register");
-          }}
-        />
+          </div>
+        )}
 
         {/* Toasts pour les messages */}
         <Toast toasts={toasts} removeToast={removeToast} />
-      </div>
+      </ResponsiveContainer>
     </AnimatedPage>
   );
 }

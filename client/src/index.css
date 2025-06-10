@@ -11,6 +11,54 @@
     animation: blink 1s step-start infinite;
   }
 
+/* Animation d'apparition pour la modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-overlay {
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+/* Overlay de modal qui couvre toute la page */
+.modal-overlay-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
 /* Améliorations pour accessibilité et optimisation anciens modèles */
 @layer base {
   /* Améliorer la lisibilité sur mobile avec support étendus */
@@ -194,6 +242,75 @@
     font-size: 1.125rem;
     line-height: 1.7;
     font-weight: 500;
+  }
+
+  /* Classes dashboard unifiées pour cohérence responsive */
+  .dashboard-header {
+    @apply bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8;
+  }
+
+  .dashboard-header-content {
+    @apply flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4;
+  }
+
+  .dashboard-title {
+    @apply text-lg sm:text-xl lg:text-2xl font-bold legacy-text-primary;
+  }
+
+  .dashboard-subtitle {
+    @apply text-sm sm:text-base legacy-text-secondary mt-1 truncate;
+  }
+
+  .dashboard-section {
+    @apply bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8;
+  }
+
+  .dashboard-section-title {
+    @apply text-lg sm:text-xl font-semibold mb-4 legacy-text-primary;
+  }
+
+  .stats-grid {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-lg p-4 border text-center;
+  }
+
+  .stat-value {
+    @apply text-xl sm:text-2xl font-bold mb-1;
+  }
+
+  .stat-label {
+    @apply text-xs sm:text-sm text-gray-600 legacy-text-secondary;
+  }
+
+  .actions-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+
+  .action-button-primary {
+    @apply bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-success {
+    @apply bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-danger {
+    @apply bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
+  }
+
+  .action-button-secondary {
+    @apply bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 
+           transition-colors font-medium text-sm sm:text-base
+           touch-target-large legacy-button;
   }
 
   @media (max-width: 640px) {
@@ -553,6 +670,177 @@
   @media (min-width: 375px) {
     .xs\:inline {
       display: inline;
+    }
+  }
+
+  /* Protection globale contre overflow horizontal - iPhone 14 Pro Max */
+  .overflow-protection {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  /* Application globale de la protection */
+  html, body, #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* Protection spécifique des conteneurs */
+  .container, .max-w-7xl, .mx-auto {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Protection supplémentaire pour flex et grid */
+  .flex, .grid {
+    min-width: 0;
+  }
+
+  /* FORCER LA DISPARITION des éléments desktop sur mobile - iPhone 14 Pro Max */
+  @media (max-width: 767px) {
+    .force-hide-mobile {
+      display: none !important;
+    }
+    
+    .force-show-mobile {
+      display: block !important;
+    }
+    
+    .force-flex-mobile {
+      display: flex !important;
+    }
+  }
+
+  /* S'assurer que la navigation desktop est invisible sur mobile */
+  @media (max-width: 767px) {
+    nav .hidden.lg\\:flex {
+      display: none !important;
+    }
+  }
+
+  /* Protection spécifique iPhone 14 Pro Max (430px) - BRUTAL */
+  @media (max-width: 430px) {
+    /* Cibler spécifiquement les boutons connexion/inscription */
+    nav a[href="/login"],
+    nav a[href="/register"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+    
+    /* Cibler le conteneur des boutons auth */
+    nav .force-hide-mobile {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
+    
+    /* Menu hamburger FORCEMENT visible */
+    nav button[aria-label="Ouvrir le menu"],
+    nav .force-flex-mobile {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    /* Optimisations spécifiques iPhone 14 Pro Max pour la page Home */
+    .max-w-4xl {
+      max-width: 100% !important;
+      padding: 0 1rem !important;
+    }
+
+    /* Hero section responsive pour iPhone 14 Pro Max */
+    .space-y-6 > * + * {
+      margin-top: 1.25rem !important;
+    }
+
+    .space-y-8 > * + * {
+      margin-top: 1.5rem !important;
+    }
+
+    /* Cards grid responsive */
+    .grid.gap-6.md\\:grid-cols-2 {
+      grid-template-columns: 1fr !important;
+      gap: 1rem !important;
+    }
+
+    /* Text sizing pour iPhone 14 Pro Max */
+    .text-3xl.md\\:text-4xl {
+      font-size: 1.75rem !important;
+      line-height: 1.3 !important;
+    }
+
+    .text-xl.md\\:text-2xl {
+      font-size: 1.125rem !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Padding et margin optimisés */
+    .p-4 {
+      padding: 0.875rem !important;
+    }
+
+    .p-6 {
+      padding: 1rem !important;
+    }
+
+    /* Modal responsive pour iPhone 14 Pro Max */
+    .modal-overlay-fullscreen {
+      padding: 0.75rem !important;
+    }
+
+    .modal-overlay-fullscreen .bg-white {
+      max-width: calc(100vw - 1.5rem) !important;
+      width: 100% !important;
+    }
+
+    /* Buttons responsive */
+    .w-full.sm\\:w-auto {
+      width: 100% !important;
+    }
+
+    /* Navigation cards pour iPhone 14 Pro Max */
+    .inline-flex.items-center.space-x-3 {
+      flex-direction: column !important;
+      space-x: 0 !important;
+      text-align: center !important;
+    }
+
+    .inline-flex.items-center.space-x-3 .text-left {
+      text-align: center !important;
+    }
+  }
+
+  /* Optimisations pour iPhone 15 Pro Max et écrans similaires (440px+) */
+  @media (min-width: 431px) and (max-width: 480px) {
+    .max-w-4xl {
+      padding: 0 1.25rem !important;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1.5rem !important;
+    }
+
+    .text-2xl.md\\:text-3xl {
+      font-size: 1.875rem !important;
+    }
+
+    .grid.gap-4.md\\:gap-6 {
+      gap: 1.25rem !important;
+    }
+  }
+
+  /* Optimisations pour grandes tablettes en portrait */
+  @media (min-width: 481px) and (max-width: 767px) {
+    .grid.gap-4.md\\:gap-6.grid-cols-1.md\\:grid-cols-2 {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 1rem !important;
     }
   }
 }

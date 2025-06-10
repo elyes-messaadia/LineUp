@@ -3,8 +3,17 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Role = require('../models/Role');
+const { authenticateRequired: authenticate } = require("../middlewares/auth");
+const webpush = require('web-push');
 
 const router = express.Router();
+
+// Configuration Web Push
+webpush.setVapidDetails(
+  'mailto:contact@lineup.app',
+  process.env.VAPID_PUBLIC_KEY || 'BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0',
+  process.env.VAPID_PRIVATE_KEY || 'TmybpfdcI33NeNluDq7JWiiLfeu4Q7PZWDR-hqIfn7s'
+);
 
 /**
  * POST /auth/register
@@ -229,6 +238,94 @@ router.post('/logout', (req, res) => {
   res.json({ 
     message: 'Déconnexion réussie' 
   });
+});
+
+// 🔔 S'abonner aux notifications push
+router.post('/push/subscribe', authenticate, async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    
+    if (!subscription || !subscription.endpoint) {
+      return res.status(400).json({
+        success: false,
+        message: 'Abonnement push invalide'
+      });
+    }
+
+    // Mettre à jour l'utilisateur avec l'abonnement push
+    await User.findByIdAndUpdate(req.user._id, {
+      pushSubscription: subscription
+    });
+
+    res.json({
+      success: true,
+      message: 'Abonnement push enregistré avec succès'
+    });
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'abonnement push:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'abonnement aux notifications'
+    });
+  }
+});
+
+// 🔕 Se désabonner des notifications push  
+router.post('/push/unsubscribe', authenticate, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user._id, {
+      $unset: { pushSubscription: 1 }
+    });
+
+    res.json({
+      success: true,
+      message: 'Désabonnement effectué avec succès'
+    });
+  } catch (error) {
+    console.error('❌ Erreur lors du désabonnement push:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors du désabonnement'
+    });
+  }
+});
+
+// 📤 Envoyer une notification push (endpoint interne)
+router.post('/push/send', authenticate, async (req, res) => {
+  try {
+    const { userId, title, body, data } = req.body;
+    
+    // Récupérer l'utilisateur avec son abonnement push
+    const user = await User.findById(userId);
+    
+    if (!user || !user.pushSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé ou non abonné aux notifications'
+      });
+    }
+
+    const payload = JSON.stringify({
+      title: title || 'LineUp',
+      body: body || 'Vous avez une nouvelle notification',
+      icon: '/icon-192x192.png',
+      badge: '/icon-192x192.png',
+      data: data || {}
+    });
+
+    await webpush.sendNotification(user.pushSubscription, payload);
+
+    res.json({
+      success: true,
+      message: 'Notification envoyée avec succès'
+    });
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de la notification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'envoi de la notification'
+    });
+  }
 });
 
 module.exports = router; 
