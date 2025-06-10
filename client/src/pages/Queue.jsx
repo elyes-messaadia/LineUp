@@ -328,6 +328,7 @@ const Queue = () => {
   const {
     queue,
     isLoading,
+    isTransitioning,
     error,
     lastUpdate,
     stats,
@@ -430,6 +431,19 @@ const Queue = () => {
               selectedDoctor={selectedDoctor}
               onDoctorChange={setSelectedDoctor}
             />
+            
+            {/* Indicateur de transition pour changement de médecin */}
+            {isTransitioning && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin text-xl">🔄</div>
+                  <div>
+                    <h3 className="text-blue-800 font-medium">Changement de médecin en cours...</h3>
+                    <p className="text-blue-600 text-sm">Transition optimisée activée - chargement quasi-instantané</p>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Section filtres et actions - Layout responsive */}
             <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between mb-6 sm:mb-8">
