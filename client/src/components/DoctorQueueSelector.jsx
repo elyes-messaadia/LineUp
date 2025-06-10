@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getDoctorDisplayName } from '../config/doctors';
+import { getDoctorDisplayName, getDoctorById, DOCTEURS } from '../config/doctors';
 
 const doctors = [
   'dr-husni-said-habibi',
@@ -29,24 +29,35 @@ export default function DoctorQueueSelector({ selectedDoctor, onDoctorChange }) 
         </button>
 
         {/* Options pour chaque docteur */}
-        {doctors.map(doctorId => (
-          <button
-            key={doctorId}
-            onClick={() => onDoctorChange(doctorId)}
-            className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-              selectedDoctor === doctorId
-                ? 'border-blue-500 bg-blue-50 text-blue-800'
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <div className="font-semibold">
-              👨‍⚕️ {getDoctorDisplayName(doctorId)}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              File spécifique
-            </div>
-          </button>
-        ))}
+        {doctors.map(doctorId => {
+          const doctor = getDoctorById(doctorId);
+          return (
+            <button
+              key={doctorId}
+              onClick={() => onDoctorChange(doctorId)}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 text-left hover:scale-105 transform ${
+                selectedDoctor === doctorId
+                  ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+              }`}
+            >
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-xl">{doctor?.emoji || '👨‍⚕️'}</span>
+                <div className="font-semibold text-sm truncate">
+                  {getDoctorDisplayName(doctorId)}
+                </div>
+              </div>
+              <div className="text-xs text-gray-600">
+                {doctor?.specialite || 'Médecin généraliste'}
+              </div>
+              {doctor?.disponible && (
+                <div className="text-xs text-green-600 mt-1 font-medium">
+                  ✅ Disponible
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
