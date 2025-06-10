@@ -6,79 +6,50 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   
   const previousQueueRef = useRef([]);
   const pollIntervalRef = useRef(null);
   const isActiveRef = useRef(true);
   const retryCountRef = useRef(0);
+  const currentDoctorRef = useRef(selectedDoctor);
   const maxRetries = 5;
   const isMountedRef = useRef(true);
 
   // Fonction pour comparer deux tickets et détecter les changements
   const detectChanges = useCallback((oldQueue, newQueue) => {
-    if (!isMountedRef.current) return [];
-    
     const changes = [];
     
-    // Créer des maps pour un accès plus rapide
-    const oldMap = new Map(oldQueue.map(ticket => [ticket._id, ticket]));
-    const newMap = new Map(newQueue.map(ticket => [ticket._id, ticket]));
-    
-    // Détecter les nouveaux tickets
+    // Nouveaux tickets
     newQueue.forEach(newTicket => {
-      if (!oldMap.has(newTicket._id)) {
+      if (!oldQueue.find(old => old._id === newTicket._id)) {
         changes.push({
           type: 'new',
           ticket: newTicket,
-          message: `🎟️ Nouveau ticket n°${newTicket.number} ajouté`
+          message: `Nouveau ticket n°${newTicket.number} créé`
         });
       }
     });
-    
-    // Détecter les tickets supprimés (désistements)
+
+    // Tickets supprimés/modifiés
     oldQueue.forEach(oldTicket => {
-      if (!newMap.has(oldTicket._id)) {
+      const newTicket = newQueue.find(t => t._id === oldTicket._id);
+      
+      if (!newTicket) {
         changes.push({
           type: 'removed',
           ticket: oldTicket,
-          message: `❌ Ticket n°${oldTicket.number} a été annulé`
+          message: `Ticket n°${oldTicket.number} supprimé`
         });
-      }
-    });
-    
-    // Détecter les changements de statut
-    newQueue.forEach(newTicket => {
-      const oldTicket = oldMap.get(newTicket._id);
-      if (oldTicket && oldTicket.status !== newTicket.status) {
-        let message = '';
-        let isImportant = false;
-        
-        switch (newTicket.status) {
-          case 'en_consultation':
-            message = `🩺 Ticket n°${newTicket.number} est maintenant en consultation`;
-            isImportant = true;
-            break;
-          case 'termine':
-            message = `✅ Ticket n°${newTicket.number} - consultation terminée`;
-            break;
-          case 'desiste':
-            message = `❌ Ticket n°${newTicket.number} a été annulé`;
-            break;
-          case 'en_attente':
-            message = `⏱️ Ticket n°${newTicket.number} est de retour en attente`;
-            break;
-          default:
-            message = `📝 Ticket n°${newTicket.number} - statut mis à jour`;
-        }
-        
+      } else if (oldTicket.status !== newTicket.status) {
+        const isImportant = (oldTicket.status === 'en_attente' && newTicket.status === 'en_consultation');
         changes.push({
           type: 'status_change',
           ticket: newTicket,
           oldStatus: oldTicket.status,
           newStatus: newTicket.status,
-          message,
-          isImportant
+          isImportant,
+          message: `Ticket n°${newTicket.number}: ${oldTicket.status} → ${newTicket.status}`
         });
       }
     });
@@ -100,6 +71,8 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
         url += `?docteur=${selectedDoctor}`;
       }
       
+      console.log(`🔄 Fetching queue: ${url}`); // Debug
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -118,6 +91,14 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
       const newQueue = await response.json();
       
       if (!isMountedRef.current) return;
+      
+      // Vérifier que nous sommes toujours sur le même docteur (éviter race conditions)
+      if (currentDoctorRef.current !== selectedDoctor) {
+        console.log('🚫 Ignoring fetch result - doctor changed'); // Debug
+        return;
+      }
+      
+      console.log(`✅ Queue fetched: ${newQueue.length} tickets for doctor: ${selectedDoctor || 'all'}`); // Debug
       
       // Détecter les changements si ce n'est pas la première charge
       if (previousQueueRef.current.length > 0 && onStatusChange) {
@@ -162,12 +143,12 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
         }
       }
     }
-  }, [selectedDoctor]); // Inclure selectedDoctor pour refetch quand il change
+  }, [selectedDoctor, isLoading, onStatusChange, detectChanges]); // Inclure selectedDoctor pour refetch quand il change
 
   // Fonction pour forcer une mise à jour
   const forceUpdate = useCallback(() => {
     fetchQueue();
-  }, []);
+  }, [fetchQueue]);
 
   // Fonction pour démarrer le polling
   const startPolling = useCallback((interval = 2000) => {
@@ -176,7 +157,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
     }
     
     pollIntervalRef.current = setInterval(() => fetchQueue(), interval);
-  }, []);
+  }, [fetchQueue]);
 
   // Fonction pour arrêter le polling
   const stopPolling = useCallback(() => {
@@ -188,21 +169,24 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
 
   // Effet principal - se relance quand selectedDoctor change
   useEffect(() => {
+    console.log(`🔄 Doctor changed to: ${selectedDoctor || 'all'}`); // Debug
+    
     isActiveRef.current = true;
     isMountedRef.current = true;
+    currentDoctorRef.current = selectedDoctor; // Mettre à jour la ref
     
-    // Reset de l'état lors du changement de docteur
-    if (selectedDoctor !== null) {
-      setIsLoading(true);
-      setQueue([]);
-      previousQueueRef.current = [];
-    }
+    // Reset complet de l'état lors du changement de docteur
+    setIsLoading(true);
+    setQueue([]);
+    setError(null);
+    previousQueueRef.current = [];
+    retryCountRef.current = 0;
     
-    // Fetch initial
+    // Fetch initial immédiat
     fetchQueue();
     
     // Démarrer le polling
-    startPolling(2000); // Toutes les 2 secondes
+    startPolling(3000); // Toutes les 3 secondes
     
     // Cleanup
     return () => {
@@ -210,7 +194,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
       isMountedRef.current = false;
       stopPolling();
     };
-  }, [selectedDoctor, fetchQueue, startPolling, stopPolling]); // Dépendances nécessaires
+  }, [selectedDoctor]); // Uniquement selectedDoctor comme dépendance
 
   // Gestion de la visibilité de la page (optimisation performance)
   useEffect(() => {
@@ -226,7 +210,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
         if (pollIntervalRef.current) {
           clearInterval(pollIntervalRef.current);
         }
-        pollIntervalRef.current = setInterval(() => fetchQueue(), 2000);
+        pollIntervalRef.current = setInterval(() => fetchQueue(), 3000);
         fetchQueue();
       }
     };
@@ -236,7 +220,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []); // Pas de dépendances pour éviter les re-exécutions
+  }, [fetchQueue]);
 
   // Calculer des statistiques utiles
   const stats = {

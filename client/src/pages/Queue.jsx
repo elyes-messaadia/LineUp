@@ -5,6 +5,7 @@ import Toast from "../components/Toast";
 import NetworkError from "../components/NetworkError";
 import DoctorQueueSelector from "../components/DoctorQueueSelector";
 import ImprovedQueueCard from "../components/ImprovedQueueCard";
+import QueueDebugPanel from "../components/QueueDebugPanel";
 import { useToast } from "../hooks/useToast";
 import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
@@ -612,6 +613,15 @@ const Queue = () => {
 
         {/* Toasts pour les notifications */}
         <Toast toasts={toasts} removeToast={removeToast} />
+
+        {/* Debug Panel temporaire */}
+        <QueueDebugPanel 
+          queue={queue}
+          selectedDoctor={selectedDoctor}
+          stats={stats}
+          lastUpdate={lastUpdate}
+          error={error}
+        />
       </AnimatedPage>
     </Layout>
   );
