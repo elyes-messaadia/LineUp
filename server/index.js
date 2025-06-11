@@ -136,7 +136,7 @@ app.get('/debug-auth', authenticateOptional, (req, res) => {
       role: req.user.role?.name,
       isActive: req.user.isActive
     } : null,
-    jwtSecret: process.env.JWT_SECRET ? 'CONFIGURÉ' : 'MANQUANT',
+    jwtSecret: process.env.JWT_SECRET ? 'CONFIGURÉ' : 'FALLBACK_UTILISÉ',
     timestamp: new Date().toISOString()
   });
 });

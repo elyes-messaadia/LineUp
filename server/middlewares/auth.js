@@ -10,10 +10,9 @@ const authenticateOptional = async (req, res, next) => {
     if (token) {
       console.log(`🔐 authenticateOptional: Token reçu - ${token.substring(0, 20)}...`);
       
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        console.error('❌ JWT_SECRET manquant');
-        return next(); // Continuer sans authentification
+      const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_change_in_production';
+      if (!process.env.JWT_SECRET) {
+        console.warn('⚠️ JWT_SECRET manquant - Utilisation du fallback');
       }
       
       console.log(`🔐 authenticateOptional: Décodage JWT avec secret...`);
@@ -67,13 +66,9 @@ const authenticateRequired = async (req, res, next) => {
       });
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      console.error('❌ JWT_SECRET manquant');
-      return res.status(500).json({ 
-        success: false,
-        message: 'Configuration serveur manquante' 
-      });
+    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_change_in_production';
+    if (!process.env.JWT_SECRET) {
+      console.warn('⚠️ JWT_SECRET manquant - Utilisation du fallback');
     }
     
     const decoded = verifyToken(token, jwtSecret);
