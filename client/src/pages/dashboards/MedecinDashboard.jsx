@@ -16,9 +16,45 @@ export default function MedecinDashboard() {
   const [showCallModal, setShowCallModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [disponible, setDisponible] = useState(true);
   const [stats, setStats] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [consultationStartTime, setConsultationStartTime] = useState(null);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
+
+  // Mise à jour de l'heure en temps réel
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timeInterval);
+  }, []);
+
+  // Surveillance de la connectivité
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showInfo("🌐 Connexion rétablie", 2000);
+      fetchQueue();
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      showWarning("⚠️ Connexion perdue - Mode hors ligne", 0);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [showInfo, showWarning]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -47,13 +83,15 @@ export default function MedecinDashboard() {
 
     fetchQueue();
 
-    // Actualiser toutes les secondes
+    // Actualiser plus fréquemment pour les médecins
     const interval = setInterval(() => {
-      fetchQueue();
-    }, 1000);
+      if (isOnline) {
+        fetchQueue();
+      }
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, [navigate, isOnline]);
 
   const fetchQueue = async () => {
     try {
@@ -73,9 +111,18 @@ export default function MedecinDashboard() {
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
+        setLastUpdate(new Date());
         
         // Trouver le patient en consultation
         const inConsultation = data.find(t => t.status === "en_consultation");
+        
+        // Si un nouveau patient commence, noter l'heure
+        if (inConsultation && (!currentPatient || currentPatient._id !== inConsultation._id)) {
+          setConsultationStartTime(new Date());
+        } else if (!inConsultation) {
+          setConsultationStartTime(null);
+        }
+        
         setCurrentPatient(inConsultation);
 
         // Calculer les statistiques avec les données fraîches
@@ -85,17 +132,54 @@ export default function MedecinDashboard() {
           return ticketDate.toDateString() === todayDate.toDateString();
         });
 
+        const completedToday = today.filter(t => t.status === "termine").length;
+        const totalToday = today.length;
+        const efficiency = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+        const averageConsultationTime = completedToday > 0 ? Math.round(
+          today.filter(t => t.status === "termine")
+            .reduce((sum, t) => sum + (new Date(t.updatedAt) - new Date(t.createdAt)), 0) 
+            / completedToday / (1000 * 60)
+        ) : 0;
+
         setStats({
           waitingCount: data.filter(t => t.status === "en_attente").length,
           inConsultationCount: data.filter(t => t.status === "en_consultation").length,
-          completedToday: today.filter(t => t.status === "termine").length,
+          completedToday,
           cancelledToday: today.filter(t => t.status === "desiste").length,
-          totalToday: today.length
+          totalToday,
+          efficiency,
+          averageConsultationTime
         });
       }
     } catch (error) {
-      // Silencieux pour ne pas spam les erreurs
+      if (isOnline) {
+        console.error("Erreur chargement queue:", error);
+      }
     }
+  };
+
+  const getWelcomeMessage = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "🌅 Bonjour";
+    if (hour < 18) return "☀️ Bon après-midi";
+    return "🌙 Bonsoir";
+  };
+
+  const getDoctorName = () => {
+    return user?.lastName || user?.firstName || user?.email?.split('@')[0] || 'Docteur';
+  };
+
+  const getConsultationDuration = () => {
+    if (!consultationStartTime || !currentPatient) return null;
+    const duration = Math.round((new Date() - consultationStartTime) / (1000 * 60));
+    return duration;
+  };
+
+  const getActivityStatus = () => {
+    if (!disponible) return { status: "En pause", color: "red", icon: "⏸️" };
+    if (currentPatient) return { status: "En consultation", color: "yellow", icon: "🩺" };
+    if (stats.waitingCount > 0) return { status: "Patients en attente", color: "blue", icon: "👥" };
+    return { status: "Disponible", color: "green", icon: "✅" };
   };
 
   const handleCallNext = () => {
@@ -113,13 +197,21 @@ export default function MedecinDashboard() {
       return;
     }
 
+    if (!disponible) {
+      showWarning("Vous êtes en pause. Activez votre disponibilité pour appeler un patient.");
+      return;
+    }
+
     setShowCallModal(true);
   };
 
-  // Fonction pour jouer le son de notification
   const playNotificationSound = () => {
-    const audio = new Audio("/notify.mp3");
-    audio.play().catch(() => {});
+    try {
+      const audio = new Audio("/notify.mp3");
+      audio.play().catch(() => {});
+    } catch (e) {
+      // Son non disponible
+    }
   };
 
   const confirmCallNext = async () => {
@@ -129,7 +221,6 @@ export default function MedecinDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      // Essayer de trouver l'ID docteur pour ce médecin
       const { getDoctorIdFromUser } = await import("../../utils/doctorMapping");
       const doctorId = getDoctorIdFromUser(user);
       
@@ -147,12 +238,20 @@ export default function MedecinDashboard() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Erreur ${res.status}`);
+        const errorMessage = errorData.message || `Erreur ${res.status}`;
+        
+        if (errorMessage.includes("aucun patient")) {
+          throw new Error("ℹ️ Aucun patient en attente actuellement.");
+        } else if (errorMessage.includes("déjà en consultation")) {
+          throw new Error("⚠️ Un patient est déjà en consultation.");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await res.json();
-      playNotificationSound(); // Jouer le son quand on appelle un patient
-      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation !`, 4000);
+      playNotificationSound();
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation ! 🎉`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -191,8 +290,9 @@ export default function MedecinDashboard() {
         throw new Error(`Erreur ${res.status}`);
       }
 
-      showSuccess(`Consultation du patient n°${currentPatient.number} terminée !`, 4000);
+      showSuccess(`Consultation du patient n°${currentPatient.number} terminée ! 🎉`, 4000);
       setCurrentPatient(null);
+      setConsultationStartTime(null);
       fetchQueue();
 
     } catch (error) {
@@ -239,16 +339,8 @@ export default function MedecinDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAuthenticated");
-    showInfo("Déconnexion réussie");
-    navigate("/");
-  };
-
   const getEstimatedTime = (position) => {
-    const avgConsultationTime = 15; // 15 minutes par consultation
+    const avgConsultationTime = stats.averageConsultationTime || 15;
     const totalMinutes = position * avgConsultationTime;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -263,9 +355,11 @@ export default function MedecinDashboard() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="dashboard-container text-center">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p className="text-responsive-base">Chargement...</p>
+          <div className="loading-container">
+            <div className="loading-content">
+              <div className="loading-spinner animate-float">👨‍⚕️</div>
+              <p className="loading-text">Chargement du dashboard...</p>
+            </div>
           </div>
         </AnimatedPage>
       </Layout>
@@ -275,450 +369,373 @@ export default function MedecinDashboard() {
   const nextPatient = queue
     .filter(t => t.status === "en_attente")
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+  
+  const activity = getActivityStatus();
+  const consultationDuration = getConsultationDuration();
 
   return (
     <Layout>
       <AnimatedPage>
-        <div className="dashboard-container container-safe overflow-protection">
-          {/* En-tête du dashboard */}
-          <div className="dashboard-card mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="dashboard-title text-blue-800 text-overflow-safe">
-                  👨‍⚕️ Interface Médecin
-                </h1>
-                <p className="dashboard-subtitle text-overflow-safe">
-                  Bienvenue Dr. {user.lastName || user.firstName || user.email?.split('@')[0] || 'Médecin'}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDisponible(!disponible)}
-                  className={`action-button text-overflow-safe ${
-                    disponible ? 'action-button-success' : 'action-button-danger'
-                  }`}
-                >
-                  {disponible ? '✅ Disponible' : '⏸️ En pause'}
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="action-button action-button-secondary text-overflow-safe"
-                >
-                  🏠 Accueil
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <Toast toasts={toasts} onRemoveToast={removeToast} />
-
-          {/* Consultation actuelle */}
-          {currentPatient && (
-            <div className="dashboard-section">
-              <h2 className="dashboard-section-title text-overflow-safe">Consultation en cours</h2>
-              <div className="alert-card bg-blue-50 border-l-4 border-blue-400">
-                <div className="info-grid">
-                  <div>
-                    <p className="text-responsive-sm text-blue-600 text-overflow-safe">Patient</p>
-                    <p className="text-responsive-lg font-semibold text-blue-800 text-overflow-safe">
-                      {currentPatient.nom} {currentPatient.prenom}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-blue-600 text-overflow-safe">Ticket</p>
-                    <p className="text-responsive-lg font-semibold text-blue-800 text-overflow-safe">
-                      #{currentPatient.numeroTicket}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-blue-600 text-overflow-safe">Heure d'arrivée</p>
-                    <p className="text-responsive-lg font-semibold text-blue-800 text-overflow-safe">
-                      {new Date(currentPatient.heureArrivee).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-blue-600 text-overflow-safe">Durée consultation</p>
-                    <p className="text-responsive-lg font-semibold text-blue-800 text-overflow-safe">
-                      {currentPatient.dureeConsultation || 'En cours...'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="mt-4 actions-grid">
-                  <button
-                    onClick={handleFinishConsultation}
-                    className="action-button action-button-success text-overflow-safe"
-                  >
-                    ✅ Terminer la consultation
-                  </button>
-                  <button
-                    onClick={() => setShowNotesModal(true)}
-                    className="action-button action-button-secondary text-overflow-safe"
-                  >
-                    📝 Ajouter des notes
-                  </button>
-                  <button
-                    onClick={() => setPauseConsultation(true)}
-                    className="action-button action-button-secondary text-overflow-safe"
-                  >
-                    ⏸️ Mettre en pause
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Aperçu du prochain patient */}
-          {nextPatient && (
-            <div className="dashboard-section">
-              <h2 className="dashboard-section-title text-overflow-safe">Prochain patient</h2>
-              <div className="dashboard-card">
-                <div className="info-grid">
-                  <div>
-                    <p className="text-responsive-sm text-gray-500 text-overflow-safe">Nom</p>
-                    <p className="text-responsive-lg font-semibold text-overflow-safe">
-                      {nextPatient.nom} {nextPatient.prenom}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-gray-500 text-overflow-safe">Ticket</p>
-                    <p className="text-responsive-lg font-semibold text-overflow-safe">
-                      #{nextPatient.numeroTicket}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-gray-500 text-overflow-safe">Position</p>
-                    <p className="text-responsive-lg font-semibold text-overflow-safe">
-                      1ère position
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-responsive-sm text-gray-500 text-overflow-safe">Temps d'attente</p>
-                    <p className="text-responsive-lg font-semibold text-overflow-safe">
-                      {getEstimatedTime(queue.indexOf(nextPatient) + 1)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="mt-4 actions-grid">
-                  <button
-                    onClick={handleCallNext}
-                    disabled={!disponible}
-                    className="action-button action-button-primary text-overflow-safe"
-                  >
-                    📞 Appeler ce patient
-                  </button>
-                  <button
-                    onClick={() => setShowHistoriquePatientModal(true)}
-                    className="action-button action-button-secondary text-overflow-safe"
-                  >
-                    📋 Voir l'historique
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Statistiques personnelles */}
-          <div className="dashboard-section">
-            <h2 className="dashboard-section-title text-overflow-safe">Mes statistiques du jour</h2>
-            <div className="stats-grid">
-              <div className="stats-card">
-                <div className="stats-number text-blue-600 text-overflow-safe">{stats.waitingCount}</div>
-                <div className="stats-label text-overflow-safe">Patients en attente</div>
-              </div>
-              
-              <div className="stats-card">
-                <div className="stats-number text-green-600 text-overflow-safe">{stats.inConsultationCount}</div>
-                <div className="stats-label text-overflow-safe">Patients consultés</div>
-              </div>
-              
-              <div className="stats-card">
-                <div className="stats-number text-orange-600 text-overflow-safe">{stats.completedToday}</div>
-                <div className="stats-label text-overflow-safe">Consultations terminées aujourd'hui</div>
-              </div>
-              
-              <div className="stats-card">
-                <div className="stats-number text-purple-600 text-overflow-safe">{stats.totalToday}</div>
-                <div className="stats-label text-overflow-safe">Total du jour</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ma file d'attente */}
-          <div className="dashboard-section">
-            <h2 className="dashboard-section-title text-overflow-safe">Ma file d'attente</h2>
+        <div className="dashboard-wrapper">
+          <div className="dashboard-container">
             
-            {queue.length > 0 ? (
-              <div className="dashboard-grid">
-                {queue.map((ticket, index) => (
-                  <div key={ticket._id} className={`ticket-card ${index === 0 ? 'border-blue-500 bg-blue-50' : ''}`}>
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-responsive-lg font-semibold text-overflow-safe">
-                          Position #{index + 1}
-                          {index === 0 && (
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              Prochain
-                            </span>
-                          )}
-                        </h3>
-                        <p className="text-responsive-base text-gray-600 text-overflow-safe">
-                          {ticket.nom} {ticket.prenom}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex-shrink-0">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-overflow-safe ${
-                          ticket.status === 'appelé' ? 'bg-green-100 text-green-800' :
-                          ticket.status === 'en_cours' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {getStatusDisplay(ticket.status)}
-                        </span>
-                      </div>
+            {/* Header du dashboard médecin */}
+            <div className="dashboard-header">
+              <div className="dashboard-header-content">
+                <div>
+                  <h1 className="dashboard-title">
+                    👨‍⚕️ Interface Médecin
+                  </h1>
+                  <p className="dashboard-subtitle">
+                    {getWelcomeMessage()}, Dr. {getDoctorName()} ! ✨ Votre espace de consultation
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
                     </div>
-                    
-                    <div className="info-grid">
-                      <div>
-                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Ticket</p>
-                        <p className="text-responsive-base font-medium text-overflow-safe">#{ticket.numero}</p>
-                      </div>
-                      <div>
-                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Temps d'attente</p>
-                        <p className="text-responsive-base font-medium text-overflow-safe">
-                          {getEstimatedTime(index + 1)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Priorité</p>
-                        <p className="text-responsive-base font-medium text-overflow-safe">
-                          {ticket.priorite || 'Normale'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-responsive-sm text-gray-500 text-overflow-safe">Arrivé à</p>
-                        <p className="text-responsive-base font-medium text-overflow-safe">
-                          {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      {activity.icon} Statut: <span className={`font-medium text-${activity.color}-600`}>{activity.status}</span>
                     </div>
-                    
-                    {/* Indicateurs visuels */}
-                    {ticket.priorite === 'urgente' && (
-                      <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded">
-                        <p className="text-responsive-sm text-red-700 text-overflow-safe">
-                          🚨 Consultation urgente
-                        </p>
-                      </div>
-                    )}
-                    
-                    {ticket.notes && (
-                      <div className="mt-2 p-2 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-                        <p className="text-responsive-sm text-yellow-700 text-overflow-safe">
-                          📝 {ticket.notes}
-                        </p>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                    </div>
+                    <div className="text-xs">
+                      ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
+                    </div>
                   </div>
-                ))}
+                </div>
+                <div className="dashboard-actions">
+                  <button
+                    onClick={() => setDisponible(!disponible)}
+                    className={`${disponible ? 'btn-success' : 'btn-warning'} transition-all duration-300`}
+                  >
+                    {disponible ? '✅ Disponible' : '⏸️ En pause'}
+                  </button>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="btn-secondary"
+                  >
+                    🏠 Accueil
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="dashboard-card text-center">
-                <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-responsive-lg font-semibold text-gray-800 mb-2 text-overflow-safe">
-                  Aucun patient en attente
-                </h3>
-                <p className="text-responsive-base text-gray-600 text-overflow-safe">
-                  Votre file d'attente est actuellement vide.
-                </p>
+            </div>
+
+            <Toast toasts={toasts} removeToast={removeToast} />
+
+            {/* Consultation actuelle */}
+            {currentPatient && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  🩺 Consultation en cours
+                  {consultationDuration && (
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      (Durée: {consultationDuration}min)
+                    </span>
+                  )}
+                </h2>
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 rounded-lg p-6">
+                  <div className="dashboard-grid mb-6">
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Patient</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🧑‍🦱 {currentPatient.nom || 'Patient'} {currentPatient.prenom || ''}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Ticket</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🎫 #{currentPatient.number}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Heure d'arrivée</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🕐 {new Date(currentPatient.createdAt).toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Temps d'attente</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        ⏱️ {Math.round((new Date() - new Date(currentPatient.createdAt)) / (1000 * 60))}min
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="dashboard-grid-3">
+                    <button
+                      onClick={handleFinishConsultation}
+                      disabled={isLoading || !isOnline}
+                      className="btn-success btn-large"
+                    >
+                      {isLoading ? "🔄 Finalisation..." : "✅ Terminer la consultation"}
+                    </button>
+                    <button
+                      onClick={() => fetchQueue()}
+                      disabled={isLoading || !isOnline}
+                      className="btn-secondary"
+                    >
+                      🔄 Actualiser
+                    </button>
+                    <button
+                      onClick={() => setDisponible(false)}
+                      className="btn-warning"
+                    >
+                      ⏸️ Mettre en pause
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Actions rapides */}
-          <div className="dashboard-section">
-            <h2 className="dashboard-section-title text-overflow-safe">Actions rapides</h2>
-            <div className="actions-grid">
-              <button
-                onClick={rafraichirDonnees}
-                disabled={loading}
-                className="action-button action-button-primary text-overflow-safe"
-              >
-                {loading ? 'Actualisation...' : '🔄 Actualiser'}
-              </button>
-              
-              <button
-                onClick={() => setShowPlanningModal(true)}
-                className="action-button action-button-secondary text-overflow-safe"
-              >
-                📅 Mon planning
-              </button>
-              
-              <button
-                onClick={() => setShowStatistiquesModal(true)}
-                className="action-button action-button-secondary text-overflow-safe"
-              >
-                📊 Statistiques détaillées
-              </button>
-              
-              <button
-                onClick={() => setShowParametresModal(true)}
-                className="action-button action-button-secondary text-overflow-safe"
-              >
-                ⚙️ Paramètres
-              </button>
-            </div>
-          </div>
-
-          {/* Messages */}
-          {erreur && (
-            <div className="alert-card bg-red-50 border-l-4 border-red-400 text-overflow-safe">
-              <div className="p-1">
-                <p className="text-responsive-base text-red-800 text-overflow-safe">
-                  ❌ {erreur}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {message && (
-            <div className="alert-card bg-green-50 border-l-4 border-green-400 text-overflow-safe">
-              <div className="p-1">
-                <p className="text-responsive-base text-green-800 text-overflow-safe">
-                  ✅ {message}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Modal notes */}
-          {showNotesModal && (
-            <div className="modal-overlay-fullscreen animate-overlay">
-              <div className="modal-responsive animate-in bg-white p-6 rounded-lg shadow-xl">
-                <h2 className="dashboard-title mb-4 text-overflow-safe">Ajouter des notes de consultation</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-responsive-base font-medium text-gray-700 mb-2 text-overflow-safe">
-                      Notes sur la consultation
-                    </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows="6"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-overflow-safe"
-                      placeholder="Saisissez vos notes de consultation..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-responsive-base font-medium text-gray-700 mb-2 text-overflow-safe">
-                      Diagnostic ou observations
-                    </label>
-                    <textarea
-                      value={diagnostic}
-                      onChange={(e) => setDiagnostic(e.target.value)}
-                      rows="4"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-overflow-safe"
-                      placeholder="Diagnostic, traitement prescrit..."
-                    />
-                  </div>
-
-                  <div className="actions-grid">
-                    <button
-                      onClick={sauvegarderNotes}
-                      disabled={loading}
-                      className="action-button action-button-primary text-overflow-safe"
-                    >
-                      {loading ? 'Sauvegarde...' : '💾 Sauvegarder'}
-                    </button>
-                    <button
-                      onClick={() => setShowNotesModal(false)}
-                      className="action-button action-button-secondary text-overflow-safe"
-                    >
-                      ❌ Annuler
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Modal planning */}
-          {showPlanningModal && (
-            <div className="modal-overlay-fullscreen animate-overlay">
-              <div className="modal-responsive animate-in bg-white p-6 rounded-lg shadow-xl max-w-4xl">
-                <h2 className="dashboard-title mb-4 text-overflow-safe">Mon planning de la journée</h2>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="dashboard-section-title text-overflow-safe">Rendez-vous programmés</h3>
-                    {planning.rendezVous.length > 0 ? (
-                      <div className="space-y-3">
-                        {planning.rendezVous.map((rdv, index) => (
-                          <div key={index} className="ticket-card">
-                            <div className="info-grid">
-                              <div>
-                                <p className="text-responsive-sm text-gray-500 text-overflow-safe">Heure</p>
-                                <p className="text-responsive-base font-medium text-overflow-safe">{rdv.heure}</p>
-                              </div>
-                              <div>
-                                <p className="text-responsive-sm text-gray-500 text-overflow-safe">Patient</p>
-                                <p className="text-responsive-base font-medium text-overflow-safe">{rdv.patient}</p>
-                              </div>
-                              <div>
-                                <p className="text-responsive-sm text-gray-500 text-overflow-safe">Type</p>
-                                <p className="text-responsive-base font-medium text-overflow-safe">{rdv.type}</p>
-                              </div>
-                              <div>
-                                <p className="text-responsive-sm text-gray-500 text-overflow-safe">Statut</p>
-                                <p className="text-responsive-base font-medium text-overflow-safe">{rdv.statut}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-responsive-base text-gray-600 text-overflow-safe">
-                        Aucun rendez-vous programmé aujourd'hui.
+            {/* Prochain patient */}
+            {nextPatient && !currentPatient && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  ⏭️ Prochain patient en attente
+                </h2>
+                <div className="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 rounded-lg p-6">
+                  <div className="dashboard-grid mb-6">
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Patient</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🧑‍🦱 {nextPatient.nom || 'Patient anonyme'} {nextPatient.prenom || ''}
                       </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="dashboard-section-title text-overflow-safe">Heures de disponibilité</h3>
-                    <div className="info-grid">
-                      <div className="stats-card">
-                        <div className="stats-number text-green-600 text-overflow-safe">{planning.heuresDisponibles.debut}</div>
-                        <div className="stats-label text-overflow-safe">Début de journée</div>
-                      </div>
-                      <div className="stats-card">
-                        <div className="stats-number text-red-600 text-overflow-safe">{planning.heuresDisponibles.fin}</div>
-                        <div className="stats-label text-overflow-safe">Fin de journée</div>
-                      </div>
-                      <div className="stats-card">
-                        <div className="stats-number text-blue-600 text-overflow-safe">{planning.pauseDejeneur.debut}-{planning.pauseDejeneur.fin}</div>
-                        <div className="stats-label text-overflow-safe">Pause déjeuner</div>
-                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Ticket</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🎫 #{nextPatient.number}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Position</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🥇 1ère position
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Temps d'attente</p>
+                      <p className="text-xl font-bold text-green-800">
+                        ⏱️ {Math.round((new Date() - new Date(nextPatient.createdAt)) / (1000 * 60))}min
+                      </p>
                     </div>
                   </div>
-
-                  <div className="pt-4 border-t">
+                  
+                  <div className="dashboard-grid-2">
                     <button
-                      onClick={() => setShowPlanningModal(false)}
-                      className="action-button action-button-secondary w-full text-overflow-safe"
+                      onClick={handleCallNext}
+                      disabled={isLoading || !isOnline || !disponible}
+                      className="btn-primary btn-large"
                     >
-                      ✅ Fermer
+                      {isLoading ? "🔄 Appel en cours..." : 
+                       !disponible ? "⏸️ En pause" :
+                       "📞 Appeler ce patient"}
+                    </button>
+                    <button
+                      onClick={() => fetchQueue()}
+                      disabled={isLoading || !isOnline}
+                      className="btn-secondary"
+                    >
+                      🔄 Actualiser la file
                     </button>
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* État quand aucun patient */}
+            {!currentPatient && !nextPatient && (
+              <div className="dashboard-card dashboard-section">
+                <div className="empty-state">
+                  <div className="empty-icon">😌</div>
+                  <p className="empty-text">Aucun patient en attente</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {disponible ? "Vous êtes disponible pour recevoir des patients 🟢" : "Vous êtes en pause ⏸️"}
+                  </p>
+                  <button
+                    onClick={() => fetchQueue()}
+                    disabled={isLoading || !isOnline}
+                    className="btn-secondary mt-4"
+                  >
+                    🔄 Vérifier les nouveaux patients
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Statistiques du médecin */}
+            <div className="dashboard-card dashboard-section">
+              <h2 className="dashboard-card-title">
+                📊 Mes statistiques du jour
+                <span className="animate-pulse ml-2">🔴</span>
+              </h2>
+              <div className="stats-grid">
+                <div className="stats-card stats-card-blue">
+                  <div className="stats-number">👥 {stats.waitingCount || 0}</div>
+                  <div className="stats-label">Patients en attente</div>
+                </div>
+                <div className="stats-card stats-card-green">
+                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
+                  <div className="stats-label">Consultations terminées</div>
+                </div>
+                <div className="stats-card stats-card-purple">
+                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
+                  <div className="stats-label">Total du jour</div>
+                </div>
+                <div className="stats-card stats-card-orange">
+                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                  <div className="stats-label">Taux d'efficacité</div>
+                </div>
+                <div className="stats-card stats-card-yellow">
+                  <div className="stats-number">⏱️ {stats.averageConsultationTime || 0}min</div>
+                  <div className="stats-label">Durée moyenne</div>
+                </div>
+                <div className="stats-card stats-card-red">
+                  <div className="stats-number">❌ {stats.cancelledToday || 0}</div>
+                  <div className="stats-label">Annulations</div>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* File d'attente complète */}
+            {queue.length > 0 && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  📋 File d'attente complète
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    ({queue.filter(t => t.status === "en_attente").length} patients en attente)
+                  </span>
+                </h2>
+                <div className="dashboard-grid">
+                  {queue.filter(t => t.status === "en_attente").map((ticket, index) => {
+                    const waitTime = Math.round((new Date() - new Date(ticket.createdAt)) / (1000 * 60));
+                    const estimatedTime = getEstimatedTime(index + 1);
+                    
+                    return (
+                      <div key={ticket._id} className="ticket-card">
+                        <div className="ticket-header">
+                          <span className="ticket-number">🎫 #{ticket.number}</span>
+                          <div className="ticket-status ticket-status-waiting">
+                            📍 Position {index + 1}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 mt-3">
+                          <div className="text-sm font-medium text-gray-800">
+                            👤 {ticket.nom || 'Patient anonyme'} {ticket.prenom || ''}
+                          </div>
+                          <div className="ticket-time">
+                            🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            ⏱️ Temps d'attente: {waitTime}min
+                          </div>
+                          <div className="text-xs text-blue-600">
+                            ⏳ Temps estimé: {estimatedTime}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Actions sur la file */}
+                <div className="mt-6 flex gap-4 justify-center">
+                  <button
+                    onClick={handleResetQueue}
+                    disabled={isLoading || !isOnline}
+                    className="btn-danger"
+                  >
+                    🗑️ Réinitialiser la file
+                  </button>
+                  <button
+                    onClick={() => fetchQueue()}
+                    disabled={isLoading || !isOnline}
+                    className="btn-secondary"
+                  >
+                    🔄 Actualiser
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Modales */}
+            <ConfirmModal
+              isOpen={showCallModal}
+              title="📞 Confirmation d'appel patient"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">📞</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous appeler le patient suivant en consultation ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🎫 Le patient sera automatiquement placé en consultation avec vous.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmCallNext}
+              onCancel={() => setShowCallModal(false)}
+              confirmText="📞 Confirmer l'appel"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+
+            <ConfirmModal
+              isOpen={showFinishModal}
+              title="✅ Terminer la consultation"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">✅</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous terminer la consultation du patient n°{currentPatient?.number} ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🩺 La consultation sera marquée comme terminée et le patient quittera la file.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmFinishConsultation}
+              onCancel={() => setShowFinishModal(false)}
+              confirmText="✅ Terminer"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+
+            <ConfirmModal
+              isOpen={showResetModal}
+              title="🗑️ Réinitialiser la file d'attente"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">⚠️</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous vraiment supprimer tous les patients en attente ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🚨 Cette action est irréversible et supprimera tous les tickets en attente.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmResetQueue}
+              onCancel={() => setShowResetModal(false)}
+              confirmText="🗑️ Confirmer la suppression"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </AnimatedPage>
     </Layout>

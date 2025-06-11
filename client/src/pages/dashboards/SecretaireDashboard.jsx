@@ -21,8 +21,42 @@ export default function SecretaireDashboard() {
   const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [stats, setStats] = useState({});
   const [allStats, setAllStats] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
+
+  // Mise à jour de l'heure en temps réel
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timeInterval);
+  }, []);
+
+  // Surveillance de la connectivité
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showInfo("🌐 Connexion rétablie", 2000);
+      fetchQueue(); // Rechargement automatique
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      showWarning("⚠️ Connexion perdue - Mode hors ligne", 0);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [showInfo, showWarning]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -44,12 +78,14 @@ export default function SecretaireDashboard() {
     fetchStats();
 
     const interval = setInterval(() => {
-      fetchQueue();
-      fetchStats();
+      if (isOnline) {
+        fetchQueue();
+        fetchStats();
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [navigate, selectedDoctor]);
+  }, [navigate, selectedDoctor, isOnline]);
 
   const fetchQueue = async () => {
     try {
@@ -62,11 +98,15 @@ export default function SecretaireDashboard() {
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
+        setLastUpdate(new Date());
         fetchStats();
         fetchAllStats();
       }
     } catch (error) {
       console.error("Erreur chargement queue:", error);
+      if (isOnline) {
+        showError("❌ Erreur de connexion au serveur", 3000);
+      }
     }
   };
 
@@ -89,14 +129,34 @@ export default function SecretaireDashboard() {
       return ticketDate.toDateString() === today.toDateString();
     });
 
+    const completedToday = today.filter(t => t.status === "termine").length;
+    const totalToday = today.length;
+    const efficiency = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+
     setStats({
       waitingCount: queue.filter(t => t.status === "en_attente").length,
       inConsultationCount: queue.filter(t => t.status === "en_consultation").length,
-      completedToday: today.filter(t => t.status === "termine").length,
+      completedToday,
       cancelledToday: today.filter(t => t.status === "desiste").length,
-      totalToday: today.length,
-      averageWaitTime: today.length > 0 ? Math.round(today.length * 15) : 0
+      totalToday,
+      averageWaitTime: today.length > 0 ? Math.round(today.length * 15) : 0,
+      efficiency
     });
+  };
+
+  const getWelcomeMessage = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "🌅 Bonjour";
+    if (hour < 18) return "☀️ Bon après-midi";
+    return "🌙 Bonsoir";
+  };
+
+  const getActivityLevel = () => {
+    const totalWaiting = stats.waitingCount || 0;
+    if (totalWaiting === 0) return { level: "Calme", color: "green", icon: "😌" };
+    if (totalWaiting <= 5) return { level: "Normal", color: "blue", icon: "😊" };
+    if (totalWaiting <= 10) return { level: "Actif", color: "yellow", icon: "😐" };
+    return { level: "Très occupé", color: "red", icon: "😰" };
   };
 
   const handleCallNext = (doctorId = null) => {
@@ -260,13 +320,15 @@ export default function SecretaireDashboard() {
     );
   }
 
+  const activity = getActivityLevel();
+
   return (
     <Layout>
       <AnimatedPage>
         <div className="dashboard-wrapper">
           <div className="dashboard-container">
             
-            {/* Header du dashboard amélioré */}
+            {/* Header du dashboard amélioré avec informations en temps réel */}
             <div className="dashboard-header">
               <div className="dashboard-header-content">
                 <div>
@@ -274,8 +336,22 @@ export default function SecretaireDashboard() {
                     🏥 Dashboard Secrétaire
                   </h1>
                   <p className="dashboard-subtitle">
-                    ✨ Gestion centralisée des files d'attente et consultations médicales
+                    {getWelcomeMessage()}, {user.firstName} ! ✨ Gestion centralisée des consultations médicales
                   </p>
+                  <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {activity.icon} Activité: <span className={`font-medium text-${activity.color}-600`}>{activity.level}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                    </div>
+                    <div className="text-xs">
+                      ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
+                    </div>
+                  </div>
                 </div>
                 <div className="dashboard-actions">
                   <button
@@ -318,28 +394,28 @@ export default function SecretaireDashboard() {
               </h2>
               <div className="stats-grid">
                 <div className="stats-card stats-card-blue">
-                  <div className="stats-number">⏳ {stats.waitingCount}</div>
+                  <div className="stats-number">⏳ {stats.waitingCount || 0}</div>
                   <div className="stats-label">Patients en attente</div>
                 </div>
                 <div className="stats-card stats-card-yellow">
-                  <div className="stats-number">👨‍⚕️ {stats.inConsultationCount}</div>
+                  <div className="stats-number">👨‍⚕️ {stats.inConsultationCount || 0}</div>
                   <div className="stats-label">En consultation</div>
                 </div>
                 <div className="stats-card stats-card-green">
-                  <div className="stats-number">✅ {stats.completedToday}</div>
+                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
                   <div className="stats-label">Consultations terminées</div>
                 </div>
                 <div className="stats-card stats-card-red">
-                  <div className="stats-number">❌ {stats.cancelledToday}</div>
+                  <div className="stats-number">❌ {stats.cancelledToday || 0}</div>
                   <div className="stats-label">Annulations du jour</div>
                 </div>
                 <div className="stats-card stats-card-purple">
-                  <div className="stats-number">📈 {stats.totalToday}</div>
+                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
                   <div className="stats-label">Total journée</div>
                 </div>
                 <div className="stats-card stats-card-orange">
-                  <div className="stats-number">⏱️ {stats.averageWaitTime}min</div>
-                  <div className="stats-label">Temps d'attente moyen</div>
+                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                  <div className="stats-label">Taux d'efficacité</div>
                 </div>
               </div>
             </div>
@@ -368,9 +444,32 @@ export default function SecretaireDashboard() {
                         <option value="dr-jean-eric-panacciulli">⚕️ {getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
                       </select>
                     </div>
+                    
+                    {/* Info sur la file d'attente du médecin sélectionné */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="text-sm font-medium text-blue-800 mb-1">
+                        📊 État de la file pour {getDoctorDisplayName(selectedDoctorForTicket)}
+                      </div>
+                      <div className="text-xs text-blue-600">
+                        {(() => {
+                          const doctorQueue = queue.filter(t => t.docteur === selectedDoctorForTicket);
+                          const waiting = doctorQueue.filter(t => t.status === "en_attente").length;
+                          const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
+                          
+                          return (
+                            <div className="flex items-center gap-4">
+                              <span>👥 {waiting} en attente</span>
+                              <span>{inConsultation ? "🩺 En consultation" : "✅ Disponible"}</span>
+                              <span>⏱️ ~{waiting * 15}min d'attente</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
                     <button
                       onClick={handleCreateTicket}
-                      disabled={isLoading}
+                      disabled={isLoading || !isOnline}
                       className="btn-primary btn-full btn-large"
                     >
                       {isLoading ? "🔄 Création en cours..." : "🎫 Créer un nouveau ticket"}
@@ -389,10 +488,12 @@ export default function SecretaireDashboard() {
                   <div className="space-y-4">
                     <button
                       onClick={() => handleCallNext()}
-                      disabled={isLoading}
+                      disabled={isLoading || !isOnline || stats.waitingCount === 0}
                       className="btn-success btn-full btn-large"
                     >
-                      {isLoading ? "🔄 Appel en cours..." : "📢 Appeler le patient suivant"}
+                      {isLoading ? "🔄 Appel en cours..." : 
+                       stats.waitingCount === 0 ? "😴 Aucun patient en attente" :
+                       "📢 Appeler le patient suivant"}
                     </button>
                     
                     <ResetQueueButton
@@ -401,6 +502,14 @@ export default function SecretaireDashboard() {
                       onError={handleResetError}
                       className="btn-danger btn-full btn-large"
                     />
+
+                    <button
+                      onClick={() => fetchQueue()}
+                      disabled={isLoading || !isOnline}
+                      className="btn-secondary btn-full"
+                    >
+                      {isLoading ? "🔄 Actualisation..." : "🔄 Actualiser maintenant"}
+                    </button>
                   </div>
                 </div>
 
@@ -418,6 +527,7 @@ export default function SecretaireDashboard() {
                     const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
                     const waiting = doctorQueue.filter(t => t.status === "en_attente");
                     const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+                    const estimatedWaitTime = waiting.length * 15;
                     
                     return (
                       <div key={doctorId} className="doctor-status-card">
@@ -430,7 +540,12 @@ export default function SecretaireDashboard() {
                           {inConsultation ? (
                             <div className="status-card status-card-consultation">
                               <div className="status-text">🩺 Consultation en cours</div>
-                              <div className="status-detail">🎫 Ticket n°{inConsultation.number}</div>
+                              <div className="status-detail">
+                                🎫 Ticket n°{inConsultation.number}
+                                <span className="ml-2 text-xs">
+                                  Depuis {new Date(inConsultation.updatedAt || inConsultation.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
                           ) : (
                             <div className="status-card status-card-available">
@@ -442,7 +557,12 @@ export default function SecretaireDashboard() {
                           {nextPatient ? (
                             <div className="status-card status-card-next">
                               <div className="status-text">⏳ Prochain patient</div>
-                              <div className="status-detail">🎫 Ticket n°{nextPatient.number}</div>
+                              <div className="status-detail">
+                                🎫 Ticket n°{nextPatient.number}
+                                <span className="ml-2 text-xs">
+                                  Arrivé à {new Date(nextPatient.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
                           ) : (
                             <div className="status-card status-card-empty">
@@ -450,10 +570,16 @@ export default function SecretaireDashboard() {
                             </div>
                           )}
 
-                          {/* Nombre en attente */}
-                          <div className="doctor-waiting-count">
-                            <div className="doctor-waiting-number">{waiting.length}</div>
-                            <div className="doctor-waiting-label">👥 patients en attente</div>
+                          {/* Informations détaillées */}
+                          <div className="grid grid-cols-2 gap-2 mt-3">
+                            <div className="doctor-waiting-count">
+                              <div className="doctor-waiting-number">{waiting.length}</div>
+                              <div className="doctor-waiting-label">👥 en attente</div>
+                            </div>
+                            <div className="doctor-waiting-count">
+                              <div className="doctor-waiting-number">{estimatedWaitTime}min</div>
+                              <div className="doctor-waiting-label">⏱️ temps d'attente</div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -470,32 +596,34 @@ export default function SecretaireDashboard() {
                 📞 Appels spécifiques par médecin
               </h3>
               <div className="dashboard-grid-3">
-                <button
-                  onClick={() => handleCallNext('dr-husni-said-habibi')}
-                  disabled={isLoading}
-                  className="doctor-btn doctor-btn-orange"
-                >
-                  <div className="doctor-name">📞 Dr. Husni Said Habibi</div>
-                  <div className="doctor-action">🩺 Appeler le patient suivant</div>
-                </button>
-                
-                <button
-                  onClick={() => handleCallNext('dr-helios-blasco')}
-                  disabled={isLoading}
-                  className="doctor-btn doctor-btn-teal"
-                >
-                  <div className="doctor-name">📞 Dr. Helios Blasco</div>
-                  <div className="doctor-action">🏥 Appeler le patient suivant</div>
-                </button>
-                
-                <button
-                  onClick={() => handleCallNext('dr-jean-eric-panacciulli')}
-                  disabled={isLoading}
-                  className="doctor-btn doctor-btn-cyan"
-                >
-                  <div className="doctor-name">📞 Dr. Jean-Eric Panacciulli</div>
-                  <div className="doctor-action">⚕️ Appeler le patient suivant</div>
-                </button>
+                {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
+                  const doctorQueue = queue.filter(t => t.docteur === doctorId);
+                  const waiting = doctorQueue.filter(t => t.status === "en_attente").length;
+                  const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
+                  
+                  return (
+                    <button
+                      key={doctorId}
+                      onClick={() => handleCallNext(doctorId)}
+                      disabled={isLoading || !isOnline || waiting === 0 || !!inConsultation}
+                      className={`doctor-btn ${
+                        doctorId === 'dr-husni-said-habibi' ? 'doctor-btn-orange' :
+                        doctorId === 'dr-helios-blasco' ? 'doctor-btn-teal' :
+                        'doctor-btn-cyan'
+                      }`}
+                    >
+                      <div className="doctor-name">📞 {getDoctorDisplayName(doctorId)}</div>
+                      <div className="doctor-action">
+                        {waiting === 0 ? "😴 Aucun patient" :
+                         inConsultation ? "🩺 En consultation" :
+                         `⏳ ${waiting} patient${waiting > 1 ? 's' : ''} en attente`}
+                      </div>
+                      <div className="text-xs mt-1 opacity-75">
+                        {waiting > 0 && !inConsultation ? "Cliquer pour appeler" : ""}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -514,36 +642,50 @@ export default function SecretaireDashboard() {
                   </div>
                 ) : (
                   <div className="dashboard-grid">
-                    {queue.map((ticket, index) => (
-                      <div key={ticket._id} className="ticket-card">
-                        <div className="ticket-header">
-                          <span className="ticket-number">🎫 #{ticket.number}</span>
-                          <div className={`ticket-status ${
-                            ticket.status === "en_consultation" ? "ticket-status-consultation" :
-                            ticket.status === "en_attente" ? "ticket-status-waiting" :
-                            ticket.status === "termine" ? "ticket-status-completed" :
-                            "ticket-status-cancelled"
-                          }`}>
-                            {ticket.status === "en_attente" ? "⏳ En attente" :
-                             ticket.status === "en_consultation" ? "🩺 En consultation" :
-                             ticket.status === "termine" ? "✅ Terminé" : "❌ Annulé"}
+                    {queue.map((ticket, index) => {
+                      const waitTime = Math.round((new Date() - new Date(ticket.createdAt)) / 60000);
+                      const position = queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1;
+                      
+                      return (
+                        <div key={ticket._id} className="ticket-card">
+                          <div className="ticket-header">
+                            <span className="ticket-number">🎫 #{ticket.number}</span>
+                            <div className={`ticket-status ${
+                              ticket.status === "en_consultation" ? "ticket-status-consultation" :
+                              ticket.status === "en_attente" ? "ticket-status-waiting" :
+                              ticket.status === "termine" ? "ticket-status-completed" :
+                              "ticket-status-cancelled"
+                            }`}>
+                              {ticket.status === "en_attente" ? "⏳ En attente" :
+                               ticket.status === "en_consultation" ? "🩺 En consultation" :
+                               ticket.status === "termine" ? "✅ Terminé" : "❌ Annulé"}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 mt-3">
+                            <div className="ticket-time">
+                              🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                            
+                            <div className="text-sm text-gray-600">
+                              ⏱️ Temps d'attente: {waitTime}min
+                            </div>
+                            
+                            {ticket.status === "en_attente" && position > 0 && (
+                              <div className="ticket-position">
+                                📍 Position {position} dans la file
+                                <span className="text-xs block mt-1">
+                                  ⏳ Temps estimé: ~{position * 15}min
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        
-                        <div className="ticket-time">
-                          🕐 {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                        
-                        {ticket.status === "en_attente" && (
-                          <div className="ticket-position">
-                            📍 Position {queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1} dans la file
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
