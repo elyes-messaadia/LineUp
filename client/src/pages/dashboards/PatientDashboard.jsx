@@ -104,6 +104,7 @@ export default function PatientDashboard() {
       // D'abord, essayer de récupérer le ticket depuis le serveur (pour les patients connectés)
       const token = localStorage.getItem("token");
       if (token) {
+        console.log(`🎫 Chargement ticket pour patient authentifié...`);
         const res = await fetch(`${BACKEND_URL}/patient/my-ticket`, {
           headers: {
             "Authorization": `Bearer ${token}`
@@ -112,14 +113,23 @@ export default function PatientDashboard() {
         
         if (res.ok) {
           const data = await res.json();
+          console.log(`✅ Ticket trouvé: n°${data.ticket.number} - statut: ${data.ticket.status}`);
           setMyTicket(data.ticket);
           localStorage.setItem("lineup_ticket", JSON.stringify(data.ticket));
           return;
         } else if (res.status === 404) {
+          console.log(`ℹ️ Aucun ticket actif côté serveur - nettoyage localStorage`);
           // Aucun ticket actif côté serveur, nettoyer localStorage
           localStorage.removeItem("lineup_ticket");
           setMyTicket(null);
           return;
+        } else if (res.status === 401) {
+          console.log(`⚠️ Token expiré - redirection vers login`);
+          showWarning("Session expirée", 3000);
+          handleLogout();
+          return;
+        } else {
+          console.error(`❌ Erreur serveur ${res.status} lors du chargement du ticket`);
         }
       }
       
@@ -128,25 +138,52 @@ export default function PatientDashboard() {
       if (stored) {
         try {
           const parsedTicket = JSON.parse(stored);
+          console.log(`🔍 Ticket localStorage trouvé: n°${parsedTicket.number} - statut: ${parsedTicket.status}`);
+          
           // Vérifier que le ticket dans localStorage est encore valide
           if (parsedTicket.status === 'en_attente' || parsedTicket.status === 'en_consultation') {
+            // Pour les tickets anonymes, vérifier s'ils existent encore côté serveur
+            if (!token && parsedTicket.sessionId) {
+              try {
+                const verifyRes = await fetch(`${BACKEND_URL}/queue`);
+                if (verifyRes.ok) {
+                  const queue = await verifyRes.json();
+                  const ticketExists = queue.find(t => t._id === parsedTicket._id && t.sessionId === parsedTicket.sessionId);
+                  if (!ticketExists) {
+                    console.log(`⚠️ Ticket localStorage obsolète - suppression`);
+                    localStorage.removeItem("lineup_ticket");
+                    setMyTicket(null);
+                    return;
+                  }
+                }
+              } catch (error) {
+                console.log(`⚠️ Impossible de vérifier le ticket - utilisation données localStorage`);
+              }
+            }
             setMyTicket(parsedTicket);
           } else {
+            console.log(`🗑️ Ticket localStorage terminé/annulé - suppression`);
             // Ticket terminé/annulé, le supprimer
             localStorage.removeItem("lineup_ticket");
             setMyTicket(null);
           }
         } catch (error) {
+          console.error(`❌ Erreur parsing ticket localStorage:`, error);
           localStorage.removeItem("lineup_ticket");
           setMyTicket(null);
         }
+      } else {
+        console.log(`ℹ️ Aucun ticket trouvé`);
+        setMyTicket(null);
       }
     } catch (error) {
       console.error("Erreur chargement ticket:", error);
       // En cas d'erreur réseau, ne pas utiliser localStorage pour éviter d'afficher de vieux tickets
-      setMyTicket(null);
+      if (isOnline) {
+        setMyTicket(null);
+      }
     }
-  }, []);
+  }, [isOnline, showWarning]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -187,6 +224,41 @@ export default function PatientDashboard() {
 
   const getMyPosition = () => {
     if (!myTicket || !queue.length) return null;
+    
+    // Vérifier si mon ticket existe encore dans la file
+    const myTicketInQueue = queue.find(t => t._id === myTicket._id);
+    if (!myTicketInQueue) {
+      // Mon ticket n'existe plus dans la file - probablement terminé ou annulé
+      console.log(`⚠️ Ticket n°${myTicket.number} non trouvé dans la file - nettoyage`);
+      localStorage.removeItem("lineup_ticket");
+      setMyTicket(null);
+      showInfo("Votre ticket a été mis à jour", 2000);
+      return null;
+    }
+    
+    // Vérifier si le statut a changé
+    if (myTicketInQueue.status !== myTicket.status) {
+      console.log(`🔄 Statut ticket mis à jour: ${myTicket.status} → ${myTicketInQueue.status}`);
+      const updatedTicket = { ...myTicket, status: myTicketInQueue.status };
+      setMyTicket(updatedTicket);
+      localStorage.setItem("lineup_ticket", JSON.stringify(updatedTicket));
+      
+      if (myTicketInQueue.status === "en_consultation") {
+        showSuccess("C'est votre tour ! Présentez-vous au cabinet 🩺", 5000);
+      } else if (myTicketInQueue.status === "termine") {
+        showInfo("Votre consultation est terminée", 3000);
+        setTimeout(() => {
+          localStorage.removeItem("lineup_ticket");
+          setMyTicket(null);
+        }, 3000);
+        return null;
+      } else if (myTicketInQueue.status === "desiste") {
+        showInfo("Votre ticket a été annulé", 3000);
+        localStorage.removeItem("lineup_ticket");
+        setMyTicket(null);
+        return null;
+      }
+    }
     
     const waitingTickets = queue
       .filter(t => t.status === "en_attente" && t.docteur === myTicket.docteur)
@@ -324,25 +396,69 @@ export default function PatientDashboard() {
     try {
       showInfo("Annulation de votre ticket...");
 
-      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}`, {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json"
+      };
+
+      // Ajouter le token seulement s'il existe
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      let url = `${BACKEND_URL}/ticket/${myTicket._id}`;
+      
+      // Si c'est un ticket anonyme, ajouter sessionId
+      if (!token && myTicket.sessionId) {
+        url += `?sessionId=${myTicket.sessionId}`;
+      }
+
+      console.log(`🗑️ Annulation ticket n°${myTicket.number} - URL: ${url}`);
+
+      const res = await fetch(url, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
+        headers
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        let errorMessage = `Erreur ${res.status}`;
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Ignore si on ne peut pas parser la réponse
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await res.json();
       localStorage.removeItem("lineup_ticket");
       setMyTicket(null);
       showSuccess("Ticket annulé avec succès ! 👋", 4000);
-      loadQueue();
+      
+      // Forcer le rechargement des données
+      setTimeout(() => {
+        loadMyTicket();
+        loadQueue();
+      }, 500);
 
     } catch (error) {
       console.error("Erreur annulation ticket:", error);
-      showError("Impossible d'annuler le ticket", 5000);
+      
+      if (error.message.includes("403")) {
+        showError("Vous ne pouvez annuler que vos propres tickets", 5000);
+      } else if (error.message.includes("404")) {
+        showWarning("Ce ticket a déjà été supprimé", 3000);
+        // Nettoyer les données locales
+        localStorage.removeItem("lineup_ticket");
+        setMyTicket(null);
+        loadQueue();
+      } else if (error.message.includes("401")) {
+        showError("Session expirée. Veuillez vous reconnecter.", 5000);
+        handleLogout();
+      } else {
+        showError(error.message || "Impossible d'annuler le ticket", 5000);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -673,6 +789,32 @@ export default function PatientDashboard() {
                   📋 Voir la file complète
                 </button>
               </div>
+
+              {/* Diagnostic - Mode développement ou en cas de problème */}
+              {(myTicket && process.env.NODE_ENV === 'development') && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">🔧 Diagnostic Ticket</h4>
+                  <div className="text-xs space-y-1 text-gray-600">
+                    <p><strong>ID:</strong> {myTicket._id}</p>
+                    <p><strong>Numéro:</strong> {myTicket.number}</p>
+                    <p><strong>Statut:</strong> {myTicket.status}</p>
+                    <p><strong>Docteur:</strong> {myTicket.docteur}</p>
+                    <p><strong>SessionId:</strong> {myTicket.sessionId || 'N/A'}</p>
+                    <p><strong>Dans la file:</strong> {queue.find(t => t._id === myTicket._id) ? '✅ Oui' : '❌ Non'}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      console.log('🎫 Ticket actuel:', myTicket);
+                      console.log('📋 File actuelle:', queue);
+                      const ticketInQueue = queue.find(t => t._id === myTicket._id);
+                      console.log('🔍 Ticket dans la file:', ticketInQueue);
+                    }}
+                    className="mt-2 text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                  >
+                    📊 Log Debug Console
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Informations utiles */}
