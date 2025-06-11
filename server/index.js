@@ -121,6 +121,26 @@ app.get('/debug-ip', (req, res) => {
   });
 });
 
+// 🐛 Route de debug authentification (à supprimer en production)
+app.get('/debug-auth', authenticateOptional, (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  res.json({
+    message: '🔍 Debug Information Auth',
+    hasToken: !!token,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : null,
+    isAuthenticated: !!req.user,
+    user: req.user ? {
+      id: req.user._id,
+      email: req.user.email,
+      role: req.user.role?.name,
+      isActive: req.user.isActive
+    } : null,
+    jwtSecret: process.env.JWT_SECRET ? 'CONFIGURÉ' : 'MANQUANT',
+    timestamp: new Date().toISOString()
+  });
+});
+
 connectDB();
 
 // 🔐 Routes d'authentification centralisées
@@ -234,12 +254,20 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
 
     // NOUVELLE VÉRIFICATION : Si un token est envoyé, l'utilisateur DOIT être authentifié
     const token = req.headers.authorization?.replace('Bearer ', '');
+    // TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG
+    /*
     if (token && !req.user) {
       console.log(`🚫 LIMITATION: Token présent mais utilisateur non authentifié - Token invalide ou expiré`);
       return res.status(401).json({
         success: false,
         message: "Token d'authentification invalide ou expiré. Veuillez vous reconnecter."
       });
+    }
+    */
+    if (token && !req.user) {
+      console.log(`⚠️ DEBUG: Token présent mais utilisateur non authentifié - INVESTIGATION EN COURS`);
+      console.log(`Token: ${token.substring(0, 20)}...`);
+      // Continuer pour le moment sans bloquer
     }
 
     // **NOUVELLE LIMITATION** : Vérifier les abus par IP/appareil pour tous les utilisateurs
