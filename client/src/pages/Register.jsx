@@ -188,9 +188,9 @@ export default function Register() {
                   value={formData.firstName}
                   onChange={handleChange}
                   required
-                  className={`w-full legacy-button px-4 py-3 border-2 
+                  className={`w-full bg-white px-4 py-3 border-2 
                              rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                             transition-all duration-200 legacy-text-secondary ${
+                             transition-all duration-200 text-gray-700 ${
                     validationErrors.firstName ? 'error-highlight' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Jean"
@@ -222,9 +222,9 @@ export default function Register() {
                   value={formData.lastName}
                   onChange={handleChange}
                   required
-                  className={`w-full legacy-button px-4 py-3 border-2 
+                  className={`w-full bg-white px-4 py-3 border-2 
                              rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                             transition-all duration-200 legacy-text-secondary ${
+                             transition-all duration-200 text-gray-700 ${
                     validationErrors.lastName ? 'error-highlight' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Dupont"
@@ -258,9 +258,9 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-4 py-3 border-2 
+                className={`w-full bg-white px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                           transition-all duration-200 legacy-text-secondary ${
+                           transition-all duration-200 text-gray-700 ${
                   validationErrors.email ? 'error-highlight' : 'border-gray-300'
                 }`}
                 placeholder="Ex: jean.dupont@email.com"
@@ -292,9 +292,9 @@ export default function Register() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full legacy-button px-4 py-3 border-2 border-gray-300 
+                className="w-full bg-white px-4 py-3 border-2 border-gray-300 
                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                          transition-all duration-200 legacy-text-secondary"
+                          transition-all duration-200 text-gray-700"
                 placeholder="Ex: 06 12 34 56 78"
                 disabled={isLoading}
                 aria-describedby="phone-help"
@@ -318,9 +318,9 @@ export default function Register() {
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full legacy-button px-4 py-3 border-2 border-gray-300 
+                className="w-full bg-white px-4 py-3 border-2 border-gray-300 
                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                          transition-all duration-200 legacy-text-secondary"
+                          transition-all duration-200 text-gray-700"
                 disabled={isLoading}
                 aria-describedby="role-help"
               >
@@ -347,9 +347,9 @@ export default function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-4 py-3 border-2 
+                className={`w-full bg-white px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                           transition-all duration-200 legacy-text-secondary ${
+                           transition-all duration-200 text-gray-700 ${
                   validationErrors.password ? 'error-highlight' : 'border-gray-300'
                 }`}
                 placeholder="Minimum 6 caractères"
@@ -382,9 +382,9 @@ export default function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-4 py-3 border-2 
+                className={`w-full bg-white px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                           transition-all duration-200 legacy-text-secondary ${
+                           transition-all duration-200 text-gray-700 ${
                   validationErrors.confirmPassword ? 'error-highlight' : 'border-gray-300'
                 }`}
                 placeholder="Retapez votre mot de passe"
@@ -406,7 +406,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading || !isFormValid()}
-              className={`w-full legacy-button transition-all duration-200 ${
+              className={`w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 ${
                 isLoading || !isFormValid()
                   ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600 loading-state"
                   : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
@@ -437,7 +437,7 @@ export default function Register() {
             </p>
             <Link
               to="/login"
-              className="block w-full text-center legacy-button bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-all duration-200 no-underline"
+              className="block w-full text-center px-4 py-3 border-2 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-all duration-200 no-underline"
               aria-label="Aller à la page de connexion"
             >
               🔐 Se connecter
