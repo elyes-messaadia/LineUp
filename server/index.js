@@ -92,6 +92,14 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
     const { docteur, userId, patientName, ticketType, notes } = req.body;
     
+    // Logs détaillés pour debug
+    console.log(`\n🎫 === CRÉATION TICKET ===`);
+    console.log(`- Docteur demandé: ${docteur}`);
+    console.log(`- Utilisateur authentifié: ${req.user ? req.user._id : 'AUCUN'}`);
+    console.log(`- Rôle utilisateur: ${req.user ? req.user.role.name : 'ANONYME'}`);
+    console.log(`- Token présent: ${req.headers.authorization ? 'OUI' : 'NON'}`);
+    console.log(`- IP: ${req.ip}`);
+    
     // Si l'utilisateur est authentifié, utiliser ses informations
     let finalUserId = null;
     let finalDocteur = docteur;
@@ -123,6 +131,11 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       });
     }
 
+    // Capturer les métadonnées d'abord pour les vérifications
+    const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+    const userAgent = req.headers['user-agent'];
+    const device = req.headers['sec-ch-ua-platform'] || 'unknown';
+    
     // Vérifier si l'utilisateur authentifié a déjà un ticket en cours
     // (sauf pour les secrétaires qui peuvent créer sans limite)
     if (req.user && req.user.role.name !== 'secretaire') {
@@ -132,9 +145,11 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       });
       
       if (existingTicket) {
+        console.log(`🚫 LIMITATION: Utilisateur ${req.user._id} a déjà le ticket n°${existingTicket.number} chez ${existingTicket.docteur}`);
         return res.status(400).json({
           success: false,
           message: "Vous avez déjà un ticket en cours",
+          limitation: "user_has_ticket",
           existingTicket: {
             _id: existingTicket._id,
             number: existingTicket.number,
@@ -146,14 +161,77 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       }
     }
 
+    // Si un utilisateur est connecté mais n'est pas secrétaire, il DOIT être patient
+    if (req.user && req.user.role.name !== 'secretaire' && req.user.role.name !== 'patient') {
+      console.log(`🚫 LIMITATION: Utilisateur ${req.user._id} avec rôle ${req.user.role.name} ne peut pas créer de ticket`);
+      return res.status(403).json({
+        success: false,
+        message: "Seuls les patients et secrétaires peuvent créer des tickets"
+      });
+    }
+
+    // NOUVELLE VÉRIFICATION : Si un token est envoyé, l'utilisateur DOIT être authentifié
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token && !req.user) {
+      console.log(`🚫 LIMITATION: Token présent mais utilisateur non authentifié - Token invalide ou expiré`);
+      return res.status(401).json({
+        success: false,
+        message: "Token d'authentification invalide ou expiré. Veuillez vous reconnecter."
+      });
+    }
+
+    // **NOUVELLE LIMITATION** : Vérifier les abus par IP/appareil pour tous les utilisateurs
+    // (sauf pour les secrétaires qui peuvent créer sans limite)
+    if (!req.user || req.user.role.name !== 'secretaire') {
+      console.log(`🔍 VÉRIFICATION LIMITATIONS IP pour ${req.user ? 'utilisateur connecté' : 'ANONYME'}:`);
+      
+      // Limite par adresse IP : maximum 1 ticket actif par IP (un seul ticket par appareil)
+      const ticketsByIP = await Ticket.countDocuments({
+        'metadata.ipAddress': ipAddress,
+        status: { $in: ['en_attente', 'en_consultation'] }
+      });
+
+      console.log(`- Tickets actifs par IP: ${ticketsByIP}/1`);
+      if (ticketsByIP >= 1) {
+        console.log(`🚫 LIMITATION IP: ${ticketsByIP} ticket actif >= 1 maximum par appareil`);
+        return res.status(429).json({
+          success: false,
+          message: "Limite atteinte : maximum 1 ticket actif par appareil",
+          limitation: "ip_limit"
+        });
+      }
+
+      // Limite temporelle : maximum 3 tickets par heure par IP
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const recentTicketsByIP = await Ticket.countDocuments({
+        'metadata.ipAddress': ipAddress,
+        createdAt: { $gte: oneHourAgo }
+      });
+
+      console.log(`- Tickets dernière heure: ${recentTicketsByIP}/3`);
+      if (recentTicketsByIP >= 3) {
+        console.log(`🚫 LIMITATION TEMPORELLE: ${recentTicketsByIP} tickets/heure >= 3 maximum`);
+        return res.status(429).json({
+          success: false,
+          message: "Limite atteinte : maximum 3 tickets par heure par appareil",
+          limitation: "time_limit",
+          retryAfter: "1 heure"
+        });
+      }
+
+      console.log(`✅ LIMITATIONS OK - Création autorisée`);
+    }
+
     // Générer un sessionId unique
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Capturer les métadonnées
+    // Capturer les métadonnées (déjà définies plus haut)
     const metadata = {
-      ipAddress: req.ip || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent'],
-      device: req.headers['sec-ch-ua-platform'] || 'unknown'
+      ipAddress,
+      userAgent,
+      device,
+      timestamp: new Date(),
+      sessionId
     };
 
     // Obtenir le dernier numéro de ticket
@@ -289,6 +367,118 @@ app.get("/queue", async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de la récupération de la file:", error);
     res.status(500).json({ message: "Erreur de récupération" });
+  }
+});
+
+// 📊 Statistiques d'abus (pour administration)
+app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
+  try {
+    // Vérifier les permissions (médecins et secrétaires seulement)
+    if (!req.user || !['medecin', 'secretaire'].includes(req.user.role.name)) {
+      return res.status(403).json({ 
+        success: false,
+        message: "Accès non autorisé" 
+      });
+    }
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Statistiques par IP
+    const ipStats = await Ticket.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: oneDayAgo },
+          'metadata.ipAddress': { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: '$metadata.ipAddress',
+          totalTickets: { $sum: 1 },
+          activeTickets: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['en_attente', 'en_consultation']] },
+                1,
+                0
+              ]
+            }
+          },
+          recentTickets: {
+            $sum: {
+              $cond: [
+                { $gte: ['$createdAt', oneHourAgo] },
+                1,
+                0
+              ]
+            }
+          },
+          doctors: { $addToSet: '$docteur' }
+        }
+      },
+      {
+        $project: {
+          ipAddress: '$_id',
+          totalTickets: 1,
+          activeTickets: 1,
+          recentTickets: 1,
+          doctorCount: { $size: '$doctors' },
+          flagged: {
+            $or: [
+              { $gte: ['$activeTickets', 2] },
+              { $gte: ['$recentTickets', 3] }
+            ]
+          }
+        }
+      },
+      { $sort: { totalTickets: -1 } },
+      { $limit: 50 }
+    ]);
+
+    // Tickets potentiellement abusifs
+    const suspiciousTickets = await Ticket.find({
+      createdAt: { $gte: oneHourAgo },
+      'metadata.ipAddress': { $exists: true }
+    }).sort({ createdAt: -1 });
+
+    // Grouper par IP pour détecter les patterns
+    const suspiciousIPs = suspiciousTickets.reduce((acc, ticket) => {
+      const ip = ticket.metadata.ipAddress;
+      if (!acc[ip]) acc[ip] = [];
+      acc[ip].push(ticket);
+      return acc;
+    }, {});
+
+    // Filtrer les IPs avec plus de 2 tickets récents
+    const flaggedIPs = Object.entries(suspiciousIPs)
+      .filter(([ip, tickets]) => tickets.length >= 2)
+      .map(([ip, tickets]) => ({
+        ip,
+        ticketCount: tickets.length,
+        tickets: tickets.slice(0, 5) // Limiter à 5 tickets récents
+      }));
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalIPs: ipStats.length,
+          flaggedIPs: ipStats.filter(stat => stat.flagged).length,
+          suspiciousActivity: flaggedIPs.length
+        },
+        ipStatistics: ipStats,
+        flaggedActivity: flaggedIPs,
+        generatedAt: new Date()
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur stats abus:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Erreur lors de la récupération des statistiques" 
+    });
   }
 });
 

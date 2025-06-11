@@ -780,34 +780,42 @@ export default function DoctorDashboard({ doctorId }) {
                 <button
                   onClick={handleCallNext}
                   disabled={isLoading || waitingPatients.length === 0 || currentPatient || isLoadingQueue}
-                  className="btn-primary btn-large flex items-center justify-center gap-2"
+                  className="btn-primary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-lg">📢</span>
-                  {isLoading ? 'Appel...' : 'Appeler le suivant'}
+                  <span className="text-2xl">📢</span>
+                  <span className="text-sm font-semibold text-center leading-tight">
+                    {isLoading ? 'Appel...' : 'Appeler suivant'}
+                  </span>
                 </button>
                 
                 <button
                   onClick={() => setShowStatistiquesModal(true)}
-                  className="btn-secondary btn-large flex items-center justify-center gap-2"
+                  className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-lg">📊</span>
-                  Statistiques détaillées
+                  <span className="text-2xl">📊</span>
+                  <span className="text-sm font-semibold text-center leading-tight">
+                    Statistiques
+                  </span>
                 </button>
                 
                 <button
                   onClick={() => navigate('/queue')}
-                  className="btn-secondary btn-large flex items-center justify-center gap-2"
+                  className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-lg">👥</span>
-                  File complète
+                  <span className="text-2xl">👥</span>
+                  <span className="text-sm font-semibold text-center leading-tight">
+                    File complète
+                  </span>
                 </button>
                 
                 <button
                   onClick={handleLogout}
-                  className="btn-secondary btn-large flex items-center justify-center gap-2"
+                  className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-lg">🔒</span>
-                  Déconnexion
+                  <span className="text-2xl">🔒</span>
+                  <span className="text-sm font-semibold text-center leading-tight">
+                    Déconnexion
+                  </span>
                 </button>
               </div>
             </div>

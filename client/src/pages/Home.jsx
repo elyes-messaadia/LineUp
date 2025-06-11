@@ -86,7 +86,10 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || `Erreur ${res.status}`);
+        const error = new Error(data.message || `Erreur ${res.status}`);
+        error.type = data.limitation || 'generic';
+        error.status = res.status;
+        throw error;
       }
 
       if (!data.success) {
@@ -115,7 +118,20 @@ export default function Home() {
     } catch (error) {
       console.error("Erreur création ticket:", error);
       setShowTicketModal(true); // Réafficher le modal en cas d'erreur
-      showError(error.message || "Impossible de créer le ticket. Veuillez réessayer.", 5000);
+      
+      if (error.status === 429) {
+        if (error.type === 'ip_limit') {
+          showError("⚠️ Limite atteinte : maximum 1 ticket actif par appareil", 5000);
+        } else if (error.type === 'time_limit') {
+          showError("⚠️ Limite atteinte : maximum 3 tickets par heure par appareil", 5000);
+        } else {
+          showError("Trop de demandes. Veuillez attendre quelques instants.", 5000);
+        }
+      } else if (error.status === 400 && error.type === 'doctor_limit') {
+        showError("⚠️ Vous avez déjà un ticket actif chez ce médecin depuis cet appareil", 5000);
+      } else {
+        showError(error.message || "Impossible de créer le ticket. Veuillez réessayer.", 5000);
+      }
     } finally {
       setIsLoading(false);
     }
