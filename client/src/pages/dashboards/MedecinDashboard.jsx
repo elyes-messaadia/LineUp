@@ -316,7 +316,7 @@ export default function MedecinDashboard() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/queue/reset`, {
+      const res = await fetch(`${BACKEND_URL}/reset`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`

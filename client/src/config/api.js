@@ -1,10 +1,10 @@
-// Configuration API centralisée - FIX URGENT PRODUCTION
-const API_URL = import.meta.env.VITE_API_URL || 'https://lineup-backend-xxak.onrender.com';
+// Configuration API centralisée - DÉVELOPPEMENT LOCAL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// FORCE la bonne URL en production
-const BACKEND_URL = process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost'
-  ? 'https://lineup-backend-xxak.onrender.com'
-  : API_URL;
+// FORCE l'utilisation du serveur local en développement
+const BACKEND_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000'
+  : 'https://lineup-backend-xxak.onrender.com';
 
 console.log('🔧 API Configuration:', { 
   env: import.meta.env.VITE_API_URL, 

@@ -26,8 +26,8 @@ const ResetQueueButton = ({
     setIsResetting(true);
     try {
       const url = selectedDoctor 
-        ? `${BACKEND_URL}/queue/reset?docteur=${selectedDoctor}`
-        : `${BACKEND_URL}/queue/reset`;
+        ? `${BACKEND_URL}/reset?docteur=${selectedDoctor}`
+        : `${BACKEND_URL}/reset`;
         
       const response = await fetch(url, {
         method: 'DELETE',

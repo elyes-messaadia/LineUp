@@ -25,6 +25,29 @@ const ticketSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // 👤 Nouveau : Informations patient pour tickets physiques
+  patientName: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: 100
+  },
+  ticketType: {
+    type: String,
+    enum: ["numerique", "physique"],
+    default: "numerique"
+  },
+  createdBy: {
+    type: String,
+    enum: ["patient", "secretary", "system"],
+    default: "patient"
+  },
+  notes: {
+    type: String,
+    default: null,
+    maxlength: 500,
+    trim: true
+  },
   createdAt: { 
     type: Date, 
     default: Date.now 

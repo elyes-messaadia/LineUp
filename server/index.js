@@ -70,10 +70,10 @@ connectDB();
 // 🔐 Routes d'authentification centralisées
 app.use("/auth", authRoutes);
 
-// 🎫 Créer un ticket (version améliorée)
+// 🎫 Créer un ticket (version améliorée avec support tickets physiques)
 app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
-    const { docteur, userId } = req.body;
+    const { docteur, userId, patientName, ticketType, notes } = req.body;
     
     // Si l'utilisateur est authentifié, utiliser ses informations
     let finalUserId = null;
@@ -107,7 +107,8 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     }
 
     // Vérifier si l'utilisateur authentifié a déjà un ticket en cours
-    if (req.user) {
+    // (sauf pour les secrétaires qui peuvent créer sans limite)
+    if (req.user && req.user.role.name !== 'secretaire') {
       const existingTicket = await Ticket.findOne({
         userId: req.user._id,
         status: { $in: ['en_attente', 'en_consultation'] }
@@ -142,12 +143,34 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     const lastTicket = await Ticket.findOne().sort({ number: -1 });
     const nextNumber = lastTicket ? lastTicket.number + 1 : 1;
 
+    // Déterminer le type de ticket et qui l'a créé
+    let finalTicketType = ticketType || "numerique";
+    let finalCreatedBy = "patient";
+    
+    // Si c'est une secrétaire authentifiée qui crée le ticket
+    if (req.user && req.user.role.name === 'secretaire') {
+      finalCreatedBy = "secretary";
+      // Pas de limite pour les secrétaires
+    }
+    
+    // Validation du nom patient pour tickets physiques
+    if (finalTicketType === "physique" && !patientName) {
+      return res.status(400).json({
+        success: false,
+        message: "Le nom du patient est requis pour les tickets physiques"
+      });
+    }
+
     // Créer le nouveau ticket
     const ticket = new Ticket({ 
       number: nextNumber,
       docteur: finalDocteur,
       sessionId,
       userId: finalUserId,
+      patientName: patientName || null,
+      ticketType: finalTicketType,
+      createdBy: finalCreatedBy,
+      notes: notes || null,
       metadata
     });
 
