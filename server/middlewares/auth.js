@@ -7,10 +7,13 @@ const authenticateOptional = async (req, res, next) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     
     if (token) {
-      const decoded = jwt.verify(
-        token, 
-        process.env.JWT_SECRET || 'fallback_secret_change_in_production'
-      );
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        console.error('❌ JWT_SECRET manquant - Arrêt du serveur');
+        throw new Error('JWT_SECRET non configuré');
+      }
+      
+      const decoded = jwt.verify(token, jwtSecret);
       
       // Récupérer l'utilisateur complet avec son rôle
       const user = await User.findById(decoded.userId).populate('role');
@@ -37,10 +40,15 @@ const authenticateRequired = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(
-      token, 
-      process.env.JWT_SECRET || 'fallback_secret_change_in_production'
-    );
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('❌ JWT_SECRET manquant');
+      return res.status(500).json({ 
+        message: 'Configuration serveur manquante' 
+      });
+    }
+    
+    const decoded = jwt.verify(token, jwtSecret);
     
     // Récupérer l'utilisateur complet avec son rôle
     const user = await User.findById(decoded.userId).populate('role');

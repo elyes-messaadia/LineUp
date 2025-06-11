@@ -1,5 +1,0 @@
-FORCE REBUILD NETLIFY - 01/06/2025 21:55:50
-CRITICAL: Code still uses old URL lineup-nby9.onrender.com
-REQUIRED: Complete rebuild with VITE_API_URL=https://lineup-backend-xxak.onrender.com
-STATUS: URGENT FIX NEEDED
-UNIQUE_ID: FRB_20250601_215550 

@@ -4,9 +4,26 @@ const connectDB = require("./config/db");
 const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
 const { authenticateOptional } = require("./middlewares/auth");
+const errorHandler = require("./middlewares/errorHandler");
 const Ticket = require("./models/Ticket");
 const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
+
+// 🔍 Validation des variables d'environnement critiques
+const requiredEnvVars = ['MONGODB_URI'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Variables d\'environnement manquantes:', missingEnvVars);
+  console.log('💡 Créez un fichier .env avec:');
+  missingEnvVars.forEach(envVar => {
+    console.log(`   ${envVar}=your_value_here`);
+  });
+}
+
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ JWT_SECRET non défini - Utilisation d\'un secret temporaire');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -612,6 +629,9 @@ app.get("/stats", async (req, res) => {
 
 // 🟣 Routes API externes
 app.use("/patient", patientRoutes);
+
+// 🛡️ Middleware de gestion d'erreurs (doit être en dernier)
+app.use(errorHandler);
 
 // 🚀 Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {

@@ -36,3 +36,34 @@ server/.env
 
 # build
 dist/
+client/dist/
+
+# Fichiers temporaires et de debug
+*.tmp
+*.temp
+trigger.txt
+FORCE_REBUILD_*.txt
+URGENT_FIX_*.txt
+deploy_*.txt
+
+# Cache et logs
+.cache/
+*.log
+logs/
+
+# IDE et éditeurs
+.vscode/settings.json
+.idea/
+*.sublime-*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+
+# Test coverage
+coverage/
+.nyc_output/
