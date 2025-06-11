@@ -14,9 +14,25 @@ const sendNotificationToUser = async (userId, notificationData) => {
   try {
     const user = await User.findById(userId);
     
-    if (!user || !user.pushSubscription) {
-      console.log(`⚠️ Utilisateur ${userId} non trouvé ou non abonné aux notifications`);
-      return { success: false, message: 'Utilisateur non abonné' };
+    if (!user) {
+      console.log(`⚠️ Utilisateur ${userId} non trouvé`);
+      return { success: false, message: 'Utilisateur non trouvé' };
+    }
+
+    // Vérifier si l'utilisateur a un abonnement push valide
+    if (!user.pushSubscription || !user.pushSubscription.endpoint) {
+      console.log(`⚠️ Utilisateur ${user.email} non abonné aux notifications push`);
+      return { success: false, message: 'Utilisateur non abonné aux notifications push' };
+    }
+
+    // Vérifier la structure de l'abonnement
+    if (!user.pushSubscription.keys || !user.pushSubscription.keys.p256dh || !user.pushSubscription.keys.auth) {
+      console.log(`⚠️ Abonnement push invalide pour ${user.email} - clés manquantes`);
+      // Nettoyer l'abonnement invalide
+      await User.findByIdAndUpdate(userId, {
+        $unset: { pushSubscription: 1 }
+      });
+      return { success: false, message: 'Abonnement push invalide - nettoyé' };
     }
 
     const payload = JSON.stringify({
@@ -29,14 +45,14 @@ const sendNotificationToUser = async (userId, notificationData) => {
     });
 
     await webpush.sendNotification(user.pushSubscription, payload);
-    console.log(`✅ Notification envoyée à ${user.firstName} ${user.lastName}`);
+    console.log(`✅ Notification envoyée à ${user.profile?.firstName || user.email}`);
     
     return { success: true, message: 'Notification envoyée' };
   } catch (error) {
     console.error('❌ Erreur lors de l\'envoi de la notification:', error);
     
     // Si l'abonnement est invalide, le supprimer
-    if (error.statusCode === 410) {
+    if (error.statusCode === 410 || error.statusCode === 404) {
       await User.findByIdAndUpdate(userId, {
         $unset: { pushSubscription: 1 }
       });
@@ -52,8 +68,15 @@ const notifyNewTicket = async (ticketId) => {
   try {
     const ticket = await Ticket.findById(ticketId).populate('userId');
     
-    if (!ticket || !ticket.userId) {
-      return { success: false, message: 'Ticket ou utilisateur non trouvé' };
+    if (!ticket) {
+      console.log(`⚠️ Ticket ${ticketId} non trouvé pour notification`);
+      return { success: false, message: 'Ticket non trouvé' };
+    }
+
+    // Si c'est un ticket anonyme (sans userId), on ignore la notification
+    if (!ticket.userId) {
+      console.log(`ℹ️ Ticket anonyme n°${ticket.number} - pas de notification push`);
+      return { success: true, message: 'Ticket anonyme - notification ignorée' };
     }
 
     const notificationData = {
@@ -67,7 +90,15 @@ const notifyNewTicket = async (ticketId) => {
       }
     };
 
-    return await sendNotificationToUser(ticket.userId._id, notificationData);
+    const result = await sendNotificationToUser(ticket.userId._id, notificationData);
+    
+    // Log silencieux pour les utilisateurs non abonnés
+    if (!result.success && result.message.includes('non abonné')) {
+      console.log(`ℹ️ Notification push ignorée pour ticket n°${ticket.number} - utilisateur non abonné`);
+      return { success: true, message: 'Utilisateur non abonné aux notifications' };
+    }
+    
+    return result;
   } catch (error) {
     console.error('❌ Erreur notification nouveau ticket:', error);
     return { success: false, message: error.message };

@@ -48,3 +48,43 @@ Pour Render.com, configurez ces variables dans le dashboard :
 ## Vérification
 
 Le serveur affichera les variables manquantes au démarrage. 
+
+## 📦 **Déploiement sur Render**
+
+### 🔧 Variables d'environnement Render
+Dans le dashboard Render, configurez ces variables :
+
+```bash
+# Base de données
+DATABASE_URL=mongodb+srv://...
+
+# JWT (OBLIGATOIRE - Générer un secret sécurisé)
+JWT_SECRET=your_super_secure_jwt_secret_change_this_in_production
+
+# Push notifications  
+VAPID_PUBLIC_KEY=BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0
+VAPID_PRIVATE_KEY=TmybpfdcI33NeNluDq7JWiiLfeu4Q7PZWDR-hqIfn7s
+
+# Sécurité
+NODE_ENV=production
+PORT=10000
+```
+
+### 🚨 **URGENT - JWT_SECRET manquant**
+
+D'après vos logs, JWT_SECRET n'est pas configuré sur Render.
+Voici comment le configurer :
+
+1. **Aller sur votre dashboard Render**
+2. **Sélectionner votre service backend**  
+3. **Aller dans "Environment"**
+4. **Ajouter :**
+   ```
+   JWT_SECRET = your_super_secure_jwt_secret_change_this_in_production
+   ```
+5. **Redéployer le service**
+
+**⚠️ Important :** Utilisez un secret complexe et unique. Exemple :
+```bash
+JWT_SECRET=LineUp2024!SecureJWT#Production$Token@Render
+``` 
