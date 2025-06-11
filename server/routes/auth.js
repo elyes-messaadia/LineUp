@@ -1,9 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const { authenticateRequired: authenticate } = require("../middlewares/auth");
+const { generateToken, verifyToken } = require('../utils/jwtUtils');
 const webpush = require('web-push');
 
 const router = express.Router();
@@ -132,15 +132,16 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Générer le JWT
-    const token = jwt.sign(
+    // Générer le JWT avec notre utilitaire robuste
+    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_change_in_production';
+    const token = generateToken(
       { 
         userId: user._id,
         email: user.email,
         role: user.role.name,
         permissions: user.role.permissions
       },
-      process.env.JWT_SECRET || 'fallback_secret_change_in_production',
+      jwtSecret,
       { expiresIn: '24h' }
     );
 
@@ -190,10 +191,8 @@ router.post('/verify', async (req, res) => {
       });
     }
 
-    const decoded = jwt.verify(
-      token, 
-      process.env.JWT_SECRET || 'fallback_secret_change_in_production'
-    );
+    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_change_in_production';
+    const decoded = verifyToken(token, jwtSecret);
 
     // Vérifier que l'utilisateur existe toujours
     const user = await User.findById(decoded.userId).populate('role');

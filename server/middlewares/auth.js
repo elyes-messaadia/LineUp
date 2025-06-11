@@ -1,22 +1,25 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { verifyToken, extractTokenFromHeaders, decodeToken } = require('../utils/jwtUtils');
 
 // Middleware pour vérifier l'authentification (optionnel)
 const authenticateOptional = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const token = extractTokenFromHeaders(req.headers);
     
     if (token) {
       console.log(`🔐 authenticateOptional: Token reçu - ${token.substring(0, 20)}...`);
       
       const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
-        console.error('❌ JWT_SECRET manquant - Arrêt du serveur');
-        throw new Error('JWT_SECRET non configuré');
+        console.error('❌ JWT_SECRET manquant');
+        return next(); // Continuer sans authentification
       }
       
       console.log(`🔐 authenticateOptional: Décodage JWT avec secret...`);
-      const decoded = jwt.verify(token, jwtSecret);
+      
+      // Utiliser notre utilitaire robuste
+      const decoded = verifyToken(token, jwtSecret);
       console.log(`🔐 authenticateOptional: Token décodé - userId: ${decoded.userId}`);
       
       // Récupérer l'utilisateur complet avec son rôle
@@ -26,6 +29,8 @@ const authenticateOptional = async (req, res, next) => {
       
       if (user && user.isActive) {
         req.user = user;
+        req.token = token;
+        req.tokenPayload = decoded;
         console.log(`✅ authenticateOptional: Authentification réussie - ${user.email} (${user.role.name})`);
       } else {
         console.log(`❌ authenticateOptional: Utilisateur non trouvé ou inactif`);
@@ -37,6 +42,14 @@ const authenticateOptional = async (req, res, next) => {
     next();
   } catch (error) {
     console.error(`❌ authenticateOptional: Erreur d'authentification - ${error.message}`);
+    
+    // En cas d'erreur, essayer de décoder le token pour debug
+    const token = extractTokenFromHeaders(req.headers);
+    if (token) {
+      const decodedInfo = decodeToken(token);
+      console.log(`🔍 Debug token décodé:`, decodedInfo);
+    }
+    
     // En cas d'erreur, continuer sans utilisateur authentifié
     next();
   }
@@ -45,10 +58,11 @@ const authenticateOptional = async (req, res, next) => {
 // Middleware pour vérifier l'authentification (obligatoire)
 const authenticateRequired = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const token = extractTokenFromHeaders(req.headers);
     
     if (!token) {
       return res.status(401).json({ 
+        success: false,
         message: 'Token d\'authentification requis' 
       });
     }
@@ -57,26 +71,31 @@ const authenticateRequired = async (req, res, next) => {
     if (!jwtSecret) {
       console.error('❌ JWT_SECRET manquant');
       return res.status(500).json({ 
+        success: false,
         message: 'Configuration serveur manquante' 
       });
     }
     
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = verifyToken(token, jwtSecret);
     
     // Récupérer l'utilisateur complet avec son rôle
     const user = await User.findById(decoded.userId).populate('role');
     if (!user || !user.isActive) {
       return res.status(401).json({ 
+        success: false,
         message: 'Utilisateur non trouvé ou inactif' 
       });
     }
     
     req.user = user;
+    req.token = token;
+    req.tokenPayload = decoded;
     next();
   } catch (error) {
     console.error('❌ Erreur authentification:', error);
     return res.status(401).json({ 
-      message: 'Token invalide' 
+      success: false,
+      message: error.message || 'Token invalide'
     });
   }
 };
