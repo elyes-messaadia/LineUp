@@ -9,23 +9,23 @@ const doctors = [
 
 export default function DoctorQueueSelector({ selectedDoctor, onDoctorChange }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+    <div className="dashboard-card">
+      <h3 className="dashboard-card-title">
         📋 Sélectionner la file d'attente
       </h3>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="dashboard-grid">
         {/* Option pour voir toutes les files */}
         <button
           onClick={() => onDoctorChange(null)}
-          className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+          className={`doctor-btn ${
             selectedDoctor === null
-              ? 'border-blue-500 bg-blue-50 text-blue-800'
-              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              ? 'bg-blue-50 border-blue-500 text-blue-800'
+              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <div className="font-semibold">📊 Toutes les files</div>
-          <div className="text-sm text-gray-600 mt-1">Vue globale</div>
+          <div className="doctor-name">📊 Toutes les files</div>
+          <div className="doctor-action">Vue globale</div>
         </button>
 
         {/* Options pour chaque docteur */}
@@ -35,19 +35,19 @@ export default function DoctorQueueSelector({ selectedDoctor, onDoctorChange }) 
             <button
               key={doctorId}
               onClick={() => onDoctorChange(doctorId)}
-              className={`p-4 rounded-lg border-2 transition-all duration-200 text-left hover:scale-105 transform ${
+              className={`doctor-btn ${
                 selectedDoctor === doctorId
-                  ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-md'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+                  ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-md'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xl">{doctor?.emoji || '👨‍⚕️'}</span>
-                <div className="font-semibold text-sm truncate">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl flex-shrink-0">{doctor?.emoji || '👨‍⚕️'}</span>
+                <div className="doctor-name break-words">
                   {getDoctorDisplayName(doctorId)}
                 </div>
               </div>
-              <div className="text-xs text-gray-600">
+              <div className="doctor-action">
                 {doctor?.specialite || 'Médecin généraliste'}
               </div>
               {doctor?.disponible && (

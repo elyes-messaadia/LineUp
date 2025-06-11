@@ -13,14 +13,14 @@ import { getDoctorDisplayName } from "../../config/doctors";
 export default function SecretaireDashboard() {
   const [user, setUser] = useState(null);
   const [queue, setQueue] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null); // null = toutes les files
-  const [selectedDoctorForTicket, setSelectedDoctorForTicket] = useState('dr-husni-said-habibi'); // Docteur par défaut pour nouveaux tickets
-  const [selectedDoctorForCall, setSelectedDoctorForCall] = useState(null); // Docteur pour appel patient
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctorForTicket, setSelectedDoctorForTicket] = useState('dr-husni-said-habibi');
+  const [selectedDoctorForCall, setSelectedDoctorForCall] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
   const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
   const [stats, setStats] = useState({});
-  const [allStats, setAllStats] = useState({}); // Statistiques par docteur
+  const [allStats, setAllStats] = useState({});
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
 
@@ -43,18 +43,16 @@ export default function SecretaireDashboard() {
     fetchQueue();
     fetchStats();
 
-    // Actualiser toutes les 5 secondes
     const interval = setInterval(() => {
       fetchQueue();
       fetchStats();
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [navigate, selectedDoctor]); // Ajouter selectedDoctor comme dépendance
+  }, [navigate, selectedDoctor]);
 
   const fetchQueue = async () => {
     try {
-      // Charger la file selon le docteur sélectionné
       let url = `${BACKEND_URL}/queue`;
       if (selectedDoctor) {
         url += `?docteur=${selectedDoctor}`;
@@ -97,12 +95,11 @@ export default function SecretaireDashboard() {
       completedToday: today.filter(t => t.status === "termine").length,
       cancelledToday: today.filter(t => t.status === "desiste").length,
       totalToday: today.length,
-      averageWaitTime: today.length > 0 ? Math.round(today.length * 15) : 0 // 15 min par patient
+      averageWaitTime: today.length > 0 ? Math.round(today.length * 15) : 0
     });
   };
 
   const handleCallNext = (doctorId = null) => {
-    // Si un docteur spécifique est demandé
     if (doctorId) {
       const doctorQueue = queue.filter(t => t.docteur === doctorId);
       const nextPatient = doctorQueue
@@ -125,7 +122,6 @@ export default function SecretaireDashboard() {
       return;
     }
 
-    // Logique globale si aucun docteur spécifique
     const nextPatient = queue
       .filter(t => t.status === "en_attente")
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
@@ -135,7 +131,6 @@ export default function SecretaireDashboard() {
       return;
     }
 
-    // Vérifier si le docteur de ce patient est libre
     const doctorQueue = queue.filter(t => t.docteur === nextPatient.docteur);
     const currentPatient = doctorQueue.find(t => t.status === "en_consultation");
     if (currentPatient) {
@@ -167,11 +162,20 @@ export default function SecretaireDashboard() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Erreur ${res.status}`);
+        const errorMessage = errorData.message || `Erreur ${res.status}`;
+        
+        // Messages d'erreur personnalisés pour une meilleure UX
+        if (errorMessage.includes("aucun patient")) {
+          throw new Error("ℹ️ Aucun patient en attente pour ce médecin actuellement.");
+        } else if (errorMessage.includes("déjà en consultation")) {
+          throw new Error("⚠️ Ce médecin a déjà un patient en consultation.");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await res.json();
-      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation pour ${getDoctorDisplayName(selectedDoctorForCall)} !`, 4000);
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation pour ${getDoctorDisplayName(selectedDoctorForCall)} ! 🎉`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -208,11 +212,20 @@ export default function SecretaireDashboard() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Erreur ${res.status}`);
+        const errorMessage = errorData.message || `Erreur ${res.status}`;
+        
+        // Messages d'erreur personnalisés pour une meilleure UX
+        if (errorMessage.includes("déjà un ticket")) {
+          throw new Error("⚠️ Un ticket est déjà en cours pour ce médecin. Veuillez attendre qu'il soit terminé ou contactez le patient.");
+        } else if (errorMessage.includes("limite")) {
+          throw new Error("⚠️ Limite de tickets atteinte pour aujourd'hui.");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await res.json();
-      showSuccess(`Ticket n°${data.number} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} !`, 4000);
+      showSuccess(`Ticket n°${data.number} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} ! 🎫`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -221,14 +234,6 @@ export default function SecretaireDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAuthenticated");
-    showInfo("Déconnexion réussie");
-    navigate("/");
   };
 
   const handleResetComplete = (result) => {
@@ -240,25 +245,15 @@ export default function SecretaireDashboard() {
     showError(error, 5000);
   };
 
-  const getEstimatedTime = (position) => {
-    const avgConsultationTime = 15; // 15 minutes par consultation
-    const totalMinutes = position * avgConsultationTime;
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h${minutes.toString().padStart(2, '0')}`;
-    }
-    return `${minutes} min`;
-  };
-
   if (!user) {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="dashboard-container text-center">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p className="text-responsive-base">Chargement...</p>
+          <div className="loading-container">
+            <div className="loading-content">
+              <div className="loading-spinner animate-float">🏥</div>
+              <p className="loading-text">Chargement du dashboard...</p>
+            </div>
           </div>
         </AnimatedPage>
       </Layout>
@@ -268,317 +263,344 @@ export default function SecretaireDashboard() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="dashboard-container container-safe overflow-protection">
-          {/* En-tête du dashboard */}
-          <div className="dashboard-card mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h1 className="dashboard-title text-purple-800 text-overflow-safe">
-                  🏥 Interface Secrétaire
-                </h1>
-                <p className="dashboard-subtitle text-overflow-safe">
-                  Gestion des rendez-vous et de la file d'attente
-                </p>
-              </div>
-              <button
-                onClick={() => navigate('/')}
-                className="action-button action-button-secondary text-overflow-safe"
-              >
-                🏠 Retour à l'accueil
-              </button>
-            </div>
-          </div>
-
-          <Toast toasts={toasts} onRemoveToast={removeToast} />
-
-          {/* Sélecteur de file d'attente par docteur */}
-          <div className="dashboard-section">
-            <DoctorQueueSelector 
-              selectedDoctor={selectedDoctor}
-              onDoctorChange={setSelectedDoctor}
-            />
-          </div>
-
-          {/* Sélection docteur pour créer un ticket - Modernisé */}
-          <div className="dashboard-card mb-6">
-            <h3 className="text-responsive-lg font-semibold text-blue-800 mb-3">
-              🎟️ Création de ticket
-            </h3>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <span className="text-responsive-base text-blue-700">Docteur pour le nouveau ticket :</span>
-              <select
-                value={selectedDoctorForTicket}
-                onChange={(e) => setSelectedDoctorForTicket(e.target.value)}
-                className="px-3 py-2 border border-blue-300 rounded-md bg-white text-blue-800 text-responsive-base min-w-48"
-              >
-                <option value="dr-husni-said-habibi">{getDoctorDisplayName('dr-husni-said-habibi')}</option>
-                <option value="dr-helios-blasco">{getDoctorDisplayName('dr-helios-blasco')}</option>
-                <option value="dr-jean-eric-panacciulli">{getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Statistiques du jour - Grid moderne */}
-          <div className="dashboard-card mb-6">
-            <h2 className="dashboard-title text-gray-800 mb-4">
-              📊 Statistiques du jour
-            </h2>
-            <div className="stats-grid">
-              <div className="stats-card border-blue-200 accessible-shadow">
-                <div className="stats-number text-blue-600">{stats.waitingCount}</div>
-                <div className="stats-label">En attente</div>
-              </div>
-              <div className="stats-card border-yellow-200 accessible-shadow">
-                <div className="stats-number text-yellow-600">{stats.inConsultationCount}</div>
-                <div className="stats-label">En consultation</div>
-              </div>
-              <div className="stats-card border-green-200 accessible-shadow">
-                <div className="stats-number text-green-600">{stats.completedToday}</div>
-                <div className="stats-label">Terminées</div>
-              </div>
-              <div className="stats-card border-red-200 accessible-shadow">
-                <div className="stats-number text-red-600">{stats.cancelledToday}</div>
-                <div className="stats-label">Annulées</div>
-              </div>
-              <div className="stats-card border-purple-200 accessible-shadow">
-                <div className="stats-number text-purple-600">{stats.totalToday}</div>
-                <div className="stats-label">Total du jour</div>
-              </div>
-              <div className="stats-card border-orange-200 accessible-shadow">
-                <div className="stats-number text-orange-600">{stats.averageWaitTime}</div>
-                <div className="stats-label">Attente (min)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions principales modernes */}
-          <div className="dashboard-card mb-6">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">⚡ Actions principales</h3>
-            <div className="actions-grid">
-              <button
-                onClick={handleCreateTicket}
-                disabled={isLoading}
-                className="action-button action-button-primary text-center"
-              >
-                <div>🎟️ Créer un ticket</div>
-                <div className="text-responsive-sm opacity-75 mt-1">
-                  pour {getDoctorDisplayName(selectedDoctorForTicket)}
+        <div className="dashboard-wrapper">
+          <div className="dashboard-container">
+            
+            {/* Header du dashboard amélioré */}
+            <div className="dashboard-header">
+              <div className="dashboard-header-content">
+                <div>
+                  <h1 className="dashboard-title">
+                    🏥 Dashboard Secrétaire
+                  </h1>
+                  <p className="dashboard-subtitle">
+                    ✨ Gestion centralisée des files d'attente et consultations médicales
+                  </p>
                 </div>
-              </button>
-
-              <button
-                onClick={() => handleCallNext()}
-                disabled={isLoading}
-                className="action-button action-button-success text-center"
-              >
-                <div>📢 Appeler le suivant</div>
-                <div className="text-responsive-sm opacity-75 mt-1">
-                  (prochain global)
+                <div className="dashboard-actions">
+                  <button
+                    onClick={() => navigate('/queue')}
+                    className="btn-primary"
+                  >
+                    📋 File complète
+                  </button>
+                  <button
+                    onClick={() => navigate('/admin')}
+                    className="btn-secondary"
+                  >
+                    ⚙️ Administration
+                  </button>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="btn-secondary"
+                  >
+                    🏠 Accueil
+                  </button>
                 </div>
-              </button>
-
-              <button
-                onClick={() => navigate("/queue")}
-                className="action-button action-button-primary text-center"
-              >
-                📋 File complète
-              </button>
-
-              <button
-                onClick={() => navigate("/admin")}
-                className="action-button action-button-secondary text-center"
-              >
-                ⚙️ Gestion admin
-              </button>
-
-              {/* Bouton de réinitialisation intégré */}
-              <div className="flex items-center justify-center">
-                <ResetQueueButton
-                  selectedDoctor={selectedDoctor}
-                  onResetComplete={handleResetComplete}
-                  onError={handleResetError}
-                  className="action-button action-button-danger w-full h-full flex flex-col items-center justify-center"
-                />
               </div>
             </div>
-          </div>
 
-          {/* Actions par docteur modernes */}
-          <div className="dashboard-card mb-6">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">📢 Appels par médecin</h3>
-            <div className="dashboard-grid">
-              <button
-                onClick={() => handleCallNext('dr-husni-said-habibi')}
-                disabled={isLoading}
-                className="action-button action-button-secondary border-orange-200 text-orange-800 hover:bg-orange-50 text-center"
-              >
-                <div>📞 Dr. Husni</div>
-                <div className="text-responsive-sm opacity-75 mt-1">
-                  Appeler le suivant
+            <Toast toasts={toasts} removeToast={removeToast} />
+
+            {/* Sélecteur de médecin */}
+            <div className="dashboard-section">
+              <DoctorQueueSelector 
+                selectedDoctor={selectedDoctor}
+                onDoctorChange={setSelectedDoctor}
+              />
+            </div>
+
+            {/* Statistiques en temps réel améliorées */}
+            <div className="dashboard-card dashboard-section">
+              <h2 className="dashboard-card-title">
+                📊 Statistiques en temps réel
+                <span className="animate-pulse ml-2">🔴</span>
+              </h2>
+              <div className="stats-grid">
+                <div className="stats-card stats-card-blue">
+                  <div className="stats-number">⏳ {stats.waitingCount}</div>
+                  <div className="stats-label">Patients en attente</div>
                 </div>
-              </button>
+                <div className="stats-card stats-card-yellow">
+                  <div className="stats-number">👨‍⚕️ {stats.inConsultationCount}</div>
+                  <div className="stats-label">En consultation</div>
+                </div>
+                <div className="stats-card stats-card-green">
+                  <div className="stats-number">✅ {stats.completedToday}</div>
+                  <div className="stats-label">Consultations terminées</div>
+                </div>
+                <div className="stats-card stats-card-red">
+                  <div className="stats-number">❌ {stats.cancelledToday}</div>
+                  <div className="stats-label">Annulations du jour</div>
+                </div>
+                <div className="stats-card stats-card-purple">
+                  <div className="stats-number">📈 {stats.totalToday}</div>
+                  <div className="stats-label">Total journée</div>
+                </div>
+                <div className="stats-card stats-card-orange">
+                  <div className="stats-number">⏱️ {stats.averageWaitTime}min</div>
+                  <div className="stats-label">Temps d'attente moyen</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Layout en 2 colonnes pour desktop */}
+            <div className="dashboard-grid-2 dashboard-section">
               
-              <button
-                onClick={() => handleCallNext('dr-helios-blasco')}
-                disabled={isLoading}
-                className="action-button action-button-secondary border-teal-200 text-teal-800 hover:bg-teal-50 text-center"
-              >
-                <div>📞 Dr. Helios</div>
-                <div className="text-responsive-sm opacity-75 mt-1">
-                  Appeler le suivant
-                </div>
-              </button>
-              
-              <button
-                onClick={() => handleCallNext('dr-jean-eric-panacciulli')}
-                disabled={isLoading}
-                className="action-button action-button-secondary border-cyan-200 text-cyan-800 hover:bg-cyan-50 text-center"
-              >
-                <div>📞 Dr. Jean-Eric</div>
-                <div className="text-responsive-sm opacity-75 mt-1">
-                  Appeler le suivant
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* État actuel par docteur moderne */}
-          <div className="dashboard-card mb-6">
-            <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">👨‍⚕️ État des consultations par médecin</h3>
-            <div className="dashboard-grid">
-              {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
-                const doctorQueue = queue.filter(t => t.docteur === doctorId);
-                const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
-                const waiting = doctorQueue.filter(t => t.status === "en_attente");
-                const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+              {/* Colonne gauche - Actions principales */}
+              <div className="space-y-8">
                 
-                return (
-                  <div key={doctorId} className="dashboard-card bg-gray-50">
-                    <h4 className="text-responsive-base font-semibold text-gray-800 mb-3">
-                      {getDoctorDisplayName(doctorId)}
-                    </h4>
-                    
-                    <div className="space-y-3">
-                      {/* Patient en consultation */}
-                      {inConsultation ? (
-                        <div className="alert-card bg-yellow-50 border border-yellow-200">
-                          <div className="text-responsive-sm text-yellow-800 font-medium">🩺 En consultation</div>
-                          <div className="text-responsive-sm text-yellow-700 mt-1">
-                            Ticket n°{inConsultation.number}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="alert-card bg-green-50 border border-green-200">
-                          <div className="text-responsive-sm text-green-800 font-medium">✅ Libre</div>
-                        </div>
-                      )}
-
-                      {/* Patient suivant */}
-                      {nextPatient ? (
-                        <div className="alert-card bg-blue-50 border border-blue-200">
-                          <div className="text-responsive-sm text-blue-800 font-medium">⏳ Prochain patient</div>
-                          <div className="text-responsive-sm text-blue-700 mt-1">
-                            Ticket n°{nextPatient.number}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="alert-card bg-gray-50 border border-gray-200">
-                          <div className="text-responsive-sm text-gray-600">Aucun patient en attente</div>
-                        </div>
-                      )}
-
-                      {/* Nombre en attente */}
-                      <div className="info-grid">
-                        <div className="stats-card border-gray-200">
-                          <div className="stats-number text-gray-600">{waiting.length}</div>
-                          <div className="stats-label">En attente</div>
-                        </div>
-                      </div>
+                {/* Création de ticket améliorée */}
+                <div className="dashboard-card">
+                  <h3 className="dashboard-card-title">
+                    🎫 Nouveau ticket patient
+                  </h3>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="form-label">👨‍⚕️ Sélectionner le médecin</label>
+                      <select
+                        value={selectedDoctorForTicket}
+                        onChange={(e) => setSelectedDoctorForTicket(e.target.value)}
+                        className="form-select"
+                      >
+                        <option value="dr-husni-said-habibi">🩺 {getDoctorDisplayName('dr-husni-said-habibi')}</option>
+                        <option value="dr-helios-blasco">🏥 {getDoctorDisplayName('dr-helios-blasco')}</option>
+                        <option value="dr-jean-eric-panacciulli">⚕️ {getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
+                      </select>
+                    </div>
+                    <button
+                      onClick={handleCreateTicket}
+                      disabled={isLoading}
+                      className="btn-primary btn-full btn-large"
+                    >
+                      {isLoading ? "🔄 Création en cours..." : "🎫 Créer un nouveau ticket"}
+                    </button>
+                    <div className="text-xs text-gray-500 text-center">
+                      💡 Un seul ticket actif par médecin à la fois
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Queue détaillée si sélectionnée */}
-          {selectedDoctor && (
-            <div className="dashboard-card">
-              <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-                📋 File de {getDoctorDisplayName(selectedDoctor)}
-              </h3>
-              {queue.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-2">🎯</div>
-                  <p className="text-responsive-base">Aucun patient dans cette file</p>
                 </div>
-              ) : (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {queue.map((ticket, index) => (
-                    <div key={ticket._id} className="ticket-card">
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                        <div className="flex items-center gap-3">
-                          <span className="text-responsive-base font-semibold text-gray-800">
-                            🎫 Ticket n°{ticket.number}
-                          </span>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            ticket.status === "en_consultation" ? "bg-green-100 text-green-700" :
-                            ticket.status === "en_attente" ? "bg-blue-100 text-blue-700" :
-                            ticket.status === "termine" ? "bg-gray-100 text-gray-700" :
-                            "bg-red-100 text-red-700"
+
+                {/* Actions rapides améliorées */}
+                <div className="dashboard-card">
+                  <h3 className="dashboard-card-title">
+                    ⚡ Actions rapides
+                  </h3>
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => handleCallNext()}
+                      disabled={isLoading}
+                      className="btn-success btn-full btn-large"
+                    >
+                      {isLoading ? "🔄 Appel en cours..." : "📢 Appeler le patient suivant"}
+                    </button>
+                    
+                    <ResetQueueButton
+                      selectedDoctor={selectedDoctor}
+                      onResetComplete={handleResetComplete}
+                      onError={handleResetError}
+                      className="btn-danger btn-full btn-large"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Colonne droite - État des médecins amélioré */}
+              <div className="dashboard-card">
+                <h3 className="dashboard-card-title">
+                  👩‍⚕️ État des consultations en temps réel
+                  <span className="animate-pulse ml-2">🔴</span>
+                </h3>
+                <div className="space-y-6">
+                  {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
+                    const doctorQueue = queue.filter(t => t.docteur === doctorId);
+                    const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
+                    const waiting = doctorQueue.filter(t => t.status === "en_attente");
+                    const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+                    
+                    return (
+                      <div key={doctorId} className="doctor-status-card">
+                        <h4 className="doctor-status-title">
+                          👨‍⚕️ {getDoctorDisplayName(doctorId)}
+                        </h4>
+                        
+                        <div className="doctor-status-info">
+                          {/* Patient en consultation */}
+                          {inConsultation ? (
+                            <div className="status-card status-card-consultation">
+                              <div className="status-text">🩺 Consultation en cours</div>
+                              <div className="status-detail">🎫 Ticket n°{inConsultation.number}</div>
+                            </div>
+                          ) : (
+                            <div className="status-card status-card-available">
+                              <div className="status-text">✅ Médecin disponible</div>
+                            </div>
+                          )}
+
+                          {/* Patient suivant */}
+                          {nextPatient ? (
+                            <div className="status-card status-card-next">
+                              <div className="status-text">⏳ Prochain patient</div>
+                              <div className="status-detail">🎫 Ticket n°{nextPatient.number}</div>
+                            </div>
+                          ) : (
+                            <div className="status-card status-card-empty">
+                              <div className="status-text">🚫 File d'attente vide</div>
+                            </div>
+                          )}
+
+                          {/* Nombre en attente */}
+                          <div className="doctor-waiting-count">
+                            <div className="doctor-waiting-number">{waiting.length}</div>
+                            <div className="doctor-waiting-label">👥 patients en attente</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+            </div>
+
+            {/* Actions par médecin améliorées */}
+            <div className="dashboard-card dashboard-section">
+              <h3 className="dashboard-card-title">
+                📞 Appels spécifiques par médecin
+              </h3>
+              <div className="dashboard-grid-3">
+                <button
+                  onClick={() => handleCallNext('dr-husni-said-habibi')}
+                  disabled={isLoading}
+                  className="doctor-btn doctor-btn-orange"
+                >
+                  <div className="doctor-name">📞 Dr. Husni Said Habibi</div>
+                  <div className="doctor-action">🩺 Appeler le patient suivant</div>
+                </button>
+                
+                <button
+                  onClick={() => handleCallNext('dr-helios-blasco')}
+                  disabled={isLoading}
+                  className="doctor-btn doctor-btn-teal"
+                >
+                  <div className="doctor-name">📞 Dr. Helios Blasco</div>
+                  <div className="doctor-action">🏥 Appeler le patient suivant</div>
+                </button>
+                
+                <button
+                  onClick={() => handleCallNext('dr-jean-eric-panacciulli')}
+                  disabled={isLoading}
+                  className="doctor-btn doctor-btn-cyan"
+                >
+                  <div className="doctor-name">📞 Dr. Jean-Eric Panacciulli</div>
+                  <div className="doctor-action">⚕️ Appeler le patient suivant</div>
+                </button>
+              </div>
+            </div>
+
+            {/* File détaillée si sélectionnée */}
+            {selectedDoctor && (
+              <div className="dashboard-card">
+                <h3 className="dashboard-card-title">
+                  📋 File d'attente de {getDoctorDisplayName(selectedDoctor)}
+                  <span className="animate-pulse ml-2">🔴</span>
+                </h3>
+                {queue.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">🎯</div>
+                    <p className="empty-text">Aucun patient dans cette file d'attente</p>
+                    <p className="text-sm text-gray-400 mt-2">La consultation est libre ! 🎉</p>
+                  </div>
+                ) : (
+                  <div className="dashboard-grid">
+                    {queue.map((ticket, index) => (
+                      <div key={ticket._id} className="ticket-card">
+                        <div className="ticket-header">
+                          <span className="ticket-number">🎫 #{ticket.number}</span>
+                          <div className={`ticket-status ${
+                            ticket.status === "en_consultation" ? "ticket-status-consultation" :
+                            ticket.status === "en_attente" ? "ticket-status-waiting" :
+                            ticket.status === "termine" ? "ticket-status-completed" :
+                            "ticket-status-cancelled"
                           }`}>
-                            {ticket.status === "en_attente" ? "En attente" :
-                             ticket.status === "en_consultation" ? "En consultation" :
-                             ticket.status === "termine" ? "Terminé" : "Annulé"}
+                            {ticket.status === "en_attente" ? "⏳ En attente" :
+                             ticket.status === "en_consultation" ? "🩺 En consultation" :
+                             ticket.status === "termine" ? "✅ Terminé" : "❌ Annulé"}
                           </div>
                         </div>
                         
-                        <div className="flex flex-col sm:items-end gap-1">
-                          <div className="text-responsive-sm text-gray-500">
-                            ⏰ {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                          {ticket.status === "en_attente" && (
-                            <div className="text-responsive-sm text-blue-600">
-                              Position {queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1}
-                            </div>
-                          )}
+                        <div className="ticket-time">
+                          🕐 {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
+                        
+                        {ticket.status === "en_attente" && (
+                          <div className="ticket-position">
+                            📍 Position {queue.filter(t => t.status === "en_attente").findIndex(t => t._id === ticket._id) + 1} dans la file
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Modales avec style professionnel amélioré */}
+            <ConfirmModal
+              isOpen={showCallModal}
+              title="📢 Confirmation d'appel patient"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">📞</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous appeler le patient suivant pour une consultation avec 
+                      <span className="font-bold text-blue-600"> {getDoctorDisplayName(selectedDoctorForCall)}</span> ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🎫 Le patient sera automatiquement placé en consultation et retiré de la file d'attente.
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              }
+              onConfirm={confirmCallNext}
+              onCancel={() => {
+                setShowCallModal(false);
+                setSelectedDoctorForCall(null);
+              }}
+              confirmText="📢 Confirmer l'appel"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
 
-          {/* Modales responsives */}
-          <ConfirmModal
-            isOpen={showCallModal}
-            title="📢 Appeler le patient suivant"
-            message={`Êtes-vous sûr de vouloir appeler le patient suivant pour ${getDoctorDisplayName(selectedDoctorForCall)} ?`}
-            onConfirm={confirmCallNext}
-            onCancel={() => {
-              setShowCallModal(false);
-              setSelectedDoctorForCall(null);
-            }}
-            confirmText="Oui, appeler"
-            cancelText="Annuler"
-            isLoading={isLoading}
-          />
-
-          <ConfirmModal
-            isOpen={showCreateTicketModal}
-            title="🎟️ Créer un nouveau ticket"
-            message={`Créer un ticket pour ${getDoctorDisplayName(selectedDoctorForTicket)} ?`}
-            onConfirm={confirmCreateTicket}
-            onCancel={() => setShowCreateTicketModal(false)}
-            confirmText="Créer le ticket"
-            cancelText="Annuler"
-            isLoading={isLoading}
-          />
+            <ConfirmModal
+              isOpen={showCreateTicketModal}
+              title="🎫 Confirmation de création de ticket"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">🎫</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous créer un nouveau ticket de consultation pour 
+                      <span className="font-bold text-blue-600"> {getDoctorDisplayName(selectedDoctorForTicket)}</span> ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      📋 Le ticket sera automatiquement ajouté à la file d'attente du médecin sélectionné.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmCreateTicket}
+              onCancel={() => setShowCreateTicketModal(false)}
+              confirmText="🎫 Créer le ticket"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </AnimatedPage>
     </Layout>
