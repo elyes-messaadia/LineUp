@@ -123,8 +123,8 @@ export default function DoctorDashboard({ doctorId }) {
       const apiPromises = Promise.race([
         Promise.all([
           fetch(`${BACKEND_URL}/queue?docteur=${doctorId}`, { signal }),
-          fetch(`${BACKEND_URL}/queue/stats`, { signal }).catch(() => 
-            fetch(`${BACKEND_URL}/queue`, { signal }) // Fallback
+          fetch(`${BACKEND_URL}/stats`, { signal }).catch(() => 
+            fetch(`${BACKEND_URL}/queue`, { signal }) // Fallback vers toute la queue
           )
         ]),
         timeoutPromise
@@ -492,10 +492,22 @@ export default function DoctorDashboard({ doctorId }) {
               <div className="alert-card bg-green-50 border-l-4 border-green-400">
                 <div className="info-grid">
                   <div>
-                    <p className="text-responsive-sm text-green-600 text-overflow-safe">Ticket</p>
-                    <p className="text-responsive-lg font-semibold text-green-800 text-overflow-safe">
-                      #{currentPatient.number}
-                    </p>
+                    <p className="text-responsive-sm text-green-600 text-overflow-safe">Patient</p>
+                    <div className="space-y-1">
+                      <p className="text-responsive-lg font-semibold text-green-800 text-overflow-safe">
+                        🎫 #{currentPatient.number}
+                      </p>
+                      {currentPatient.patientName && (
+                        <p className="text-responsive-base font-medium text-blue-700 text-overflow-safe">
+                          👤 {currentPatient.patientName}
+                        </p>
+                      )}
+                      {currentPatient.ticketType === 'physique' && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
+                          🎫 Physique
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <p className="text-responsive-sm text-green-600 text-overflow-safe">Depuis</p>
@@ -516,6 +528,18 @@ export default function DoctorDashboard({ doctorId }) {
                     </p>
                   </div>
                 </div>
+
+                {/* Notes de consultation si disponibles */}
+                {currentPatient.notes && (
+                  <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-300 rounded-r">
+                    <p className="text-responsive-sm text-yellow-700 font-medium text-overflow-safe mb-1">
+                      📝 Notes de la secrétaire
+                    </p>
+                    <p className="text-responsive-base text-yellow-800 text-overflow-safe italic">
+                      {currentPatient.notes}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="mt-4 actions-grid">
                   <button
@@ -529,7 +553,7 @@ export default function DoctorDashboard({ doctorId }) {
                     onClick={() => setShowNotesModal(true)}
                     className="action-button action-button-secondary text-overflow-safe"
                   >
-                    📝 Ajouter des notes
+                    📝 Ajouter des notes médicales
                   </button>
                 </div>
               </div>
@@ -553,7 +577,10 @@ export default function DoctorDashboard({ doctorId }) {
                       disabled={isLoading}
                       className="action-button action-button-primary text-overflow-safe"
                     >
-                      {isLoading ? '⏳ Appel en cours...' : `📢 Appeler le patient n°${waitingPatients[0]?.number}`}
+                      {isLoading ? '⏳ Appel en cours...' : 
+                       waitingPatients[0]?.patientName ? 
+                       `📢 Appeler ${waitingPatients[0].patientName} (n°${waitingPatients[0].number})` :
+                       `📢 Appeler le patient n°${waitingPatients[0]?.number}`}
                     </button>
                   )}
                   
@@ -625,9 +652,26 @@ export default function DoctorDashboard({ doctorId }) {
                             </span>
                           )}
                         </h3>
-                        <p className="text-responsive-base text-gray-600 text-overflow-safe">
-                          Ticket #{ticket.number}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-responsive-base text-gray-600 text-overflow-safe">
+                            🎫 Ticket #{ticket.number}
+                          </p>
+                          {ticket.patientName && (
+                            <p className="text-responsive-base font-medium text-blue-700 text-overflow-safe">
+                              👤 {ticket.patientName}
+                            </p>
+                          )}
+                          {ticket.ticketType === 'physique' && (
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
+                              🎫 Ticket physique
+                            </span>
+                          )}
+                          {ticket.createdBy === 'secretary' && (
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full ml-2">
+                              ✨ Créé par secrétaire
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="ml-4 flex-shrink-0">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-overflow-safe ${
@@ -668,6 +712,18 @@ export default function DoctorDashboard({ doctorId }) {
                         </p>
                       </div>
                     </div>
+
+                    {/* Notes de la secrétaire si disponibles */}
+                    {ticket.notes && (
+                      <div className="mt-2 p-2 bg-yellow-50 border-l-4 border-yellow-300 rounded-r">
+                        <p className="text-responsive-sm text-yellow-700 font-medium text-overflow-safe">
+                          📝 Notes
+                        </p>
+                        <p className="text-responsive-sm text-yellow-800 text-overflow-safe italic">
+                          {ticket.notes}
+                        </p>
+                      </div>
+                    )}
                     
                     {/* Indicateur si problème d'assignation */}
                     {ticket.docteur !== doctorId && (
