@@ -97,10 +97,10 @@ function App() {
             {/* Logo - Toujours visible mais compacte sur mobile */}
             <div className="flex items-center space-x-2 sm:space-x-8 flex-shrink-0">
               <Link to="/" className="flex items-center space-x-2 group">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <span className="text-white font-bold text-sm sm:text-lg">L</span>
                 </div>
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
                   LineUp
                 </span>
               </Link>
@@ -109,26 +109,26 @@ function App() {
               <div className="hidden lg:flex space-x-6 force-hide-mobile">
                 <Link 
                   to="/" 
-                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-all duration-200"
                 >
                   <span>🏠</span>
                   <span className="font-medium">Accueil</span>
                 </Link>
                 <Link 
                   to="/queue" 
-                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-all duration-200"
                 >
                   <span>📋</span>
                   <span className="font-medium">File d'attente</span>
                 </Link>
                 {!isAuthenticated && (
-                  <Link 
-                    to="/ticket" 
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-                  >
-                    <span>🎫</span>
-                    <span className="font-medium">Mon ticket</span>
-                  </Link>
+                                      <Link 
+                      to="/ticket" 
+                      className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-all duration-200"
+                    >
+                      <span>🎫</span>
+                      <span className="font-medium">Mon ticket</span>
+                    </Link>
                 )}
               </div>
             </div>
@@ -140,8 +140,8 @@ function App() {
               {isAuthenticated && user ? (
                 <div className="flex items-center space-x-4">
                   {/* Badge utilisateur amélioré */}
-                  <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-full border border-blue-200">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="flex items-center space-x-3 bg-gradient-to-r from-violet-50 to-indigo-50 px-4 py-2 rounded-full border border-violet-200">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-white text-sm font-medium">
                       {user.role?.name === "medecin" && "🩺"}
                       {user.role?.name === "secretaire" && "👩‍💼"}
                       {user.role?.name === "patient" && "👤"}
@@ -156,7 +156,7 @@ function App() {
                   {/* Bouton Mon espace */}
                   <Link 
                     to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <span>📊</span>
                     <span className="font-medium">Mon espace</span>
@@ -176,7 +176,7 @@ function App() {
                 <div className="flex items-center space-x-3">
                   <Link 
                     to="/login" 
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <span>🔐</span>
                     <span className="font-medium">Connexion</span>
@@ -197,7 +197,7 @@ function App() {
             <div className="lg:hidden flex-shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
+                className="p-2 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-colors touch-target-large"
                 aria-label="Ouvrir le menu"
               >
                 <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1">
@@ -218,7 +218,7 @@ function App() {
               <Link 
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
+                className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-colors touch-target-large"
               >
                 <span>🏠</span>
                 <span className="font-medium">Accueil</span>
@@ -226,7 +226,7 @@ function App() {
               <Link 
                 to="/queue"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
+                className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-colors touch-target-large"
               >
                 <span>📋</span>
                 <span className="font-medium">File d'attente</span>
@@ -235,7 +235,7 @@ function App() {
                 <Link 
                   to="/ticket"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
+                  className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-violet-600 hover:bg-violet-50 transition-colors touch-target-large"
                 >
                   <span>🎫</span>
                   <span className="font-medium">Mon ticket</span>
@@ -247,8 +247,8 @@ function App() {
             {isAuthenticated && user ? (
               <div className="pt-4 border-t border-gray-200 space-y-4">
                 {/* Badge utilisateur mobile */}
-                <div className="flex items-center space-x-3 px-4 py-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white flex-shrink-0">
+                <div className="flex items-center space-x-3 px-4 py-3 bg-violet-50 rounded-lg border border-violet-200">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-white flex-shrink-0">
                     {user.role?.name === "medecin" && "🩺"}
                     {user.role?.name === "secretaire" && "👩‍💼"}
                     {user.role?.name === "patient" && "👤"}
@@ -265,7 +265,7 @@ function App() {
                   <Link 
                     to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors touch-target-large"
+                    className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-colors touch-target-large"
                   >
                     <span>📊</span>
                     <span className="font-medium">Mon espace</span>
@@ -289,7 +289,7 @@ function App() {
                   <Link 
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors hover:bg-blue-700 touch-target-large"
+                    className="flex items-center justify-center space-x-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-3 rounded-lg transition-colors hover:from-violet-700 hover:to-indigo-700 touch-target-large"
                   >
                     <span>🔐</span>
                     <span className="font-medium">Connexion</span>

@@ -142,11 +142,11 @@ export default function Login() {
             {showQuickLogin && (
               <div 
                 id="quick-login-section"
-                className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4"
+                className="mt-4 bg-violet-50 border-2 border-violet-200 rounded-xl p-4"
                 role="region"
                 aria-label="Comptes de démonstration"
               >
-                <h3 className="font-bold text-blue-900 mb-4 text-center senior-friendly-text">
+                <h3 className="font-bold text-violet-900 mb-4 text-center senior-friendly-text">
                   Comptes de test disponibles
                 </h3>
                 <div className="space-y-3">
@@ -177,7 +177,7 @@ export default function Login() {
                       email: "patient@lineup.com",
                       password: "patient123"
                     })}
-                    className="w-full high-contrast-button touch-target-large bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 gentle-transition"
+                    className="w-full high-contrast-button touch-target-large bg-violet-100 hover:bg-violet-200 text-violet-800 border-violet-300 gentle-transition"
                     disabled={isLoading}
                     aria-label="Se connecter en tant que patient de démonstration"
                   >
@@ -214,7 +214,7 @@ export default function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
+                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-violet-200 focus:border-violet-500 gentle-transition senior-friendly-text"
                 placeholder="Exemple: jean@email.com"
                 disabled={isLoading}
                 aria-describedby="email-help"
@@ -239,7 +239,7 @@ export default function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 gentle-transition senior-friendly-text"
+                className="w-full touch-target-large px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-violet-200 focus:border-violet-500 gentle-transition senior-friendly-text"
                 placeholder="Votre mot de passe"
                 disabled={isLoading}
                 aria-describedby="password-help"
@@ -256,7 +256,7 @@ export default function Login() {
               className={`w-full touch-target-large high-contrast-button gentle-transition ${
                 isLoading || !formData.email || !formData.password
                   ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600"
-                  : "bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
+                  : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 border-violet-600 text-white"
               }`}
               aria-describedby="submit-help"
             >

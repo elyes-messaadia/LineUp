@@ -154,15 +154,15 @@ export default function Register() {
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-xs xs:max-w-sm se:max-w-md lg:max-w-lg mx-auto 
+        <div className="max-w-sm sm:max-w-md lg:max-w-lg mx-auto 
                         bg-white 
-                        p-3 xs:p-4 se:p-6 sm:p-8 
-                        rounded-lg se:rounded-xl 
+                        p-4 sm:p-6 lg:p-8 
+                        rounded-xl 
                         accessible-shadow old-device-optimized">
           <Title level={1}>✨ Créer un compte</Title>
 
           {/* Message d'aide principal */}
-          <div className="help-text mb-4 xs:mb-6 sm:mb-8">
+          <div className="help-text mb-6 sm:mb-8">
             <p className="text-center legacy-text-primary">
               Remplissez ce formulaire pour créer votre compte LineUp
             </p>
@@ -171,13 +171,13 @@ export default function Register() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 xs:space-y-5 se:space-y-6" noValidate>
-            {/* Nom et Prénom */}
-            <div className="space-y-4 xs:space-y-5 se:space-y-0 se:grid se:grid-cols-2 se:gap-3 md:gap-4">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6" noValidate>
+            {/* Nom et Prénom - Toujours en colonne sur mobile et tablettes */}
+            <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
               <div>
                 <label 
                   htmlFor="firstName"
-                  className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                  className="block legacy-text-primary font-semibold text-gray-800 mb-3"
                 >
                   👤 Prénom *
                 </label>
@@ -188,7 +188,7 @@ export default function Register() {
                   value={formData.firstName}
                   onChange={handleChange}
                   required
-                  className={`w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 
+                  className={`w-full legacy-button px-4 py-3 border-2 
                              rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                              transition-all duration-200 legacy-text-secondary ${
                     validationErrors.firstName ? 'error-highlight' : 'border-gray-300'
@@ -198,11 +198,11 @@ export default function Register() {
                   aria-describedby="firstName-help firstName-error"
                   autoComplete="given-name"
                 />
-                <div id="firstName-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+                <div id="firstName-help" className="mt-2 text-sm text-gray-600">
                   Votre prénom tel qu'il apparaîtra sur vos tickets
                 </div>
                 {validationErrors.firstName && (
-                  <div id="firstName-error" className="mt-1 xs:mt-2 text-xs xs:text-sm text-red-600 font-medium">
+                  <div id="firstName-error" className="mt-2 text-sm text-red-600 font-medium">
                     ⚠️ {validationErrors.firstName}
                   </div>
                 )}
@@ -211,7 +211,7 @@ export default function Register() {
               <div>
                 <label 
                   htmlFor="lastName"
-                  className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                  className="block legacy-text-primary font-semibold text-gray-800 mb-3"
                 >
                   👤 Nom de famille *
                 </label>
@@ -222,7 +222,7 @@ export default function Register() {
                   value={formData.lastName}
                   onChange={handleChange}
                   required
-                  className={`w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 
+                  className={`w-full legacy-button px-4 py-3 border-2 
                              rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                              transition-all duration-200 legacy-text-secondary ${
                     validationErrors.lastName ? 'error-highlight' : 'border-gray-300'
@@ -232,11 +232,11 @@ export default function Register() {
                   aria-describedby="lastName-help lastName-error"
                   autoComplete="family-name"
                 />
-                <div id="lastName-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+                <div id="lastName-help" className="mt-2 text-sm text-gray-600">
                   Votre nom de famille
                 </div>
                 {validationErrors.lastName && (
-                  <div id="lastName-error" className="mt-1 xs:mt-2 text-xs xs:text-sm text-red-600 font-medium">
+                  <div id="lastName-error" className="mt-2 text-sm text-red-600 font-medium">
                     ⚠️ {validationErrors.lastName}
                   </div>
                 )}
@@ -247,7 +247,7 @@ export default function Register() {
             <div>
               <label 
                 htmlFor="email"
-                className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
                 📧 Adresse email *
               </label>
@@ -258,7 +258,7 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 
+                className={`w-full legacy-button px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                            transition-all duration-200 legacy-text-secondary ${
                   validationErrors.email ? 'error-highlight' : 'border-gray-300'
@@ -268,11 +268,11 @@ export default function Register() {
                 aria-describedby="email-help email-error"
                 autoComplete="email"
               />
-              <div id="email-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+              <div id="email-help" className="mt-2 text-sm text-gray-600">
                 Cette adresse servira pour vous connecter
               </div>
               {validationErrors.email && (
-                <div id="email-error" className="mt-1 xs:mt-2 text-xs xs:text-sm text-red-600 font-medium">
+                <div id="email-error" className="mt-2 text-sm text-red-600 font-medium">
                   ⚠️ {validationErrors.email}
                 </div>
               )}
@@ -282,7 +282,7 @@ export default function Register() {
             <div>
               <label 
                 htmlFor="phone"
-                className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
                 📱 Numéro de téléphone (optionnel)
               </label>
@@ -292,7 +292,7 @@ export default function Register() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 border-gray-300 
+                className="w-full legacy-button px-4 py-3 border-2 border-gray-300 
                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                           transition-all duration-200 legacy-text-secondary"
                 placeholder="Ex: 06 12 34 56 78"
@@ -300,7 +300,7 @@ export default function Register() {
                 aria-describedby="phone-help"
                 autoComplete="tel"
               />
-              <div id="phone-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+              <div id="phone-help" className="mt-2 text-sm text-gray-600">
                 Pour vous contacter en cas de besoin (facultatif)
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function Register() {
             <div>
               <label 
                 htmlFor="role"
-                className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
                 🎭 Type de compte *
               </label>
@@ -318,7 +318,7 @@ export default function Register() {
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 border-gray-300 
+                className="w-full legacy-button px-4 py-3 border-2 border-gray-300 
                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                           transition-all duration-200 legacy-text-secondary"
                 disabled={isLoading}
@@ -327,7 +327,7 @@ export default function Register() {
                 <option value="patient">👤 Patient - Je veux prendre des tickets de consultation</option>
                 <option value="visiteur">👁️ Visiteur - Je veux seulement consulter les files d'attente</option>
               </select>
-              <div id="role-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+              <div id="role-help" className="mt-2 text-sm text-gray-600">
                 Choisissez selon votre utilisation prévue du système
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function Register() {
             <div>
               <label 
                 htmlFor="password"
-                className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
                 🔒 Mot de passe *
               </label>
@@ -347,7 +347,7 @@ export default function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 
+                className={`w-full legacy-button px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                            transition-all duration-200 legacy-text-secondary ${
                   validationErrors.password ? 'error-highlight' : 'border-gray-300'
@@ -357,11 +357,11 @@ export default function Register() {
                 aria-describedby="password-help password-error"
                 autoComplete="new-password"
               />
-              <div id="password-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+              <div id="password-help" className="mt-2 text-sm text-gray-600">
                 Choisissez un mot de passe sécurisé d'au moins 6 caractères
               </div>
               {validationErrors.password && (
-                <div id="password-error" className="mt-1 xs:mt-2 text-xs xs:text-sm text-red-600 font-medium">
+                <div id="password-error" className="mt-2 text-sm text-red-600 font-medium">
                   ⚠️ {validationErrors.password}
                 </div>
               )}
@@ -371,7 +371,7 @@ export default function Register() {
             <div>
               <label 
                 htmlFor="confirmPassword"
-                className="block legacy-text-primary font-semibold text-gray-800 mb-2 xs:mb-3"
+                className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
                 🔒 Confirmer le mot de passe *
               </label>
@@ -382,7 +382,7 @@ export default function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className={`w-full legacy-button px-3 xs:px-4 py-2 xs:py-3 border-2 
+                className={`w-full legacy-button px-4 py-3 border-2 
                            rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
                            transition-all duration-200 legacy-text-secondary ${
                   validationErrors.confirmPassword ? 'error-highlight' : 'border-gray-300'
@@ -392,11 +392,11 @@ export default function Register() {
                 aria-describedby="confirmPassword-help confirmPassword-error"
                 autoComplete="new-password"
               />
-              <div id="confirmPassword-help" className="mt-1 xs:mt-2 text-xs xs:text-sm text-gray-600">
+              <div id="confirmPassword-help" className="mt-2 text-sm text-gray-600">
                 Retapez le même mot de passe pour confirmation
               </div>
               {validationErrors.confirmPassword && (
-                <div id="confirmPassword-error" className="mt-1 xs:mt-2 text-xs xs:text-sm text-red-600 font-medium">
+                <div id="confirmPassword-error" className="mt-2 text-sm text-red-600 font-medium">
                   ⚠️ {validationErrors.confirmPassword}
                 </div>
               )}
@@ -409,13 +409,13 @@ export default function Register() {
               className={`w-full legacy-button transition-all duration-200 ${
                 isLoading || !isFormValid()
                   ? "bg-gray-400 cursor-not-allowed border-gray-400 text-gray-600 loading-state"
-                  : "bg-green-600 hover:bg-green-700 text-white border-green-600"
+                  : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
               }`}
               aria-describedby="submit-help"
             >
               {isLoading ? (
                 <>
-                  <span className="old-android-safe inline-block mr-2 xs:mr-3">⏳</span>
+                  <span className="old-android-safe inline-block mr-3">⏳</span>
                   Création en cours...
                 </>
               ) : (
@@ -424,20 +424,20 @@ export default function Register() {
             </button>
             
             {!isFormValid() && (
-              <div id="submit-help" className="text-xs xs:text-sm text-gray-600 text-center">
+              <div id="submit-help" className="text-sm text-gray-600 text-center">
                 Veuillez remplir correctement tous les champs obligatoires
               </div>
             )}
           </form>
 
           {/* Lien vers connexion */}
-          <div className="mt-6 xs:mt-8 pt-4 xs:pt-6 border-t-2 border-gray-200">
-            <p className="legacy-text-secondary text-gray-700 mb-3 xs:mb-4 text-center">
+          <div className="mt-8 pt-6 border-t-2 border-gray-200">
+            <p className="legacy-text-secondary text-gray-700 mb-4 text-center">
               Vous avez déjà un compte ?
             </p>
             <Link
               to="/login"
-              className="block w-full text-center legacy-button bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 transition-all duration-200 no-underline"
+              className="block w-full text-center legacy-button bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-all duration-200 no-underline"
               aria-label="Aller à la page de connexion"
             >
               🔐 Se connecter
@@ -445,9 +445,9 @@ export default function Register() {
           </div>
 
           {/* Information importante */}
-          <div className="mt-6 xs:mt-8 help-text">
-            <h3 className="legacy-text-primary font-bold mb-2 xs:mb-3">ℹ️ Information importante</h3>
-            <p className="text-xs xs:text-sm leading-relaxed">
+          <div className="mt-8 help-text">
+            <h3 className="legacy-text-primary font-bold mb-3">ℹ️ Information importante</h3>
+            <p className="text-sm leading-relaxed">
               Les comptes <strong>Médecin</strong> et <strong>Secrétaire</strong> sont réservés au personnel médical 
               et ne peuvent pas être créés via cette page. Si vous êtes membre du personnel médical, 
               contactez l'administration pour obtenir vos accès.
