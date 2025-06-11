@@ -59,7 +59,8 @@ const ticketSchema = new mongoose.Schema({
   metadata: {
     ipAddress: String,
     userAgent: String,
-    device: String
+    device: String,
+    deviceFingerprint: String // Empreinte unique pour identifier l'appareil/navigateur
   }
 }, {
   timestamps: true  // Ajoute automatiquement createdAt et updatedAt
@@ -68,5 +69,7 @@ const ticketSchema = new mongoose.Schema({
 // Index pour optimiser les requêtes
 ticketSchema.index({ status: 1, createdAt: 1 });
 ticketSchema.index({ sessionId: 1 });
+ticketSchema.index({ 'metadata.ipAddress': 1, status: 1 }); // Index pour limitations IP
+ticketSchema.index({ 'metadata.deviceFingerprint': 1, status: 1 }); // Index pour limitations empreinte
 
 module.exports = mongoose.model("Ticket", ticketSchema);

@@ -61,6 +61,10 @@ app.use(cors({
   maxAge: 600 // Cache les résultats du pre-flight pendant 10 minutes
 }));
 
+// 🔗 Configuration proxy pour détecter les vraies IPs client
+// Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
+app.set('trust proxy', true);
+
 app.use(express.json());
 
 // 🏥 Route de santé pour Render
@@ -79,6 +83,41 @@ app.get('/health', (req, res) => {
     status: 'OK',
     cors: 'enabled',
     origin: req.headers.origin || 'no-origin'
+  });
+});
+
+// 🐛 Route de debug IP (à supprimer en production)
+app.get('/debug-ip', (req, res) => {
+  const getRealClientIP = (req) => {
+    const ip = req.headers['x-nf-client-connection-ip'] ||
+               req.headers['cf-connecting-ip'] ||
+               req.headers['x-real-ip'] ||
+               req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+               req.headers['x-client-ip'] ||
+               req.connection?.remoteAddress ||
+               req.socket?.remoteAddress ||
+               req.ip ||
+               'unknown';
+    return ip;
+  };
+
+  res.json({
+    message: '🔍 Debug Information IP',
+    detectedIP: getRealClientIP(req),
+    allHeaders: {
+      'x-nf-client-connection-ip': req.headers['x-nf-client-connection-ip'],
+      'cf-connecting-ip': req.headers['cf-connecting-ip'],
+      'x-real-ip': req.headers['x-real-ip'],
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'x-client-ip': req.headers['x-client-ip'],
+      'user-agent': req.headers['user-agent'],
+      'origin': req.headers.origin
+    },
+    expressIP: req.ip,
+    connectionIP: req.connection?.remoteAddress,
+    socketIP: req.socket?.remoteAddress,
+    trustProxy: app.get('trust proxy'),
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -131,8 +170,31 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       });
     }
 
-    // Capturer les métadonnées d'abord pour les vérifications
-    const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+    // Capturer les métadonnées d'abord pour les vérifications - AMÉLIORATION IP
+    const getRealClientIP = (req) => {
+      // Priority order pour détecter la vraie IP du client
+      const ip = req.headers['x-nf-client-connection-ip'] ||  // Netlify header
+                 req.headers['cf-connecting-ip'] ||           // Cloudflare header  
+                 req.headers['x-real-ip'] ||                  // Nginx proxy
+                 req.headers['x-forwarded-for']?.split(',')[0]?.trim() || // Premier IP dans la chaîne
+                 req.headers['x-client-ip'] ||                // Alternative header
+                 req.connection?.remoteAddress ||             // Connection directe
+                 req.socket?.remoteAddress ||                 // Socket alternatif
+                 req.ip ||                                    // Express default
+                 'unknown';
+      
+      console.log(`🔍 IP Detection:`, {
+        'x-nf-client-connection-ip': req.headers['x-nf-client-connection-ip'],
+        'x-forwarded-for': req.headers['x-forwarded-for'],
+        'x-real-ip': req.headers['x-real-ip'],
+        'req.ip': req.ip,
+        'final': ip
+      });
+      
+      return ip;
+    };
+    
+    const ipAddress = getRealClientIP(req);
     const userAgent = req.headers['user-agent'];
     const device = req.headers['sec-ch-ua-platform'] || 'unknown';
     
@@ -185,15 +247,24 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     if (!req.user || req.user.role.name !== 'secretaire') {
       console.log(`🔍 VÉRIFICATION LIMITATIONS IP pour ${req.user ? 'utilisateur connecté' : 'ANONYME'}:`);
       
+      // Créer une empreinte unique de l'appareil/navigateur comme fallback
+      const deviceFingerprint = `${ipAddress}_${userAgent}_${device}`;
+      const isIPUnknown = ipAddress === 'unknown';
+      
+      if (isIPUnknown) {
+        console.log(`⚠️ IP inconnue, utilisation d'empreinte appareil: ${deviceFingerprint}`);
+      }
+      
       // Limite par adresse IP : maximum 1 ticket actif par IP (un seul ticket par appareil)
-      const ticketsByIP = await Ticket.countDocuments({
-        'metadata.ipAddress': ipAddress,
-        status: { $in: ['en_attente', 'en_consultation'] }
-      });
+      const query = isIPUnknown ? 
+        { 'metadata.deviceFingerprint': deviceFingerprint, status: { $in: ['en_attente', 'en_consultation'] } } :
+        { 'metadata.ipAddress': ipAddress, status: { $in: ['en_attente', 'en_consultation'] } };
+        
+      const ticketsByIP = await Ticket.countDocuments(query);
 
-      console.log(`- Tickets actifs par IP: ${ticketsByIP}/1`);
+      console.log(`- Tickets actifs par ${isIPUnknown ? 'empreinte' : 'IP'}: ${ticketsByIP}/1`);
       if (ticketsByIP >= 1) {
-        console.log(`🚫 LIMITATION IP: ${ticketsByIP} ticket actif >= 1 maximum par appareil`);
+        console.log(`🚫 LIMITATION ${isIPUnknown ? 'EMPREINTE' : 'IP'}: ${ticketsByIP} ticket actif >= 1 maximum par appareil`);
         return res.status(429).json({
           success: false,
           message: "Limite atteinte : maximum 1 ticket actif par appareil",
@@ -203,10 +274,11 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
 
       // Limite temporelle : maximum 3 tickets par heure par IP
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const recentTicketsByIP = await Ticket.countDocuments({
-        'metadata.ipAddress': ipAddress,
-        createdAt: { $gte: oneHourAgo }
-      });
+      const timeQuery = isIPUnknown ?
+        { 'metadata.deviceFingerprint': deviceFingerprint, createdAt: { $gte: oneHourAgo } } :
+        { 'metadata.ipAddress': ipAddress, createdAt: { $gte: oneHourAgo } };
+        
+      const recentTicketsByIP = await Ticket.countDocuments(timeQuery);
 
       console.log(`- Tickets dernière heure: ${recentTicketsByIP}/3`);
       if (recentTicketsByIP >= 3) {
@@ -230,6 +302,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       ipAddress,
       userAgent,
       device,
+      deviceFingerprint: `${ipAddress}_${userAgent}_${device}`, // Fallback pour la détection d'appareil
       timestamp: new Date(),
       sessionId
     };
