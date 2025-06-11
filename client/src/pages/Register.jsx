@@ -19,6 +19,8 @@ export default function Register() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
@@ -340,23 +342,34 @@ export default function Register() {
               >
                 🔒 Mot de passe *
               </label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className={`w-full bg-white px-4 py-3 border-2 
-                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                           transition-all duration-200 text-gray-700 ${
-                  validationErrors.password ? 'error-highlight' : 'border-gray-300'
-                }`}
-                placeholder="Minimum 6 caractères"
-                disabled={isLoading}
-                aria-describedby="password-help password-error"
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className={`w-full bg-white px-4 py-3 pr-12 border-2 
+                             rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
+                             transition-all duration-200 text-gray-700 ${
+                    validationErrors.password ? 'error-highlight' : 'border-gray-300'
+                  }`}
+                  placeholder="Minimum 6 caractères"
+                  disabled={isLoading}
+                  aria-describedby="password-help password-error"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  disabled={isLoading}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
               <div id="password-help" className="mt-2 text-sm text-gray-600">
                 Choisissez un mot de passe sécurisé d'au moins 6 caractères
               </div>
@@ -375,23 +388,34 @@ export default function Register() {
               >
                 🔒 Confirmer le mot de passe *
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className={`w-full bg-white px-4 py-3 border-2 
-                           rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
-                           transition-all duration-200 text-gray-700 ${
-                  validationErrors.confirmPassword ? 'error-highlight' : 'border-gray-300'
-                }`}
-                placeholder="Retapez votre mot de passe"
-                disabled={isLoading}
-                aria-describedby="confirmPassword-help confirmPassword-error"
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className={`w-full bg-white px-4 py-3 pr-12 border-2 
+                             rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 
+                             transition-all duration-200 text-gray-700 ${
+                    validationErrors.confirmPassword ? 'error-highlight' : 'border-gray-300'
+                  }`}
+                  placeholder="Retapez votre mot de passe"
+                  disabled={isLoading}
+                  aria-describedby="confirmPassword-help confirmPassword-error"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  aria-label={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
+                  disabled={isLoading}
+                >
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
               <div id="confirmPassword-help" className="mt-2 text-sm text-gray-600">
                 Retapez le même mot de passe pour confirmation
               </div>
