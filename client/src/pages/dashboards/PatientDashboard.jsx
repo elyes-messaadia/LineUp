@@ -324,8 +324,8 @@ export default function PatientDashboard() {
     try {
       showInfo("Annulation de votre ticket...");
 
-      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}/cancel`, {
-        method: "PATCH",
+      const res = await fetch(`${BACKEND_URL}/ticket/${myTicket._id}`, {
+        method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         }

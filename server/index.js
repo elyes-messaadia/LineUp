@@ -556,10 +556,11 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
 });
 
 // 🗑️ Désister un ticket
-app.delete("/ticket/:id", async (req, res) => {
+app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
   try {
     let ticket;
-    // Si un sessionId est fourni, vérifier qu'il correspond
+    
+    // Si un sessionId est fourni (ticket anonyme), vérifier qu'il correspond
     if (req.query.sessionId) {
       ticket = await Ticket.findOne({
         $or: [
@@ -568,19 +569,77 @@ app.delete("/ticket/:id", async (req, res) => {
         ]
       });
     } else {
+      // Ticket authentifié : chercher par ID
       ticket = await Ticket.findById(req.params.id);
     }
 
     if (!ticket) {
-      return res.status(404).json({ message: "Ticket non trouvé" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Ticket non trouvé" 
+      });
     }
 
+    // SÉCURITÉ : Vérifier que l'utilisateur peut annuler ce ticket
+    if (req.user) {
+      // Utilisateur authentifié : doit être propriétaire du ticket OU secrétaire
+      if (req.user.role.name === 'secretaire') {
+        // Les secrétaires peuvent annuler n'importe quel ticket
+        console.log(`✅ Secrétaire ${req.user._id} annule le ticket n°${ticket.number}`);
+      } else if (ticket.userId && ticket.userId.toString() === req.user._id.toString()) {
+        // Le patient propriétaire peut annuler son ticket
+        console.log(`✅ Patient ${req.user._id} annule son ticket n°${ticket.number}`);
+      } else {
+        // Utilisateur connecté mais pas propriétaire
+        console.log(`🚫 SÉCURITÉ: Utilisateur ${req.user._id} tente d'annuler ticket ${ticket.number} qui ne lui appartient pas`);
+        return res.status(403).json({ 
+          success: false,
+          message: "Vous ne pouvez annuler que vos propres tickets" 
+        });
+      }
+    } else {
+      // Ticket anonyme : vérification par sessionId déjà faite plus haut
+      if (!req.query.sessionId) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Authentification requise pour annuler ce ticket" 
+        });
+      }
+      console.log(`✅ Annulation ticket anonyme n°${ticket.number} via sessionId`);
+    }
+
+    // Vérifier que le ticket peut être annulé
+    if (ticket.status === "termine") {
+      return res.status(400).json({ 
+        success: false,
+        message: "Impossible d'annuler un ticket déjà terminé" 
+      });
+    }
+
+    if (ticket.status === "desiste") {
+      return res.status(400).json({ 
+        success: false,
+        message: "Ce ticket est déjà annulé" 
+      });
+    }
+
+    // Annuler le ticket
     ticket.status = "desiste";
     await ticket.save();
-    res.json({ updated: ticket });
+    
+    console.log(`🎫 Ticket n°${ticket.number} annulé avec succès`);
+    
+    res.json({ 
+      success: true,
+      updated: ticket,
+      message: "Ticket annulé avec succès"
+    });
   } catch (error) {
-    console.error("Erreur lors de l'annulation:", error);
-    res.status(500).json({ message: "Erreur lors de l'annulation" });
+    console.error("❌ Erreur lors de l'annulation:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Erreur lors de l'annulation" 
+    });
   }
 });
 
