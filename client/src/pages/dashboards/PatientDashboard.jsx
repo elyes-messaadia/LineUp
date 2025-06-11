@@ -599,33 +599,37 @@ export default function PatientDashboard() {
                       key={doctor.value} 
                       className={`doctor-status-card ${isMyDoctor ? 'ring-2 ring-blue-500' : ''}`}
                     >
-                      <h4 className="doctor-status-title">
-                        {getDoctorDisplayName(doctor.value)}
-                        {isMyDoctor && <span className="ml-2">👤</span>}
-                      </h4>
-                      
-                      <div className="doctor-status-info">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="doctor-waiting-count">
-                            <div className="doctor-waiting-number">{doctorStats.waiting || 0}</div>
-                            <div className="doctor-waiting-label">👥 en attente</div>
-                          </div>
-                          <div className="doctor-waiting-count">
-                            <div className="doctor-waiting-number">{doctorStats.estimatedWait || 0}min</div>
-                            <div className="doctor-waiting-label">⏱️ temps estimé</div>
+                      <div className="grid grid-cols-12 gap-3 items-center">
+                        <div className="col-span-7">
+                          <h4 className="doctor-status-title mb-2">
+                            {getDoctorDisplayName(doctor.value)}
+                            {isMyDoctor && <span className="ml-2">👤</span>}
+                          </h4>
+                          
+                          <div className="mt-2">
+                            {doctorStats.inConsultation > 0 ? (
+                              <div className="status-card status-card-consultation">
+                                <div className="status-text">🩺 En consultation</div>
+                              </div>
+                            ) : (
+                              <div className="status-card status-card-available">
+                                <div className="status-text">✅ Disponible</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
-                        <div className="mt-3">
-                          {doctorStats.inConsultation > 0 ? (
-                            <div className="status-card status-card-consultation">
-                              <div className="status-text">🩺 En consultation</div>
+                        <div className="col-span-5">
+                          <div className="grid grid-cols-1 gap-2">
+                            <div className="doctor-waiting-count text-center">
+                              <div className="doctor-waiting-number text-lg">{doctorStats.waiting || 0}</div>
+                              <div className="doctor-waiting-label text-xs">👥 en attente</div>
                             </div>
-                          ) : (
-                            <div className="status-card status-card-available">
-                              <div className="status-text">✅ Disponible</div>
+                            <div className="doctor-waiting-count text-center">
+                              <div className="doctor-waiting-number text-lg">{doctorStats.estimatedWait || 0}min</div>
+                              <div className="doctor-waiting-label text-xs">⏱️ temps estimé</div>
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -26,8 +26,8 @@ const ResetQueueButton = ({
     setIsResetting(true);
     try {
       const url = selectedDoctor 
-        ? `${BACKEND_URL}/reset?docteur=${selectedDoctor}`
-        : `${BACKEND_URL}/reset`;
+        ? `${BACKEND_URL}/queue/reset?docteur=${selectedDoctor}`
+        : `${BACKEND_URL}/queue/reset`;
         
       const response = await fetch(url, {
         method: 'DELETE',
@@ -38,7 +38,9 @@ const ResetQueueButton = ({
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Erreur HTTP ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -52,7 +54,19 @@ const ResetQueueButton = ({
       
     } catch (error) {
       console.error('Erreur lors de la réinitialisation:', error);
-      onError(error.message || 'Erreur lors de la réinitialisation');
+      
+      // Messages d'erreur plus spécifiques
+      let errorMessage = error.message || 'Erreur lors de la réinitialisation';
+      
+      if (error.message.includes('404')) {
+        errorMessage = 'Endpoint de réinitialisation non trouvé. Vérifiez l\'API.';
+      } else if (error.message.includes('401') || error.message.includes('403')) {
+        errorMessage = 'Vous n\'avez pas les permissions pour cette action.';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'Erreur serveur. Veuillez réessayer dans quelques instants.';
+      }
+      
+      onError(errorMessage);
     } finally {
       setIsResetting(false);
     }

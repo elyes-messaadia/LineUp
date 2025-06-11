@@ -297,12 +297,14 @@ export default function SecretaireDashboard() {
   };
 
   const handleResetComplete = (result) => {
-    showSuccess(result.message, 4000);
+    console.log('Reset completed:', result);
+    showSuccess(result.message || 'File d\'attente réinitialisée avec succès', 4000);
     fetchQueue();
   };
 
   const handleResetError = (error) => {
-    showError(error, 5000);
+    console.error('Reset error:', error);
+    showError(`Erreur lors de la réinitialisation: ${error}`, 5000);
   };
 
   if (!user) {

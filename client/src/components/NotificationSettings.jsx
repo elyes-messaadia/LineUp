@@ -97,30 +97,32 @@ export default function NotificationSettings() {
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200">
       {/* En-tête avec statut réactif */}
-      <button
+            <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-4 py-3 hover:bg-gray-50 transition-colors"
       >
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <span className="text-lg">
-              {isActuallyLoading ? '⏳' : isSubscribed ? '🔔' : '🔕'}
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="col-span-9 flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-lg">
+                {isActuallyLoading ? '⏳' : isSubscribed ? '🔔' : '🔕'}
+              </span>
+            </div>
+            <div className="text-left">
+              <h3 className="font-medium text-gray-900">Notifications Push</h3>
+              <p className={`text-sm transition-colors duration-300 ${
+                isSubscribed ? 'text-green-600' : 'text-gray-500'
+              }`}>
+                {isActuallyLoading ? 'Traitement...' : statusText}
+              </p>
+            </div>
+          </div>
+          <div className="col-span-3 flex items-center justify-end space-x-2">
+            <div className={`w-3 h-3 rounded-full transition-all duration-300 ${statusColor} ${statusTransition}`}></div>
+            <span className="text-gray-400">
+              {isExpanded ? '▼' : '▶'}
             </span>
           </div>
-          <div className="text-left">
-            <h3 className="font-medium text-gray-900">Notifications Push</h3>
-            <p className={`text-sm transition-colors duration-300 ${
-              isSubscribed ? 'text-green-600' : 'text-gray-500'
-            }`}>
-              {isActuallyLoading ? 'Traitement...' : statusText}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full transition-all duration-300 ${statusColor} ${statusTransition}`}></div>
-          <span className="text-gray-400">
-            {isExpanded ? '▼' : '▶'}
-          </span>
         </div>
       </button>
 
