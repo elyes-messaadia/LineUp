@@ -420,6 +420,94 @@ export default function SecretaireDashboard() {
               </div>
             </div>
 
+            {/* État des médecins amélioré */}
+            <div className="dashboard-card">
+              <h3 className="dashboard-card-title">
+                👩‍⚕️ État des consultations en temps réel
+                <span className="animate-pulse ml-2">🔴</span>
+              </h3>
+              <div className="space-y-8">
+                {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map((doctorId, index) => {
+                  const doctorQueue = queue.filter(t => t.docteur === doctorId);
+                  const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
+                  const waiting = doctorQueue.filter(t => t.status === "en_attente");
+                  const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+                  const estimatedWaitTime = waiting.length * 15;
+                  
+                  return (
+                    <div key={doctorId}>
+                      <div className="doctor-status-card bg-white border-2 border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <h4 className="doctor-status-title text-lg font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">
+                          👨‍⚕️ {getDoctorDisplayName(doctorId)}
+                        </h4>
+                        
+                        <div className="doctor-status-info space-y-6">
+                          {/* État actuel */}
+                          {inConsultation ? (
+                            <div className="status-card status-card-consultation bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                              <div className="status-text text-yellow-800 font-semibold text-base">🩺 Consultation en cours</div>
+                              <div className="status-detail text-yellow-600 mt-2">
+                                🎫 Ticket n°{inConsultation.number}
+                                <span className="ml-3 text-sm">
+                                  Depuis {new Date(inConsultation.updatedAt || inConsultation.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="status-card status-card-available bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                              <div className="status-text text-green-800 font-semibold text-base">✅ Médecin disponible</div>
+                              <div className="status-detail text-green-600 mt-2">Prêt à recevoir un patient</div>
+                            </div>
+                          )}
+
+                          {/* Patient suivant */}
+                          {nextPatient ? (
+                            <div className="status-card status-card-next bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                              <div className="status-text text-blue-800 font-semibold text-base">⏳ Prochain patient</div>
+                              <div className="status-detail text-blue-600 mt-2">
+                                🎫 Ticket n°{nextPatient.number}
+                                <span className="ml-3 text-sm">
+                                  Arrivé à {new Date(nextPatient.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="status-card status-card-empty bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg">
+                              <div className="status-text text-gray-600 font-semibold text-base">🚫 File d'attente vide</div>
+                              <div className="status-detail text-gray-500 mt-2">Aucun patient en attente</div>
+                            </div>
+                          )}
+
+                          {/* Informations détaillées */}
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="grid grid-cols-2 gap-6">
+                              <div className="doctor-waiting-count text-center">
+                                <div className="doctor-waiting-number text-2xl font-bold text-blue-600 mb-1">{waiting.length}</div>
+                                <div className="doctor-waiting-label text-sm text-gray-600">👥 patients en attente</div>
+                              </div>
+                              <div className="doctor-waiting-count text-center">
+                                <div className="doctor-waiting-number text-2xl font-bold text-orange-600 mb-1">{estimatedWaitTime}min</div>
+                                <div className="doctor-waiting-label text-sm text-gray-600">⏱️ temps d'attente estimé</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Séparateur entre médecins */}
+                      {index < 2 && (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="flex-1 border-t border-gray-200"></div>
+                          <div className="px-4 text-gray-400 text-sm">• • •</div>
+                          <div className="flex-1 border-t border-gray-200"></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Layout en 2 colonnes pour desktop */}
             <div className="dashboard-grid-2 dashboard-section">
               
@@ -496,90 +584,76 @@ export default function SecretaireDashboard() {
                        "📢 Appeler le patient suivant"}
                     </button>
                     
-                    <ResetQueueButton
-                      selectedDoctor={selectedDoctor}
-                      onResetComplete={handleResetComplete}
-                      onError={handleResetError}
-                      className="btn-danger btn-full btn-large"
-                    />
+                    <div className="flex gap-4">
+                      <ResetQueueButton
+                        selectedDoctor={selectedDoctor}
+                        onResetComplete={handleResetComplete}
+                        onError={handleResetError}
+                        className="btn-danger flex-1 btn-large"
+                      />
 
-                    <button
-                      onClick={() => fetchQueue()}
-                      disabled={isLoading || !isOnline}
-                      className="btn-secondary btn-full"
-                    >
-                      {isLoading ? "🔄 Actualisation..." : "🔄 Actualiser maintenant"}
-                    </button>
+                      <button
+                        onClick={() => fetchQueue()}
+                        disabled={isLoading || !isOnline}
+                        className="btn-secondary flex-1 btn-large"
+                      >
+                        {isLoading ? "🔄 Actualisation..." : "🔄 Actualiser maintenant"}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
               </div>
 
-              {/* Colonne droite - État des médecins amélioré */}
+              {/* Colonne droite - Appels spécifiques par médecin */}
               <div className="dashboard-card">
                 <h3 className="dashboard-card-title">
-                  👩‍⚕️ État des consultations en temps réel
-                  <span className="animate-pulse ml-2">🔴</span>
+                  📞 Appels spécifiques par médecin
                 </h3>
                 <div className="space-y-6">
                   {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
                     const doctorQueue = queue.filter(t => t.docteur === doctorId);
+                    const waiting = doctorQueue.filter(t => t.status === "en_attente").length;
                     const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
-                    const waiting = doctorQueue.filter(t => t.status === "en_attente");
-                    const nextPatient = waiting.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
-                    const estimatedWaitTime = waiting.length * 15;
                     
                     return (
-                      <div key={doctorId} className="doctor-status-card">
-                        <h4 className="doctor-status-title">
-                          👨‍⚕️ {getDoctorDisplayName(doctorId)}
-                        </h4>
-                        
-                        <div className="doctor-status-info">
-                          {/* Patient en consultation */}
-                          {inConsultation ? (
-                            <div className="status-card status-card-consultation">
-                              <div className="status-text">🩺 Consultation en cours</div>
-                              <div className="status-detail">
-                                🎫 Ticket n°{inConsultation.number}
-                                <span className="ml-2 text-xs">
-                                  Depuis {new Date(inConsultation.updatedAt || inConsultation.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
+                      <div key={doctorId} className="border border-gray-200 rounded-xl p-4 bg-gradient-to-r from-white to-gray-50 hover:shadow-md transition-all duration-200">
+                        <div className="grid grid-cols-12 gap-3 items-center">
+                          <div className="col-span-8">
+                            <h4 className="text-base font-bold text-gray-800 mb-1 leading-tight">
+                              📞 {getDoctorDisplayName(doctorId)}
+                            </h4>
+                            <div className="text-sm text-gray-600">
+                              {waiting === 0 ? (
+                                <span className="text-gray-500">😴 Aucun patient en attente</span>
+                              ) : inConsultation ? (
+                                <div>
+                                  <span className="text-yellow-600">🩺 En consultation</span>
+                                  <div className="text-xs text-blue-600 mt-1">{waiting} patient{waiting > 1 ? 's' : ''} en attente</div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <span className="text-green-600">✅ Disponible</span>
+                                  <div className="text-xs text-blue-600 mt-1">{waiting} patient{waiting > 1 ? 's' : ''} en attente</div>
+                                </div>
+                              )}
                             </div>
-                          ) : (
-                            <div className="status-card status-card-available">
-                              <div className="status-text">✅ Médecin disponible</div>
-                            </div>
-                          )}
-
-                          {/* Patient suivant */}
-                          {nextPatient ? (
-                            <div className="status-card status-card-next">
-                              <div className="status-text">⏳ Prochain patient</div>
-                              <div className="status-detail">
-                                🎫 Ticket n°{nextPatient.number}
-                                <span className="ml-2 text-xs">
-                                  Arrivé à {new Date(nextPatient.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="status-card status-card-empty">
-                              <div className="status-text">🚫 File d'attente vide</div>
-                            </div>
-                          )}
-
-                          {/* Informations détaillées */}
-                          <div className="grid grid-cols-2 gap-2 mt-3">
-                            <div className="doctor-waiting-count">
-                              <div className="doctor-waiting-number">{waiting.length}</div>
-                              <div className="doctor-waiting-label">👥 en attente</div>
-                            </div>
-                            <div className="doctor-waiting-count">
-                              <div className="doctor-waiting-number">{estimatedWaitTime}min</div>
-                              <div className="doctor-waiting-label">⏱️ temps d'attente</div>
-                            </div>
+                          </div>
+                          
+                          <div className="col-span-4 flex justify-end">
+                            <button
+                              onClick={() => handleCallNext(doctorId)}
+                              disabled={isLoading || !isOnline || waiting === 0 || !!inConsultation}
+                              className={`px-2 py-1.5 rounded-md font-medium text-xs transition-all duration-200 text-center w-full ${
+                                waiting === 0 || !!inConsultation
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
+                              }`}
+                            >
+                              {waiting === 0 ? "😴 Aucun" :
+                               inConsultation ? "🩺 Occupé" :
+                               "📞 Appeler"}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -588,43 +662,6 @@ export default function SecretaireDashboard() {
                 </div>
               </div>
               
-            </div>
-
-            {/* Actions par médecin améliorées */}
-            <div className="dashboard-card dashboard-section">
-              <h3 className="dashboard-card-title">
-                📞 Appels spécifiques par médecin
-              </h3>
-              <div className="dashboard-grid-3">
-                {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
-                  const doctorQueue = queue.filter(t => t.docteur === doctorId);
-                  const waiting = doctorQueue.filter(t => t.status === "en_attente").length;
-                  const inConsultation = doctorQueue.find(t => t.status === "en_consultation");
-                  
-                  return (
-                    <button
-                      key={doctorId}
-                      onClick={() => handleCallNext(doctorId)}
-                      disabled={isLoading || !isOnline || waiting === 0 || !!inConsultation}
-                      className={`doctor-btn ${
-                        doctorId === 'dr-husni-said-habibi' ? 'doctor-btn-orange' :
-                        doctorId === 'dr-helios-blasco' ? 'doctor-btn-teal' :
-                        'doctor-btn-cyan'
-                      }`}
-                    >
-                      <div className="doctor-name">📞 {getDoctorDisplayName(doctorId)}</div>
-                      <div className="doctor-action">
-                        {waiting === 0 ? "😴 Aucun patient" :
-                         inConsultation ? "🩺 En consultation" :
-                         `⏳ ${waiting} patient${waiting > 1 ? 's' : ''} en attente`}
-                      </div>
-                      <div className="text-xs mt-1 opacity-75">
-                        {waiting > 0 && !inConsultation ? "Cliquer pour appeler" : ""}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             {/* File détaillée si sélectionnée */}

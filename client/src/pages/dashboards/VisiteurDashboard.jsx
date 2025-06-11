@@ -298,48 +298,54 @@ export default function VisiteurDashboard() {
 
                   return (
                     <div key={doctorId} className="doctor-status-card">
-                      <h4 className="doctor-status-title">
-                        {getDoctorDisplayName(doctorId)}
-                      </h4>
-                      
-                      <div className="doctor-status-info">
-                        {/* État actuel */}
-                        {inConsultation ? (
-                          <div className="status-card status-card-consultation">
-                            <div className="status-text">🩺 En consultation</div>
-                            <div className="status-detail">
-                              Ticket n°{inConsultation.number}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="status-card status-card-available">
-                            <div className="status-text">✅ Disponible</div>
-                          </div>
-                        )}
+                      <div className="grid grid-cols-12 gap-3 items-start">
+                        <div className="col-span-8">
+                          <h4 className="doctor-status-title mb-2">
+                            {getDoctorDisplayName(doctorId)}
+                          </h4>
+                          
+                          <div className="space-y-2">
+                            {/* État actuel */}
+                            {inConsultation ? (
+                              <div className="status-card status-card-consultation">
+                                <div className="status-text">🩺 En consultation</div>
+                                <div className="status-detail text-xs mt-1">
+                                  Ticket n°{inConsultation.number}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="status-card status-card-available">
+                                <div className="status-text">✅ Disponible</div>
+                              </div>
+                            )}
 
-                        {/* Prochain patient */}
-                        {nextPatient ? (
-                          <div className="status-card status-card-next">
-                            <div className="status-text">⏳ Prochain</div>
-                            <div className="status-detail">
-                              Ticket n°{nextPatient.number}
+                            {/* Prochain patient */}
+                            {nextPatient ? (
+                              <div className="status-card status-card-next">
+                                <div className="status-text">⏳ Prochain</div>
+                                <div className="status-detail text-xs mt-1">
+                                  Ticket n°{nextPatient.number}
+                                </div>
+                              </div>
+                            ) : waiting.length === 0 && (
+                              <div className="status-card status-card-empty">
+                                <div className="status-text">🚫 File vide</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="col-span-4">
+                          {/* Informations numériques */}
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="doctor-waiting-count text-center">
+                              <div className="doctor-waiting-number text-xl">{waiting.length}</div>
+                              <div className="doctor-waiting-label text-xs">👥 en attente</div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="status-card status-card-empty">
-                            <div className="status-text">🚫 File vide</div>
-                          </div>
-                        )}
-
-                        {/* Informations */}
-                        <div className="grid grid-cols-2 gap-2 mt-3">
-                          <div className="doctor-waiting-count">
-                            <div className="doctor-waiting-number">{waiting.length}</div>
-                            <div className="doctor-waiting-label">👥 en attente</div>
-                          </div>
-                          <div className="doctor-waiting-count">
-                            <div className="doctor-waiting-number">{estimatedWaitTime}min</div>
-                            <div className="doctor-waiting-label">⏱️ temps estimé</div>
+                            <div className="doctor-waiting-count text-center">
+                              <div className="doctor-waiting-number text-xl">{estimatedWaitTime}min</div>
+                              <div className="doctor-waiting-label text-xs">⏱️ temps estimé</div>
+                            </div>
                           </div>
                         </div>
                       </div>
