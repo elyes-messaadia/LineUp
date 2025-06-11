@@ -980,6 +980,81 @@ app.get("/stats", async (req, res) => {
 // 🟣 Routes API externes
 app.use("/patient", patientRoutes);
 
+// 🆘 Route temporaire pour créer une secrétaire (à supprimer après usage)
+app.post("/create-secretary-temp", async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const User = require('./models/User');
+    const Role = require('./models/Role');
+    
+    console.log('🚨 CRÉATION SECRÉTAIRE TEMPORAIRE');
+    
+    // Vérifier si la secrétaire existe déjà
+    const existingSecretary = await User.findOne({ email: 'secretaire@lineup.com' });
+    if (existingSecretary) {
+      return res.json({
+        success: true,
+        message: 'Secrétaire existe déjà',
+        user: {
+          email: existingSecretary.email,
+          fullName: existingSecretary.fullName,
+          role: existingSecretary.role
+        }
+      });
+    }
+    
+    // Trouver le rôle secrétaire
+    let secretaryRole = await Role.findOne({ name: 'secretaire' });
+    if (!secretaryRole) {
+      // Créer le rôle s'il n'existe pas
+      secretaryRole = new Role({
+        name: 'secretaire',
+        permissions: ['create_ticket', 'view_queue', 'call_patient', 'manage_queue']
+      });
+      await secretaryRole.save();
+      console.log('✅ Rôle secrétaire créé');
+    }
+    
+    // Créer la secrétaire
+    const hashedPassword = await bcrypt.hash('password123', 12);
+    const secretary = new User({
+      email: 'secretaire@lineup.com',
+      password: hashedPassword,
+      role: secretaryRole._id,
+      profile: {
+        firstName: 'Marie',
+        lastName: 'Martin'
+      },
+      isActive: true
+    });
+    
+    await secretary.save();
+    console.log('✅ Secrétaire créée avec succès');
+    
+    res.json({
+      success: true,
+      message: 'Secrétaire créée avec succès',
+      user: {
+        email: secretary.email,
+        fullName: secretary.fullName,
+        role: 'secretaire'
+      },
+      credentials: {
+        email: 'secretaire@lineup.com',
+        password: 'password123'
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur création secrétaire:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur création secrétaire',
+      error: error.message
+    });
+  }
+});
+
 // 🛡️ Middleware de gestion d'erreurs (doit être en dernier)
 app.use(errorHandler);
 
