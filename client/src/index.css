@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import des styles dashboard */
+@import './styles/dashboard.css';
+
 @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
@@ -11,61 +14,1452 @@
     animation: blink 1s step-start infinite;
   }
 
-/* Améliorations pour mobile */
+/* Animation d'apparition pour la modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-overlay {
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+/* Overlay de modal qui couvre toute la page */
+.modal-overlay-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* === NOUVELLES CLASSES RESPONSIVES POUR DASHBOARDS === */
+
+/* Classes anti-débordement globales */
+.text-overflow-safe {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+.container-safe {
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Système de grille intelligent pour dashboards */
+.dashboard-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .dashboard-grid {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+/* Cards responsives pour dashboards */
+.dashboard-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media (min-width: 480px) {
+  .dashboard-card {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-card {
+    padding: 1.5rem;
+  }
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Titres responsifs pour dashboards avec protection débordement */
+.dashboard-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (min-width: 480px) {
+  .dashboard-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.625rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard-title {
+    font-size: 1.875rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Sous-titres responsifs avec protection */
+.dashboard-subtitle {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (min-width: 480px) {
+  .dashboard-subtitle {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Statistiques responsives avec grille améliorée */
+.stats-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .stats-card {
+    padding: 0.75rem;
+    border-radius: 0.625rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .stats-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+}
+
+.stats-number {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 480px) {
+  .stats-number {
+    font-size: 1.25rem;
+    margin-bottom: 0.375rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .stats-number {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .stats-number {
+    font-size: 2rem;
+  }
+}
+
+.stats-label {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  font-weight: 500;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .stats-label {
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 640px) {
+  .stats-label {
+    font-size: 0.875rem;
+  }
+}
+
+/* Boutons d'action responsifs avec protection débordement */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  text-align: center;
+  line-height: 1.3;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .action-button {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .action-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+  }
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Variantes de couleurs pour boutons */
+.action-button-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.action-button-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.action-button-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-button-success:hover:not(:disabled) {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+.action-button-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-button-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.action-button-secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.action-button-secondary:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+/* Layout responsive pour dashboards avec protection overflow */
+.dashboard-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.75rem;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard-container {
+    max-width: 768px;
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-container {
+    max-width: 1280px;
+  }
+}
+
+/* Cards de ticket responsives avec gestion overflow */
+.ticket-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media (min-width: 480px) {
+  .ticket-card {
+    padding: 0.75rem;
+    margin-bottom: 0.625rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .ticket-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0.75rem;
+  }
+}
+
+.ticket-card:hover {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Grid responsive pour informations avec colonnes adaptatives */
+.info-grid {
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .info-grid {
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (min-width: 640px) {
+  .info-grid {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .info-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+/* Alertes responsives */
+.alert-card {
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .alert-card {
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .alert-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Navigation responsive pour dashboards */
+.dashboard-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .dashboard-nav {
+    gap: 0.625rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-nav {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* Modales responsives */
+.modal-responsive {
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .modal-responsive {
+    max-width: 28rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .modal-responsive {
+    max-width: 32rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .modal-responsive {
+    max-width: 42rem;
+  }
+}
+
+/* Textes adaptatifs pour mobile avec protection overflow */
+.text-responsive-sm {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (min-width: 480px) {
+  .text-responsive-sm {
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .text-responsive-sm {
+    font-size: 0.875rem;
+  }
+}
+
+.text-responsive-base {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (min-width: 480px) {
+  .text-responsive-base {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .text-responsive-base {
+    font-size: 1rem;
+  }
+}
+
+.text-responsive-lg {
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (min-width: 480px) {
+  .text-responsive-lg {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .text-responsive-lg {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .text-responsive-lg {
+    font-size: 1.25rem;
+  }
+}
+
+/* Grille de statistiques optimisée */
+.stats-grid {
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: repeat(2, 1fr);
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .stats-grid {
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+/* Grille d'actions optimisée */
+.actions-grid {
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .actions-grid {
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 640px) {
+  .actions-grid {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .actions-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+/* Améliorations pour accessibilité et optimisation anciens modèles */
 @layer base {
-  /* Améliorer la lisibilité sur mobile */
+  /* Améliorer la lisibilité sur mobile avec support étendus */
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Taille de base optimisée pour la lisibilité */
+    font-size: 16px;
+    /* Support des anciens navigateurs */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Protection overflow global */
+    overflow-x: hidden;
+  }
+
+  /* Optimisation pour très anciens modèles et petits écrans */
+  @media (max-width: 320px) {
+    html {
+      font-size: 14px;
+    }
+    
+    /* Réductions spéciales pour très petits écrans */
+    body {
+      line-height: 1.4;
+    }
+    
+    /* Padding réduit pour maximiser l'espace */
+    * {
+      margin-top: calc(margin-top * 0.8);
+      margin-bottom: calc(margin-bottom * 0.8);
+    }
+  }
+
+  /* Optimisations spécifiques iPhone SE */
+  @media (max-width: 375px) {
+    html {
+      font-size: 15px;
+    }
+    
+    /* Réduction des espacements pour plus de contenu visible */
+    .legacy-container {
+      padding: 0.5rem !important;
+    }
+    
+    /* Formulaires compacts */
+    form {
+      max-width: 100%;
+    }
+    
+    /* Labels plus compacts */
+    label {
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Messages d'aide plus compacts */
+    .help-text {
+      padding: 0.5rem !important;
+      margin-bottom: 1rem !important;
+    }
+    
+    /* Réduction des focus ring pour éviter les débordements */
+    input:focus, select:focus, button:focus {
+      outline-offset: 1px !important;
+    }
+  }
+
+  /* Optimisations spécifiques iPhone SE 1ère génération (320px) */
+  @media (max-width: 320px) {
+    .legacy-container {
+      padding: 0.25rem !important;
+    }
+    
+    /* Grid désactivé sur très petits écrans */
+    .se\:grid {
+      display: block !important;
+    }
+    
+    /* Tous les champs en pleine largeur */
+    input, select, button {
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+    
+    /* Titre plus compact */
+    h1, h2, h3 {
+      line-height: 1.2 !important;
+      margin-bottom: 0.5rem !important;
+    }
+  }
+
+  /* Optimisation pour iPhone 12/13 (390px) */
+  @media (max-width: 390px) {
+    html {
+      font-size: 15.5px;
+    }
+  }
+
+  /* Optimisation pour écrans moyens */
+  @media (max-width: 640px) {
+    html {
+      font-size: 16px;
+    }
   }
 
   /* Améliorer les interactions tactiles */
   button, a {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    /* Zone de touch minimum pour l'accessibilité */
+    min-height: 44px;
+    min-width: 44px;
+    /* Optimisations pour anciens modèles */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Optimisation pour iPhone SE et très petits écrans */
+  @media (max-width: 375px) {
+    button, a {
+      min-height: 42px;
+      min-width: 42px;
+      /* Padding légèrement réduit mais toujours accessible */
+      padding: 0.625rem 1rem;
+    }
+  }
+
+  /* Optimisation pour très anciens modèles */
+  @media (max-width: 320px) {
+    button, a {
+      min-height: 40px;
+      min-width: 40px;
+      padding: 0.5rem 0.75rem;
+    }
   }
 
   /* Améliorer le scroll sur mobile */
   body {
     -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-  }
-}
-
-@layer utilities {
-  /* Classe pour améliorer les zones de touch sur mobile */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+    scroll-behavior: smooth;
+    /* Protection overflow global */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
-  /* Améliorer la lisibilité des petits textes */
+  /* Optimisation pour très anciens modèles */
+  @media (max-width: 375px) {
+    body {
+      line-height: 1.5;
+    }
+  }
+
+  /* Pour les appareils encore plus anciens */
+  @media (max-width: 360px) {
+    body {
+      line-height: 1.4;
+      font-size: 14px;
+    }
+  }
+
+  /* Améliorer le focus pour l'accessibilité */
+  *:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Classes utilitaires pour seniors et malvoyants */
+  .senior-friendly-text {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #1f2937;
+  }
+
+  .dashboard-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .dashboard-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .dashboard-section {
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .dashboard-section {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .dashboard-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .dashboard-section-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .senior-friendly-text {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .senior-friendly-text {
+      font-size: 15px;
+      line-height: 1.4;
+    }
+  }
+
+  /* Zone de touch plus grande pour mobiles */
+  .touch-target-large {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .touch-target-large {
+      min-height: 44px;
+      padding: 10px;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .touch-target-large {
+      min-height: 42px;
+      padding: 8px;
+    }
+  }
+
+  /* Texte lisible sur mobile */
   .text-mobile-readable {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
+    color: #1f2937;
   }
 
   @media (min-width: 640px) {
     .text-mobile-readable {
-      font-size: inherit;
-      line-height: inherit;
+      font-size: 18px;
+      line-height: 1.6;
     }
   }
 
-  /* Animation douce pour les transitions */
-  .smooth-transition {
-    transition: all 0.2s ease-in-out;
+  @media (max-width: 390px) {
+    .text-mobile-readable {
+      font-size: 14px;
+      line-height: 1.4;
+    }
   }
 
-  /* Améliorer les ombres sur mobile */
-  .mobile-shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Transitions plus douces */
+  .gentle-transition {
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* Ombres accessibles */
+  .accessible-shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
 
   @media (min-width: 640px) {
-    .mobile-shadow {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    .accessible-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
+  }
+
+  @media (max-width: 390px) {
+    .accessible-shadow {
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  /* States d'erreur visibles */
+  .error-highlight {
+    border: 2px solid #ef4444;
+    background-color: #fef2f2;
+    color: #991b1b;
+  }
+
+  .success-highlight {
+    border: 2px solid #10b981;
+    background-color: #ecfdf5;
+    color: #065f46;
+  }
+
+  /* Bouton high-contrast pour accessibilité */
+  .high-contrast-button {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    font-weight: 700;
+  }
+
+  @media (max-width: 390px) {
+    .high-contrast-button {
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+  }
+
+  /* États de chargement visibles */
+  .loading-state {
+    opacity: 0.6;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .loading-state::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #3b82f6;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Messages d'aide responsive */
+  .help-text {
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  @media (max-width: 390px) {
+    .help-text {
+      padding: 8px;
+      font-size: 12px;
+    }
+  }
+
+  /* Navigation responsive */
+  .nav-button {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+
+  .nav-button:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  .nav-button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 390px) {
+    .nav-button {
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+  }
+
+  /* Styles pour anciens appareils Android */
+  .old-device-optimized {
+    /* Réduire les effets visuels pour les anciens appareils */
+    box-shadow: none;
+    border-radius: 4px;
+    transition: none;
+    transform: none;
+    filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Styles spécifiques iPhone SE */
+  .iphone-se-friendly {
+    font-size: 14px;
+    padding: 8px 12px;
+    line-height: 1.3;
+  }
+
+  /* Styles spécifiques iPhone 13/14 */
+  .iphone-13-friendly {
+    font-size: 16px;
+    padding: 12px 16px;
+    line-height: 1.5;
+  }
+
+  /* Boutons legacy pour compatibilité */
+  .legacy-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-family: inherit;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  @media (max-width: 375px) {
+    .legacy-button {
+      padding: 10px 16px;
+      font-size: 14px;
+      min-height: 40px;
+    }
+  }
+
+  /* Modal legacy */
+  .legacy-modal {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  @media (max-width: 375px) {
+    .legacy-modal {
+      padding: 16px;
+      border-radius: 6px;
+    }
+  }
+
+  /* Navigation legacy */
+  .legacy-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 375px) {
+    .legacy-nav {
+      padding: 12px;
+      gap: 6px;
+    }
+  }
+
+  /* Texte legacy */
+  .legacy-text-primary {
+    color: #1f2937;
+    font-weight: 600;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .legacy-text-secondary {
+    color: #6b7280;
+    font-weight: 400;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  @media (max-width: 375px) {
+    .legacy-text-primary {
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .legacy-text-secondary {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+  }
+
+  /* Container legacy responsive */
+  .legacy-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px;
+    margin: 0 auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 375px) {
+    .legacy-container {
+      padding: 20px;
+    }
+  }
+
+  @media (min-width: 390px) {
+    .legacy-container {
+      padding: 24px;
+    }
+  }
+
+  @media (min-width: 414px) {
+    .legacy-container {
+      max-width: 768px;
+      padding: 32px;
+    }
+  }
+
+  /* Optimisations pour Android ancienne génération */
+  .old-android-safe {
+    /* Pas d'animations complexes */
+    transform: none !important;
+    transition: none !important;
+    /* Bordures simples */
+    border-radius: 4px !important;
+    /* Pas d'ombres complexes */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+    /* Police simple */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  }
+
+  /* Optimisations pour queue stable */
+  .queue-stable {
+    /* Éviter les reflows fréquents */
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Désactiver animations sur petits appareils */
+  @media (max-width: 414px) {
+    .animate-pulse {
+      animation: none !important;
+    }
+
+    .animate-spin {
+      animation: spin 2s linear infinite !important;
+    }
+
+    .transition-all {
+      transition-duration: 0.15s !important;
+    }
+  }
+
+  /* Layout stable pour éviter les shifts */
+  .stable-layout {
+    contain: layout style;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Classes utilitaires mobiles */
+  @media (min-width: 375px) {
+    .xs\:inline {
+      display: inline !important;
+    }
+  }
+
+  /* Protection contre overflow sur très petits écrans */
+  .overflow-protection {
+    max-width: 100vw;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Reset pour éviter les débordements */
+  html, body, #root {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Centrage responsive */
+  .container, .max-w-7xl, .mx-auto {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Flex items qui ne débordent pas */
+  .flex, .grid {
+    min-width: 0;
+  }
+
+  /* Spécifique mobile pour masquer éléments non critiques */
+  @media (max-width: 767px) {
+    .force-hide-mobile {
+      display: none !important;
+    }
+
+    .force-show-mobile {
+      display: block !important;
+    }
+
+    .force-flex-mobile {
+      display: flex !important;
+    }
+  }
+
+  /* Spécial navigation mobile */
+  @media (max-width: 767px) {
+    nav .hidden.lg\:flex {
+      display: none !important;
+    }
+  }
+
+  /* Optimisations spécifiques iPhone 14/15 Pro Max */
+  @media (max-width: 430px) {
+    /* Boutons nav compacts */
+    nav a[href="/login"],
+    nav a[href="/register"] {
+      padding: 6px 12px !important;
+      font-size: 13px !important;
+      border-radius: 4px !important;
+    }
+
+    nav .force-hide-mobile {
+      display: none !important;
+    }
+
+    /* Burger menu plus accessible */
+    nav button[aria-label="Ouvrir le menu"],
+    nav button[aria-label="Fermer le menu"] {
+      padding: 8px !important;
+      min-width: 44px !important;
+      min-height: 44px !important;
+    }
+
+    /* Conteneurs principaux */
+    .max-w-4xl {
+      max-width: 100% !important;
+      padding: 0 12px !important;
+    }
+
+    /* Espacements réduits */
+    .space-y-6 > * + * {
+      margin-top: 1rem !important;
+    }
+
+    .space-y-8 > * + * {
+      margin-top: 1.25rem !important;
+    }
+
+    /* Grilles simplifiées */
+    .grid.gap-6.md\\:grid-cols-2 {
+      grid-template-columns: 1fr !important;
+      gap: 1rem !important;
+    }
+
+    /* Titres compacts */
+    .text-3xl.md\\:text-4xl {
+      font-size: 1.5rem !important;
+      line-height: 1.3 !important;
+    }
+
+    .text-xl.md\\:text-2xl {
+      font-size: 1.125rem !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Padding réduit */
+    .p-4 {
+      padding: 0.75rem !important;
+    }
+
+    .p-6 {
+      padding: 1rem !important;
+    }
+
+    /* Modales adaptées */
+    .modal-overlay-fullscreen {
+      padding: 0.5rem !important;
+    }
+
+    .modal-overlay-fullscreen .bg-white {
+      border-radius: 8px !important;
+      max-height: 85vh !important;
+    }
+
+    /* Boutons responsive */
+    .w-full.sm\\:w-auto {
+      width: 100% !important;
+    }
+
+    /* Flex items compacts */
+    .inline-flex.items-center.space-x-3 {
+      flex-direction: column !important;
+      space-x: 0 !important;
+      gap: 0.5rem !important;
+    }
+
+    .inline-flex.items-center.space-x-3 .text-left {
+      text-align: center !important;
+    }
+  }
+
+  /* Optimisations pour écrans moyens (iPhone 12, Galaxy S21, etc.) */
+  @media (min-width: 431px) and (max-width: 480px) {
+    .max-w-4xl {
+      padding: 0 16px !important;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1.25rem !important;
+    }
+
+    .text-2xl.md\\:text-3xl {
+      font-size: 1.25rem !important;
+    }
+
+    .grid.gap-4.md\\:gap-6 {
+      gap: 1rem !important;
+    }
+  }
+
+  /* Optimisations pour tablettes portrait */
+  @media (min-width: 481px) and (max-width: 767px) {
+    .grid.gap-4.md\\:gap-6.grid-cols-1.md\\:grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 1.5rem !important;
+    }
+  }
+
+  /* Classes d'aide pour débordement de texte */
+  .text-ellipsis-safe {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .text-break-all {
+    word-break: break-all;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+  }
+
+  .text-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .text-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 }
       

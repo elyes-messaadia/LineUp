@@ -1,3 +1,0 @@
-URGENT NETLIFY REBUILD - 2025-01-27 18:00
-BACKEND: https://lineup-backend-xxak.onrender.com
-CLEAR CACHE REQUIRED 

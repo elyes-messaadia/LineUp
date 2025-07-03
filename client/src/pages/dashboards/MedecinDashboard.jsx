@@ -5,6 +5,8 @@ import AnimatedPage from "../../components/AnimatedPage";
 import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useToast } from "../../hooks/useToast";
+import BACKEND_URL from "../../config/api";
+import { getDoctorDashboardRoute } from "../../utils/doctorMapping";
 
 export default function MedecinDashboard() {
   const [user, setUser] = useState(null);
@@ -14,9 +16,45 @@ export default function MedecinDashboard() {
   const [showCallModal, setShowCallModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [disponible, setDisponible] = useState(true);
   const [stats, setStats] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [consultationStartTime, setConsultationStartTime] = useState(null);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
+
+  // Mise à jour de l'heure en temps réel
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timeInterval);
+  }, []);
+
+  // Surveillance de la connectivité
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showInfo("🌐 Connexion rétablie", 2000);
+      fetchQueue();
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      showWarning("⚠️ Connexion perdue - Mode hors ligne", 0);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [showInfo, showWarning]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -34,25 +72,57 @@ export default function MedecinDashboard() {
     }
 
     setUser(parsedUser);
+
+    // Rediriger vers le dashboard spécifique du médecin
+    const specificDashboard = getDoctorDashboardRoute(parsedUser);
+    console.log(`Redirection médecin ${parsedUser.username || parsedUser.email} vers ${specificDashboard}`);
+    
+    if (specificDashboard !== "/dashboard/medecin") {
+      navigate(specificDashboard, { replace: true });
+    }
+
     fetchQueue();
 
-    // Actualiser toutes les secondes
+    // Actualiser plus fréquemment pour les médecins
     const interval = setInterval(() => {
-      fetchQueue();
-    }, 1000);
+      if (isOnline) {
+        fetchQueue();
+      }
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, [navigate, isOnline]);
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queue`);
+      // Essayer de trouver l'ID docteur pour ce médecin
+      const { getDoctorIdFromUser } = await import("../../utils/doctorMapping");
+      const doctorId = getDoctorIdFromUser(user);
+      
+      let res;
+      if (doctorId) {
+        // Si on peut identifier le docteur, charger sa file spécifique
+        res = await fetch(`${BACKEND_URL}/queue?docteur=${doctorId}`);
+      } else {
+        // Sinon, charger la file globale (comportement de fallback)
+        res = await fetch(`${BACKEND_URL}/queue`);
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setQueue(data);
+        setLastUpdate(new Date());
         
         // Trouver le patient en consultation
         const inConsultation = data.find(t => t.status === "en_consultation");
+        
+        // Si un nouveau patient commence, noter l'heure
+        if (inConsultation && (!currentPatient || currentPatient._id !== inConsultation._id)) {
+          setConsultationStartTime(new Date());
+        } else if (!inConsultation) {
+          setConsultationStartTime(null);
+        }
+        
         setCurrentPatient(inConsultation);
 
         // Calculer les statistiques avec les données fraîches
@@ -62,17 +132,54 @@ export default function MedecinDashboard() {
           return ticketDate.toDateString() === todayDate.toDateString();
         });
 
+        const completedToday = today.filter(t => t.status === "termine").length;
+        const totalToday = today.length;
+        const efficiency = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+        const averageConsultationTime = completedToday > 0 ? Math.round(
+          today.filter(t => t.status === "termine")
+            .reduce((sum, t) => sum + (new Date(t.updatedAt) - new Date(t.createdAt)), 0) 
+            / completedToday / (1000 * 60)
+        ) : 0;
+
         setStats({
           waitingCount: data.filter(t => t.status === "en_attente").length,
           inConsultationCount: data.filter(t => t.status === "en_consultation").length,
-          completedToday: today.filter(t => t.status === "termine").length,
+          completedToday,
           cancelledToday: today.filter(t => t.status === "desiste").length,
-          totalToday: today.length
+          totalToday,
+          efficiency,
+          averageConsultationTime
         });
       }
     } catch (error) {
-      // Silencieux pour ne pas spam les erreurs
+      if (isOnline) {
+        console.error("Erreur chargement queue:", error);
+      }
     }
+  };
+
+  const getWelcomeMessage = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "🌅 Bonjour";
+    if (hour < 18) return "☀️ Bon après-midi";
+    return "🌙 Bonsoir";
+  };
+
+  const getDoctorName = () => {
+    return user?.lastName || user?.firstName || user?.email?.split('@')[0] || 'Docteur';
+  };
+
+  const getConsultationDuration = () => {
+    if (!consultationStartTime || !currentPatient) return null;
+    const duration = Math.round((new Date() - consultationStartTime) / (1000 * 60));
+    return duration;
+  };
+
+  const getActivityStatus = () => {
+    if (!disponible) return { status: "En pause", color: "red", icon: "⏸️" };
+    if (currentPatient) return { status: "En consultation", color: "yellow", icon: "🩺" };
+    if (stats.waitingCount > 0) return { status: "Patients en attente", color: "blue", icon: "👥" };
+    return { status: "Disponible", color: "green", icon: "✅" };
   };
 
   const handleCallNext = () => {
@@ -90,13 +197,21 @@ export default function MedecinDashboard() {
       return;
     }
 
+    if (!disponible) {
+      showWarning("Vous êtes en pause. Activez votre disponibilité pour appeler un patient.");
+      return;
+    }
+
     setShowCallModal(true);
   };
 
-  // Fonction pour jouer le son de notification
   const playNotificationSound = () => {
-    const audio = new Audio("/notify.mp3");
-    audio.play().catch(() => {});
+    try {
+      const audio = new Audio("/notify.mp3");
+      audio.play().catch(() => {});
+    } catch (e) {
+      // Son non disponible
+    }
   };
 
   const confirmCallNext = async () => {
@@ -106,7 +221,15 @@ export default function MedecinDashboard() {
     try {
       showInfo("Appel du patient suivant...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/next`, {
+      const { getDoctorIdFromUser } = await import("../../utils/doctorMapping");
+      const doctorId = getDoctorIdFromUser(user);
+      
+      let url = `${BACKEND_URL}/next`;
+      if (doctorId) {
+        url = `${BACKEND_URL}/next?docteur=${doctorId}`;
+      }
+
+      const res = await fetch(url, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -114,17 +237,26 @@ export default function MedecinDashboard() {
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur ${res.status}`);
+        const errorData = await res.json();
+        const errorMessage = errorData.message || `Erreur ${res.status}`;
+        
+        if (errorMessage.includes("aucun patient")) {
+          throw new Error("ℹ️ Aucun patient en attente actuellement.");
+        } else if (errorMessage.includes("déjà en consultation")) {
+          throw new Error("⚠️ Un patient est déjà en consultation.");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await res.json();
-      playNotificationSound(); // Jouer le son quand on appelle un patient
-      showSuccess(`Patient n°${data.called.number} appelé en consultation !`, 4000);
+      playNotificationSound();
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation ! 🎉`, 4000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur appel patient:", error);
-      showError("Impossible d'appeler le patient suivant", 5000);
+      showError(error.message || "Impossible d'appeler le patient suivant", 5000);
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +279,7 @@ export default function MedecinDashboard() {
     try {
       showInfo("Finalisation de la consultation...");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/ticket/${currentPatient._id}/finish`, {
+      const res = await fetch(`${BACKEND_URL}/ticket/${currentPatient._id}/finish`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -158,8 +290,9 @@ export default function MedecinDashboard() {
         throw new Error(`Erreur ${res.status}`);
       }
 
-      showSuccess(`Consultation du patient n°${currentPatient.number} terminée !`, 4000);
+      showSuccess(`Consultation du patient n°${currentPatient.number} terminée ! 🎉`, 4000);
       setCurrentPatient(null);
+      setConsultationStartTime(null);
       fetchQueue();
 
     } catch (error) {
@@ -171,8 +304,8 @@ export default function MedecinDashboard() {
   };
 
   const handleResetQueue = () => {
-    if (queue.length === 0) {
-      showInfo("La file d'attente est déjà vide");
+    if (queue.filter(t => t.status === "en_attente").length === 0) {
+      showInfo("Aucun patient en attente à supprimer");
       return;
     }
     setShowResetModal(true);
@@ -183,9 +316,7 @@ export default function MedecinDashboard() {
     setIsLoading(true);
 
     try {
-      showWarning("Réinitialisation de la file d'attente...");
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
+      const res = await fetch(`${BACKEND_URL}/reset`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -196,29 +327,20 @@ export default function MedecinDashboard() {
         throw new Error(`Erreur ${res.status}`);
       }
 
-      showSuccess("File d'attente réinitialisée avec succès !", 4000);
-      setCurrentPatient(null);
+      const data = await res.json();
+      showSuccess(`✅ ${data.message} - ${data.deletedCount} ticket(s) supprimé(s)`, 5000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur reset:", error);
-      showError("Impossible de réinitialiser la file d'attente", 5000);
+      showError("Impossible de réinitialiser la file", 5000);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAuthenticated");
-    showInfo("Déconnexion réussie");
-    navigate("/");
-  };
-
-  // Estimation du temps d'attente
   const getEstimatedTime = (position) => {
-    const avgConsultationTime = 15; // 15 minutes par consultation
+    const avgConsultationTime = stats.averageConsultationTime || 15;
     const totalMinutes = position * avgConsultationTime;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -233,247 +355,387 @@ export default function MedecinDashboard() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="text-center">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
-            <p>Chargement...</p>
+          <div className="loading-container">
+            <div className="loading-content">
+              <div className="loading-spinner animate-float">👨‍⚕️</div>
+              <p className="loading-text">Chargement du dashboard...</p>
+            </div>
           </div>
         </AnimatedPage>
       </Layout>
     );
   }
 
+  const nextPatient = queue
+    .filter(t => t.status === "en_attente")
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+  
+  const activity = getActivityStatus();
+  const consultationDuration = getConsultationDuration();
+
   return (
     <Layout>
       <AnimatedPage>
-        <div className="max-w-6xl mx-auto">
-          {/* En-tête médecin */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-xl font-bold text-green-800">
-                  🩺 Espace Médecin
-                </h1>
-                <p className="text-green-600">
-                  Bienvenue Dr. {user.fullName}
-                </p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 underline"
-              >
-                🔒 Déconnexion
-              </button>
-            </div>
-          </div>
-
-          {/* Patient en consultation */}
-          {currentPatient ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h2 className="text-lg font-semibold text-blue-800 mb-3">
-                👨‍⚕️ Patient en consultation
-              </h2>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-blue-700">
-                    <strong>Ticket n°{currentPatient.number}</strong>
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Début : {new Date(currentPatient.updatedAt).toLocaleTimeString()}
-                  </p>
-                </div>
-                <button
-                  onClick={handleFinishConsultation}
-                  disabled={isLoading}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-400"
-                >
-                  ✅ Terminer la consultation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-center">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                Aucun patient en consultation
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Appelez le patient suivant pour commencer une consultation
-              </p>
-            </div>
-          )}
-
-          {/* Statistiques du jour */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">{stats.waitingCount}</p>
-              <p className="text-sm text-blue-800">En attente</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-yellow-600">{stats.inConsultationCount}</p>
-              <p className="text-sm text-yellow-800">En consultation</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{stats.completedToday}</p>
-              <p className="text-sm text-green-800">Terminées</p>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{stats.cancelledToday}</p>
-              <p className="text-sm text-red-800">Annulées</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats.totalToday}</p>
-              <p className="text-sm text-purple-800">Total du jour</p>
-            </div>
-          </div>
-
-          {/* Actions principales */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <button
-              onClick={handleCallNext}
-              disabled={isLoading || currentPatient}
-              className={`p-4 rounded-lg transition font-medium ${
-                currentPatient 
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-            >
-              📢 Appeler le patient suivant
-            </button>
-
-            <button
-              onClick={() => navigate("/queue")}
-              className="p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-            >
-              📋 Voir la file complète
-            </button>
-
-            <button
-              onClick={handleResetQueue}
-              disabled={isLoading}
-              className="p-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:bg-gray-400"
-            >
-              🔄 Réinitialiser la file
-            </button>
-          </div>
-
-          {/* File d'attente résumée */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-gray-800 mb-4">📋 Prochains patients</h3>
+        <div className="dashboard-wrapper">
+          <div className="dashboard-container">
             
-            {queue.filter(t => t.status === "en_attente").length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">🎯</div>
-                <p>Aucun patient en attente</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {queue
-                  .filter(t => t.status === "en_attente")
-                  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                  .slice(0, 5) // Afficher seulement les 5 premiers
-                  .map((ticket, index) => (
-                    <div key={ticket._id} className="flex justify-between items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          index === 0 ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                        }`}>
-                          Position {index + 1}
-                        </span>
-                        <span className="font-semibold">Ticket n°{ticket.number}</span>
-                        {index === 0 && <span className="text-green-600 font-semibold">⬅️ SUIVANT</span>}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <span>{new Date(ticket.createdAt).toLocaleTimeString()}</span>
-                        {index > 0 && (
-                          <span className="ml-2">({getEstimatedTime(index + 1)} d'attente)</span>
-                        )}
-                      </div>
+            {/* Header du dashboard médecin */}
+            <div className="dashboard-header">
+              <div className="dashboard-header-content">
+                <div>
+                  <h1 className="dashboard-title">
+                    👨‍⚕️ Interface Médecin
+                  </h1>
+                  <p className="dashboard-subtitle">
+                    {getWelcomeMessage()}, Dr. {getDoctorName()} ! ✨ Votre espace de consultation
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
                     </div>
-                  ))}
-                
-                {queue.filter(t => t.status === "en_attente").length > 5 && (
-                  <div className="text-center text-gray-500 py-2">
-                    ... et {queue.filter(t => t.status === "en_attente").length - 5} patients de plus
+                    <div className="flex items-center gap-2">
+                      {activity.icon} Statut: <span className={`font-medium text-${activity.color}-600`}>{activity.status}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                    </div>
+                    <div className="text-xs">
+                      ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
+                    </div>
                   </div>
-                )}
+                </div>
+                <div className="dashboard-actions">
+                  <button
+                    onClick={() => setDisponible(!disponible)}
+                    className={`${disponible ? 'btn-success' : 'btn-warning'} transition-all duration-300`}
+                  >
+                    {disponible ? '✅ Disponible' : '⏸️ En pause'}
+                  </button>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="btn-secondary"
+                  >
+                    🏠 Accueil
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <Toast toasts={toasts} removeToast={removeToast} />
+
+            {/* Consultation actuelle */}
+            {currentPatient && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  🩺 Consultation en cours
+                  {consultationDuration && (
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      (Durée: {consultationDuration}min)
+                    </span>
+                  )}
+                </h2>
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 rounded-lg p-6">
+                  <div className="dashboard-grid mb-6">
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Patient</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🧑‍🦱 {currentPatient.nom || 'Patient'} {currentPatient.prenom || ''}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Ticket</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🎫 #{currentPatient.number}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Heure d'arrivée</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        🕐 {new Date(currentPatient.createdAt).toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-600 font-medium">Temps d'attente</p>
+                      <p className="text-xl font-bold text-blue-800">
+                        ⏱️ {Math.round((new Date() - new Date(currentPatient.createdAt)) / (1000 * 60))}min
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="dashboard-grid-3">
+                    <button
+                      onClick={handleFinishConsultation}
+                      disabled={isLoading || !isOnline}
+                      className="btn-success btn-large"
+                    >
+                      {isLoading ? "🔄 Finalisation..." : "✅ Terminer la consultation"}
+                    </button>
+                    <button
+                      onClick={() => fetchQueue()}
+                      disabled={isLoading || !isOnline}
+                      className="btn-secondary"
+                    >
+                      🔄 Actualiser
+                    </button>
+                    <button
+                      onClick={() => setDisponible(false)}
+                      className="btn-warning"
+                    >
+                      ⏸️ Mettre en pause
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Actions rapides */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">⚡ Actions rapides</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => navigate("/admin")}
-                className="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-              >
-                ⚙️ Interface admin
-              </button>
-              <button
-                onClick={() => navigate("/queue")}
-                className="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-              >
-                📋 File d'attente détaillée
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                className="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-              >
-                🏠 Retour à l'accueil
-              </button>
-              <button
-                onClick={handleLogout}
-                className="text-left px-4 py-2 text-red-600 hover:bg-red-100 rounded-lg transition"
-              >
-                🔒 Déconnexion
-              </button>
+            {/* Prochain patient */}
+            {nextPatient && !currentPatient && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  ⏭️ Prochain patient en attente
+                </h2>
+                <div className="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 rounded-lg p-6">
+                  <div className="dashboard-grid mb-6">
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Patient</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🧑‍🦱 {nextPatient.nom || 'Patient anonyme'} {nextPatient.prenom || ''}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Ticket</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🎫 #{nextPatient.number}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Position</p>
+                      <p className="text-xl font-bold text-green-800">
+                        🥇 1ère position
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-600 font-medium">Temps d'attente</p>
+                      <p className="text-xl font-bold text-green-800">
+                        ⏱️ {Math.round((new Date() - new Date(nextPatient.createdAt)) / (1000 * 60))}min
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="dashboard-grid-2">
+                    <button
+                      onClick={handleCallNext}
+                      disabled={isLoading || !isOnline || !disponible}
+                      className="btn-primary btn-large"
+                    >
+                      {isLoading ? "🔄 Appel en cours..." : 
+                       !disponible ? "⏸️ En pause" :
+                       "📞 Appeler ce patient"}
+                    </button>
+                    <button
+                      onClick={() => fetchQueue()}
+                      disabled={isLoading || !isOnline}
+                      className="btn-secondary"
+                    >
+                      🔄 Actualiser la file
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* État quand aucun patient */}
+            {!currentPatient && !nextPatient && (
+              <div className="dashboard-card dashboard-section">
+                <div className="empty-state">
+                  <div className="empty-icon">😌</div>
+                  <p className="empty-text">Aucun patient en attente</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {disponible ? "Vous êtes disponible pour recevoir des patients 🟢" : "Vous êtes en pause ⏸️"}
+                  </p>
+                  <button
+                    onClick={() => fetchQueue()}
+                    disabled={isLoading || !isOnline}
+                    className="btn-secondary mt-4"
+                  >
+                    🔄 Vérifier les nouveaux patients
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Statistiques du médecin */}
+            <div className="dashboard-card dashboard-section">
+              <h2 className="dashboard-card-title">
+                📊 Mes statistiques du jour
+                <span className="animate-pulse ml-2">🔴</span>
+              </h2>
+              <div className="stats-grid">
+                <div className="stats-card stats-card-blue">
+                  <div className="stats-number">👥 {stats.waitingCount || 0}</div>
+                  <div className="stats-label">Patients en attente</div>
+                </div>
+                <div className="stats-card stats-card-green">
+                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
+                  <div className="stats-label">Consultations terminées</div>
+                </div>
+                <div className="stats-card stats-card-purple">
+                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
+                  <div className="stats-label">Total du jour</div>
+                </div>
+                <div className="stats-card stats-card-orange">
+                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                  <div className="stats-label">Taux d'efficacité</div>
+                </div>
+                <div className="stats-card stats-card-yellow">
+                  <div className="stats-number">⏱️ {stats.averageConsultationTime || 0}min</div>
+                  <div className="stats-label">Durée moyenne</div>
+                </div>
+                <div className="stats-card stats-card-red">
+                  <div className="stats-number">❌ {stats.cancelledToday || 0}</div>
+                  <div className="stats-label">Annulations</div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Modales de confirmation */}
-          <ConfirmModal
-            isOpen={showCallModal}
-            title="Appeler le patient suivant"
-            message="Voulez-vous appeler le patient suivant en consultation ?"
-            confirmText="Oui, appeler"
-            cancelText="Annuler"
-            type="info"
-            onConfirm={confirmCallNext}
-            onCancel={() => setShowCallModal(false)}
-          />
+            {/* File d'attente complète */}
+            {queue.length > 0 && (
+              <div className="dashboard-card dashboard-section">
+                <h2 className="dashboard-card-title">
+                  📋 File d'attente complète
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    ({queue.filter(t => t.status === "en_attente").length} patients en attente)
+                  </span>
+                </h2>
+                <div className="dashboard-grid">
+                  {queue.filter(t => t.status === "en_attente").map((ticket, index) => {
+                    const waitTime = Math.round((new Date() - new Date(ticket.createdAt)) / (1000 * 60));
+                    const estimatedTime = getEstimatedTime(index + 1);
+                    
+                    return (
+                      <div key={ticket._id} className="ticket-card">
+                        <div className="ticket-header">
+                          <span className="ticket-number">🎫 #{ticket.number}</span>
+                          <div className="ticket-status ticket-status-waiting">
+                            📍 Position {index + 1}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 mt-3">
+                          <div className="text-sm font-medium text-gray-800">
+                            👤 {ticket.nom || 'Patient anonyme'} {ticket.prenom || ''}
+                          </div>
+                          <div className="ticket-time">
+                            🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            ⏱️ Temps d'attente: {waitTime}min
+                          </div>
+                          <div className="text-xs text-blue-600">
+                            ⏳ Temps estimé: {estimatedTime}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Actions sur la file */}
+                <div className="mt-6 flex gap-4 justify-center">
+                  <button
+                    onClick={handleResetQueue}
+                    disabled={isLoading || !isOnline}
+                    className="btn-danger"
+                  >
+                    🗑️ Réinitialiser la file
+                  </button>
+                  <button
+                    onClick={() => fetchQueue()}
+                    disabled={isLoading || !isOnline}
+                    className="btn-secondary"
+                  >
+                    🔄 Actualiser
+                  </button>
+                </div>
+              </div>
+            )}
 
-          <ConfirmModal
-            isOpen={showFinishModal}
-            title="Terminer la consultation"
-            message={`Voulez-vous terminer la consultation du patient n°${currentPatient?.number} ?`}
-            confirmText="Oui, terminer"
-            cancelText="Continuer"
-            type="success"
-            onConfirm={confirmFinishConsultation}
-            onCancel={() => setShowFinishModal(false)}
-          />
-
-          <ConfirmModal
-            isOpen={showResetModal}
-            title="Réinitialiser la file d'attente"
-            message="⚠️ ATTENTION : Cette action supprimera TOUS les tickets de la file d'attente. Cette action est irréversible !"
-            confirmText="Oui, réinitialiser"
-            cancelText="Annuler"
-            type="danger"
-            onConfirm={confirmResetQueue}
-            onCancel={() => setShowResetModal(false)}
-          />
-
-          {/* Notifications */}
-          {toasts.map(toast => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              duration={toast.duration}
-              onClose={() => removeToast(toast.id)}
+            {/* Modales */}
+            <ConfirmModal
+              isOpen={showCallModal}
+              title="📞 Confirmation d'appel patient"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">📞</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous appeler le patient suivant en consultation ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🎫 Le patient sera automatiquement placé en consultation avec vous.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmCallNext}
+              onCancel={() => setShowCallModal(false)}
+              confirmText="📞 Confirmer l'appel"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
             />
-          ))}
+
+            <ConfirmModal
+              isOpen={showFinishModal}
+              title="✅ Terminer la consultation"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">✅</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous terminer la consultation du patient n°{currentPatient?.number} ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🩺 La consultation sera marquée comme terminée et le patient quittera la file.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmFinishConsultation}
+              onCancel={() => setShowFinishModal(false)}
+              confirmText="✅ Terminer"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+
+            <ConfirmModal
+              isOpen={showResetModal}
+              title="🗑️ Réinitialiser la file d'attente"
+              message={
+                <div className="modal-content-horizontal">
+                  <div className="modal-icon">⚠️</div>
+                  <div className="modal-text">
+                    <p className="modal-title-text">
+                      Voulez-vous vraiment supprimer tous les patients en attente ?
+                    </p>
+                    <p className="modal-subtitle-text">
+                      🚨 Cette action est irréversible et supprimera tous les tickets en attente.
+                    </p>
+                  </div>
+                </div>
+              }
+              onConfirm={confirmResetQueue}
+              onCancel={() => setShowResetModal(false)}
+              confirmText="🗑️ Confirmer la suppression"
+              cancelText="❌ Annuler"
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </AnimatedPage>
     </Layout>

@@ -14,7 +14,7 @@ const ticketSchema = new mongoose.Schema({
   docteur: {
     type: String,
     required: true,
-    enum: ['Docteur 1', 'Docteur 2', 'Docteur 3']
+    enum: ['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli']
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -24,6 +24,29 @@ const ticketSchema = new mongoose.Schema({
   sessionId: {
     type: String,
     default: null
+  },
+  // 👤 Nouveau : Informations patient pour tickets physiques
+  patientName: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: 100
+  },
+  ticketType: {
+    type: String,
+    enum: ["numerique", "physique"],
+    default: "numerique"
+  },
+  createdBy: {
+    type: String,
+    enum: ["patient", "secretary", "system"],
+    default: "patient"
+  },
+  notes: {
+    type: String,
+    default: null,
+    maxlength: 500,
+    trim: true
   },
   createdAt: { 
     type: Date, 
@@ -36,7 +59,8 @@ const ticketSchema = new mongoose.Schema({
   metadata: {
     ipAddress: String,
     userAgent: String,
-    device: String
+    device: String,
+    deviceFingerprint: String // Empreinte unique pour identifier l'appareil/navigateur
   }
 }, {
   timestamps: true  // Ajoute automatiquement createdAt et updatedAt
@@ -45,5 +69,7 @@ const ticketSchema = new mongoose.Schema({
 // Index pour optimiser les requêtes
 ticketSchema.index({ status: 1, createdAt: 1 });
 ticketSchema.index({ sessionId: 1 });
+ticketSchema.index({ 'metadata.ipAddress': 1, status: 1 }); // Index pour limitations IP
+ticketSchema.index({ 'metadata.deviceFingerprint': 1, status: 1 }); // Index pour limitations empreinte
 
 module.exports = mongoose.model("Ticket", ticketSchema);

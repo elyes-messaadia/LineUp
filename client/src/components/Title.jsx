@@ -1,12 +1,30 @@
-export default function Title({ left, emoji }) {
+export default function Title({ children, left, emoji, level = 1 }) {
+  const TitleTag = `h${level}`;
+  
+  // Si children est fourni, l'utiliser directement
+  if (children) {
     return (
-      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 sm:mb-4 text-center px-2">
-        <span className="text-black">
-          {emoji ? `${emoji} ` : ''}
-          {left}
-        </span>{' '}
-        <span className="text-blue-600">LineUp</span>
-      </h1>
+      <TitleTag className="text-lg xs:text-xl se:text-2xl sm:text-3xl md:text-4xl 
+                          font-bold mb-3 xs:mb-4 sm:mb-6 text-center 
+                          px-2 xs:px-3 legacy-text-primary old-device-optimized">
+        <span className="text-gray-900">
+          {children}
+        </span>
+      </TitleTag>
     );
   }
+  
+  // Sinon, utiliser le format traditionnel avec LineUp
+  return (
+    <TitleTag className="text-lg xs:text-xl se:text-2xl sm:text-3xl md:text-4xl 
+                        font-bold mb-3 xs:mb-4 sm:mb-6 text-center 
+                        px-2 xs:px-3 legacy-text-primary old-device-optimized">
+      <span className="text-gray-900">
+        {emoji ? `${emoji} ` : ''}
+        {left}
+      </span>{' '}
+      <span className="text-blue-700 font-extrabold">LineUp</span>
+    </TitleTag>
+  );
+}
   

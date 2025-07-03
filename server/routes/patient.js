@@ -1,12 +1,14 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const Patient = require('../models/Patient');
+const { authenticateRequired } = require('../middlewares/auth');
+const Ticket = require('../models/Ticket');
 
 const router = express.Router();
 
 /**
  * POST /patient/register
- * ➤ Inscription d’un patient
+ * ➤ Inscription d'un patient
  */
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
@@ -30,7 +32,7 @@ router.post('/register', async (req, res) => {
 
 /**
  * POST /patient/login
- * ➤ Connexion d’un patient
+ * ➤ Connexion d'un patient
  */
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -54,6 +56,42 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('❌ Erreur /patient/login :', err.message);
     res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
+// 🎫 Récupérer le ticket actuel du patient connecté
+router.get('/my-ticket', authenticateRequired, async (req, res) => {
+  try {
+    if (req.user.role.name !== 'patient') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès réservé aux patients'
+      });
+    }
+
+    const ticket = await Ticket.findOne({
+      userId: req.user._id,
+      status: { $in: ['en_attente', 'en_consultation'] }
+    }).sort({ createdAt: -1 });
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Aucun ticket actif trouvé'
+      });
+    }
+
+    res.json({
+      success: true,
+      ticket
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur récupération ticket patient:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération du ticket'
+    });
   }
 });
 

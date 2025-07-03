@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
@@ -6,6 +6,7 @@ import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import QRCodeTicket from "../components/QRCodeTicket";
 import { useToast } from "../hooks/useToast";
+import BACKEND_URL from "../config/api";
 
 export default function Ticket() {
   const [ticket, setTicket] = useState(null);
@@ -13,23 +14,37 @@ export default function Ticket() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [ticketExists, setTicketExists] = useState(true);
   const navigate = useNavigate();
-  const { toasts, showSuccess, showError, showWarning, showInfo, removeToast } = useToast();
+  const { 
+    toasts, 
+    showSuccess, 
+    showError, 
+    showWarning, 
+    showInfo, 
+    showImportant, 
+    removeToast 
+  } = useToast();
+
+  // Référence pour éviter les boucles d'update
+  const pollIntervalRef = useRef(null);
+  const lastStatusRef = useRef(null);
+  const isActiveRef = useRef(true);
 
   // Fonction pour vérifier l'existence du ticket côté serveur
-  const verifyTicketExists = async (ticketId, sessionId) => {
+  const verifyTicketExists = useCallback(async (ticketId, sessionId) => {
     try {
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticketId}`;
+      let url = `${BACKEND_URL}/ticket/${ticketId}`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (sessionId) {
         url += `?sessionId=${sessionId}`;
       }
 
       const res = await fetch(url);
+      
       if (res.ok) {
         const serverTicket = await res.json();
         return serverTicket;
       } else if (res.status === 404) {
-        return null; // Ticket n'existe plusF
+        return null; // Ticket n'existe plus
       } else {
         throw new Error(`Erreur ${res.status}`);
       }
@@ -37,11 +52,104 @@ export default function Ticket() {
       console.error("Erreur vérification ticket:", error);
       return false; // Erreur de connexion
     }
-  };
+  }, []);
 
+  // Fonction pour surveiller les changements de statut
+  const monitorTicketStatus = useCallback(async () => {
+    // Récupérer le ticket depuis localStorage pour éviter les dépendances
+    const storedTicket = localStorage.getItem("lineup_ticket");
+    if (!storedTicket || !isActiveRef.current) return;
+
+    try {
+      const currentTicket = JSON.parse(storedTicket);
+      
+      const serverTicket = await verifyTicketExists(
+        currentTicket._id,
+        currentTicket.isAnonymous ? currentTicket.sessionId : null
+      );
+
+      if (serverTicket === null) {
+        // Ticket supprimé côté serveur
+        localStorage.removeItem("lineup_ticket");
+        setTicketExists(false);
+        showImportant("❌ Votre ticket a été supprimé ou annulé", 8000);
+        setTimeout(() => navigate("/"), 3000);
+        return;
+      }
+
+      if (serverTicket === false) {
+        // Erreur de connexion, ne rien faire
+        return;
+      }
+
+      // Vérifier si le statut a changé
+      if (lastStatusRef.current && lastStatusRef.current !== serverTicket.status) {
+        switch (serverTicket.status) {
+          case "en_consultation":
+            showImportant("🩺 C'est votre tour ! Veuillez vous présenter au cabinet médical", 10000);
+            break;
+          case "termine":
+            showImportant("✅ Votre consultation est terminée. Merci de votre visite !", 8000);
+            setTimeout(() => navigate("/"), 5000);
+            break;
+          case "desiste":
+            showImportant("❌ Votre ticket a été annulé", 8000);
+            localStorage.removeItem("lineup_ticket");
+            setTimeout(() => navigate("/"), 3000);
+            break;
+          case "en_attente":
+            showInfo("⏱️ Votre ticket est de retour en attente", 4000, true);
+            break;
+        }
+      }
+
+      // Mettre à jour les données du ticket
+      setTicket(prev => ({
+        ...prev,
+        ...serverTicket,
+        isAnonymous: currentTicket.isAnonymous,
+        sessionId: currentTicket.sessionId
+      }));
+
+      // Mettre à jour localStorage
+      localStorage.setItem("lineup_ticket", JSON.stringify({
+        ...serverTicket,
+        isAnonymous: currentTicket.isAnonymous,
+        sessionId: currentTicket.sessionId
+      }));
+
+      lastStatusRef.current = serverTicket.status;
+
+    } catch (error) {
+      console.error("Erreur monitoring ticket:", error);
+    }
+  }, []); // Pas de dépendances pour éviter les re-créations
+
+  // Démarrer la surveillance automatique
+  const startMonitoring = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+    
+    // Surveiller toutes les 2 secondes
+    pollIntervalRef.current = setInterval(() => {
+      monitorTicketStatus();
+    }, 2000);
+  }, []); // Pas de dépendances pour éviter la re-création
+
+  // Arrêter la surveillance
+  const stopMonitoring = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  }, []);
+
+  // Effet principal - exécuté une seule fois au montage
   useEffect(() => {
     const loadAndVerifyTicket = async () => {
       setIsLoading(true);
+      isActiveRef.current = true;
 
       const stored = localStorage.getItem("lineup_ticket");
       if (!stored) {
@@ -62,48 +170,64 @@ export default function Ticket() {
           // Ticket n'existe plus côté serveur
           localStorage.removeItem("lineup_ticket");
           setTicketExists(false);
-          showWarning("Votre ticket a été supprimé ou n'existe plus", 5000);
+          showWarning("Votre ticket a été supprimé ou n'existe plus", 5000, true);
         } else if (serverTicket === false) {
           // Erreur de connexion, utiliser les données locales
           setTicket(parsedTicket);
+          lastStatusRef.current = parsedTicket.status;
           showInfo("Mode hors ligne - Données locales", 3000);
+          // Démarrer la surveillance même en mode hors ligne
+          startMonitoring();
         } else {
           // Ticket existe, utiliser les données du serveur (plus à jour)
-          setTicket({
+          const fullTicket = {
             ...serverTicket,
             isAnonymous: parsedTicket.isAnonymous,
             sessionId: parsedTicket.sessionId
-          });
+          };
+          
+          setTicket(fullTicket);
+          lastStatusRef.current = serverTicket.status;
 
           // Mettre à jour localStorage avec les données serveur
-          localStorage.setItem("lineup_ticket", JSON.stringify({
-            ...serverTicket,
-            isAnonymous: parsedTicket.isAnonymous,
-            sessionId: parsedTicket.sessionId
-          }));
+          localStorage.setItem("lineup_ticket", JSON.stringify(fullTicket));
 
-          // Vérifier si le statut a changé
+          // Vérifier si le statut a changé depuis la dernière visite
           if (serverTicket.status !== parsedTicket.status) {
             switch (serverTicket.status) {
               case "en_consultation":
-                showSuccess("🩺 Vous êtes en consultation !", 4000);
+                showImportant("🩺 Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
                 break;
               case "termine":
                 showInfo("✅ Votre consultation est terminée", 4000);
                 break;
               case "desiste":
-                showWarning("❌ Votre ticket a été annulé", 4000);
+                showWarning("❌ Votre ticket a été annulé", 4000, true);
                 localStorage.removeItem("lineup_ticket");
                 setTimeout(() => navigate("/"), 2000);
                 break;
             }
           } else {
-            showSuccess(`Ticket n°${serverTicket.number} actif`, 3000);
+            // Notification d'accueil selon le statut
+            switch (serverTicket.status) {
+              case "en_attente":
+                showSuccess(`Ticket n°${serverTicket.number} - En attente`, 3000);
+                break;
+              case "en_consultation":
+                showImportant("🩺 Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
+                break;
+              case "termine":
+                showInfo("✅ Votre consultation est terminée", 4000);
+                break;
+            }
           }
+
+          // Démarrer la surveillance temps réel
+          startMonitoring();
         }
       } catch (error) {
         console.error("Erreur lors du chargement du ticket:", error);
-        showError("Erreur lors du chargement du ticket");
+        showError("Erreur lors du chargement du ticket", 5000, true);
         localStorage.removeItem("lineup_ticket");
         setTicketExists(false);
       } finally {
@@ -112,21 +236,57 @@ export default function Ticket() {
     };
 
     loadAndVerifyTicket();
-  }, [showSuccess, showError, showWarning, showInfo, navigate]);
+
+    // Cleanup
+    return () => {
+      isActiveRef.current = false;
+      stopMonitoring();
+    };
+  }, []); // Dépendances vides pour éviter les re-exécutions
+
+  // Gestion de la visibilité de la page pour optimiser la surveillance
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page cachée : surveillance moins fréquente
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        if (ticket && isActiveRef.current) {
+          pollIntervalRef.current = setInterval(monitorTicketStatus, 5000);
+        }
+      } else {
+        // Page visible : surveillance normale + vérification immédiate
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        if (ticket && isActiveRef.current) {
+          pollIntervalRef.current = setInterval(monitorTicketStatus, 2000);
+          monitorTicketStatus();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []); // Pas de dépendances pour éviter les re-exécutions
 
   const handleCancelRequest = () => {
     if (!ticket) {
-      showError("Aucun ticket à annuler");
+      showError("Aucun ticket à annuler", 3000, true);
       return;
     }
 
     if (ticket.status === "en_consultation") {
-      showWarning("Impossible d'annuler un ticket en consultation");
+      showWarning("Impossible d'annuler un ticket en consultation", 4000, true);
       return;
     }
 
     if (ticket.status === "termine" || ticket.status === "desiste") {
-      showInfo("Ce ticket est déjà terminé ou annulé");
+      showInfo("Ce ticket est déjà terminé ou annulé", 3000);
       return;
     }
 
@@ -138,11 +298,12 @@ export default function Ticket() {
 
     setShowCancelModal(false);
     setIsLoading(true);
+    stopMonitoring(); // Arrêter la surveillance pendant l'annulation
 
     try {
-      showWarning("Annulation de votre ticket en cours...");
+      showWarning("Annulation de votre ticket en cours...", 3000, true);
 
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}`;
+      let url = `${BACKEND_URL}/ticket/${ticket._id}`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (ticket.isAnonymous && ticket.sessionId) {
         url += `?sessionId=${ticket.sessionId}`;
@@ -154,12 +315,12 @@ export default function Ticket() {
 
       if (!res.ok) {
         if (res.status === 404) {
-          showWarning("Le ticket a déjà été supprimé");
+          showWarning("Le ticket a déjà été supprimé", 4000, true);
         } else {
           throw new Error(`Erreur ${res.status}: ${res.statusText}`);
         }
       } else {
-        showSuccess("Ticket annulé avec succès !", 4000);
+        showSuccess("Ticket annulé avec succès !", 4000, true);
       }
 
       localStorage.removeItem("lineup_ticket");
@@ -171,7 +332,8 @@ export default function Ticket() {
 
     } catch (error) {
       console.error("Erreur lors de l'annulation:", error);
-      showError("Impossible d'annuler le ticket. Veuillez réessayer.", 5000);
+      showError("Impossible d'annuler le ticket. Veuillez réessayer.", 5000, true);
+      startMonitoring(); // Reprendre la surveillance en cas d'échec
     } finally {
       setIsLoading(false);
     }
@@ -181,11 +343,12 @@ export default function Ticket() {
     if (!ticket) return;
 
     setIsLoading(true);
+    stopMonitoring(); // Arrêter temporairement la surveillance
 
     try {
-      showInfo("Reprise de votre ticket en cours...");
+      showInfo("Reprise de votre ticket en cours...", 3000, true);
 
-      let url = `${import.meta.env.VITE_API_URL}/ticket/${ticket._id}/resume`;
+      let url = `${BACKEND_URL}/ticket/${ticket._id}/resume`;
       // Si c'est un ticket anonyme, ajouter le sessionId dans la requête
       if (ticket.isAnonymous && ticket.sessionId) {
         url += `?sessionId=${ticket.sessionId}`;
@@ -200,22 +363,23 @@ export default function Ticket() {
       }
 
       const updatedTicket = await res.json();
-      // Préserver les informations du ticket anonyme
-      setTicket({
-        ...updatedTicket.updated,
-        isAnonymous: ticket.isAnonymous,
-        sessionId: ticket.sessionId
-      });
+      setTicket(prev => ({ ...prev, ...updatedTicket }));
+      lastStatusRef.current = updatedTicket.status;
+      
+      // Mettre à jour localStorage
       localStorage.setItem("lineup_ticket", JSON.stringify({
-        ...updatedTicket.updated,
+        ...updatedTicket,
         isAnonymous: ticket.isAnonymous,
         sessionId: ticket.sessionId
       }));
-      showSuccess("Ticket repris avec succès !", 4000);
+
+      showSuccess("Ticket repris avec succès !", 4000, true);
+      startMonitoring(); // Reprendre la surveillance
 
     } catch (error) {
       console.error("Erreur lors de la reprise:", error);
-      showError("Impossible de reprendre le ticket. Veuillez réessayer.", 5000);
+      showError("Impossible de reprendre le ticket. Veuillez réessayer.", 5000, true);
+      startMonitoring(); // Reprendre la surveillance en cas d'échec
     } finally {
       setIsLoading(false);
     }

@@ -1,0 +1,726 @@
+/* Dashboard Components - Tailwind CSS Enhanced */
+
+/* Container principal des dashboards */
+.dashboard-wrapper {
+  @apply min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.dashboard-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8;
+}
+
+/* Header du dashboard amélioré */
+.dashboard-header {
+  @apply bg-gradient-to-r from-white via-blue-50 to-indigo-50 rounded-xl shadow-xl border border-blue-200 p-6 mb-8 relative overflow-hidden backdrop-blur-sm;
+}
+
+.dashboard-header::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500;
+}
+
+.dashboard-header-content {
+  @apply flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6;
+}
+
+.dashboard-title {
+  @apply text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-800 to-blue-700 bg-clip-text text-transparent mb-2 leading-tight;
+}
+
+.dashboard-subtitle {
+  @apply text-lg text-gray-600 font-medium leading-relaxed;
+}
+
+.dashboard-actions {
+  @apply flex flex-wrap gap-3 items-center;
+}
+
+/* Cards améliorées avec nouveaux effets */
+.dashboard-card {
+  @apply bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 p-6 hover:shadow-xl transition-all duration-300 relative overflow-hidden hover:bg-white/90;
+}
+
+.dashboard-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 transition-opacity duration-300;
+}
+
+.dashboard-card:hover::before {
+  @apply opacity-100;
+}
+
+.dashboard-card-title {
+  @apply text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2;
+}
+
+/* Grilles améliorées */
+.dashboard-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+.dashboard-grid-2 {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-8;
+}
+
+.dashboard-grid-3 {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+}
+
+.dashboard-grid-auto {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Stats cards avec effets 3D améliorés */
+.stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4;
+}
+
+.stats-card {
+  @apply bg-white border-2 rounded-xl p-5 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 active:scale-100 relative overflow-hidden backdrop-blur-sm bg-white/90;
+}
+
+.stats-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-full opacity-5 transition-all duration-300;
+}
+
+.stats-card:hover::before {
+  @apply opacity-15;
+}
+
+.stats-number {
+  @apply text-3xl lg:text-4xl font-bold mb-2 relative z-10 transition-all duration-300;
+}
+
+.stats-label {
+  @apply text-sm font-semibold relative z-10 transition-all duration-300;
+}
+
+/* Status cards avec animations améliorées */
+.status-card {
+  @apply rounded-xl p-6 border-2 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 relative overflow-hidden backdrop-blur-sm;
+}
+
+.status-card-consultation {
+  @apply bg-gradient-to-br from-green-50/90 to-emerald-100/90 border-green-300 backdrop-blur-sm;
+}
+
+.status-card-consultation .status-text {
+  @apply text-lg font-bold text-green-800 mb-3;
+}
+
+.status-card-consultation .status-detail {
+  @apply text-green-700;
+}
+
+.status-card-available {
+  @apply bg-gradient-to-br from-blue-50/90 to-indigo-100/90 border-blue-300 backdrop-blur-sm;
+}
+
+.status-card-available .status-text {
+  @apply text-lg font-bold text-blue-800 mb-3;
+}
+
+/* Ticket cards avec design moderne */
+.ticket-card {
+  @apply bg-gradient-to-br from-white/90 to-gray-50/90 border-2 border-gray-200 rounded-xl p-5 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:border-blue-300 backdrop-blur-sm relative overflow-hidden;
+}
+
+.ticket-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 transition-opacity duration-300;
+}
+
+.ticket-card:hover::before {
+  @apply opacity-100;
+}
+
+.ticket-header {
+  @apply flex justify-between items-start mb-4;
+}
+
+.ticket-number {
+  @apply font-bold text-gray-800 text-lg;
+}
+
+.ticket-position {
+  @apply text-base text-blue-600 font-bold mb-2;
+}
+
+.ticket-status {
+  @apply px-3 py-1.5 rounded-full text-xs font-bold shadow-sm;
+}
+
+.ticket-status-waiting {
+  @apply bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300;
+}
+
+.ticket-time {
+  @apply text-sm text-gray-700 font-semibold;
+}
+
+/* Boutons avec effets premium */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 disabled:from-gray-300 disabled:to-gray-400 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg disabled:cursor-not-allowed transform hover:-translate-y-1 active:translate-y-0;
+}
+
+.btn-success {
+  @apply bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed transform hover:-translate-y-1 active:translate-y-0;
+}
+
+.btn-danger {
+  @apply bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed transform hover:-translate-y-1 active:translate-y-0;
+}
+
+.btn-warning {
+  @apply bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed transform hover:-translate-y-1 active:translate-y-0;
+}
+
+.btn-large {
+  @apply py-4 px-8 text-lg font-bold;
+}
+
+.btn-full {
+  @apply w-full;
+}
+
+/* Sections avec design amélioré */
+.dashboard-section {
+  @apply mb-10;
+}
+
+.section-title {
+  @apply text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3;
+}
+
+/* Loading states avec animations fluides */
+.loading-container {
+  @apply flex items-center justify-center py-16 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl;
+}
+
+.loading-content {
+  @apply text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin text-6xl mb-4 text-blue-500;
+}
+
+.loading-text h3 {
+  @apply text-xl font-bold text-gray-800 mb-2;
+}
+
+.loading-text p {
+  @apply text-gray-600;
+}
+
+/* Empty states avec design moderne */
+.empty-state {
+  @apply text-center py-16 text-gray-500 bg-gradient-to-br from-gray-50/50 to-white/50 rounded-xl border border-gray-200/50 backdrop-blur-sm;
+}
+
+.empty-icon {
+  @apply text-6xl mb-4 animate-float;
+}
+
+.empty-text h3 {
+  @apply text-xl font-bold text-gray-700 mb-2;
+}
+
+.empty-text p {
+  @apply text-gray-600;
+}
+
+/* Stats cards colorées avec meilleurs contrastes */
+.stats-card-blue {
+  @apply bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-blue-300 hover:border-blue-400;
+}
+
+.stats-card-blue::before {
+  @apply bg-gradient-to-br from-blue-400 to-blue-600;
+}
+
+.stats-card-blue .stats-number {
+  @apply text-blue-700;
+}
+
+.stats-card-blue .stats-label {
+  @apply text-blue-800;
+}
+
+.stats-card-green {
+  @apply bg-gradient-to-br from-green-50/90 to-green-100/90 border-green-300 hover:border-green-400;
+}
+
+.stats-card-green::before {
+  @apply bg-gradient-to-br from-green-400 to-green-600;
+}
+
+.stats-card-green .stats-number {
+  @apply text-green-700;
+}
+
+.stats-card-green .stats-label {
+  @apply text-green-800;
+}
+
+.stats-card-yellow {
+  @apply bg-gradient-to-br from-yellow-50/90 to-yellow-100/90 border-yellow-300 hover:border-yellow-400;
+}
+
+.stats-card-yellow::before {
+  @apply bg-gradient-to-br from-yellow-400 to-yellow-600;
+}
+
+.stats-card-yellow .stats-number {
+  @apply text-yellow-700;
+}
+
+.stats-card-yellow .stats-label {
+  @apply text-yellow-800;
+}
+
+.stats-card-red {
+  @apply bg-gradient-to-br from-red-50/90 to-red-100/90 border-red-300 hover:border-red-400;
+}
+
+.stats-card-red::before {
+  @apply bg-gradient-to-br from-red-400 to-red-600;
+}
+
+.stats-card-red .stats-number {
+  @apply text-red-700;
+}
+
+.stats-card-red .stats-label {
+  @apply text-red-800;
+}
+
+.stats-card-purple {
+  @apply bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-purple-300 hover:border-purple-400;
+}
+
+.stats-card-purple::before {
+  @apply bg-gradient-to-br from-purple-400 to-purple-600;
+}
+
+.stats-card-purple .stats-number {
+  @apply text-purple-700;
+}
+
+.stats-card-purple .stats-label {
+  @apply text-purple-800;
+}
+
+.stats-card-orange {
+  @apply bg-gradient-to-br from-orange-50/90 to-orange-100/90 border-orange-300 hover:border-orange-400;
+}
+
+.stats-card-orange::before {
+  @apply bg-gradient-to-br from-orange-400 to-orange-600;
+}
+
+.stats-card-orange .stats-number {
+  @apply text-orange-700;
+}
+
+.stats-card-orange .stats-label {
+  @apply text-orange-800;
+}
+
+/* Doctor action buttons améliorés */
+.doctor-btn {
+  @apply p-6 font-medium rounded-xl transition-all duration-300 text-center border-2 hover:shadow-xl disabled:bg-gray-100 disabled:text-gray-500 transform hover:-translate-y-1 hover:scale-105 active:scale-100 relative overflow-hidden;
+}
+
+.doctor-btn::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-full opacity-0 transition-opacity duration-300;
+}
+
+.doctor-btn:hover::before {
+  @apply opacity-10;
+}
+
+.doctor-btn-orange {
+  @apply bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 text-orange-800 hover:border-orange-400 hover:from-orange-100 hover:to-orange-200;
+}
+
+.doctor-btn-orange::before {
+  @apply bg-gradient-to-br from-orange-400 to-orange-600;
+}
+
+.doctor-btn-teal {
+  @apply bg-gradient-to-br from-teal-50 to-teal-100 border-teal-300 text-teal-800 hover:border-teal-400 hover:from-teal-100 hover:to-teal-200;
+}
+
+.doctor-btn-teal::before {
+  @apply bg-gradient-to-br from-teal-400 to-teal-600;
+}
+
+.doctor-btn-cyan {
+  @apply bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-300 text-cyan-800 hover:border-cyan-400 hover:from-cyan-100 hover:to-cyan-200;
+}
+
+.doctor-btn-cyan::before {
+  @apply bg-gradient-to-br from-cyan-400 to-cyan-600;
+}
+
+.doctor-name {
+  @apply text-lg font-semibold mb-2 relative z-10;
+}
+
+.doctor-action {
+  @apply text-sm opacity-80 relative z-10;
+}
+
+.status-card-next {
+  @apply bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300;
+}
+
+.status-card-next .status-text {
+  @apply text-sm font-medium text-blue-800;
+}
+
+.status-card-next .status-detail {
+  @apply text-xs text-blue-700 mt-1;
+}
+
+.status-card-empty {
+  @apply bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300;
+}
+
+.status-card-empty .status-text {
+  @apply text-sm text-gray-600;
+}
+
+.ticket-status-consultation {
+  @apply bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300;
+}
+
+.ticket-status-completed {
+  @apply bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-300;
+}
+
+.ticket-status-cancelled {
+  @apply bg-gradient-to-r from-red-100 to-red-200 text-red-700 border border-red-300;
+}
+
+/* Form elements améliorés */
+.form-select {
+  @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 hover:border-gray-400 shadow-sm;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+/* Doctor status section améliorée */
+.doctor-status-card {
+  @apply bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-xl p-5 transition-all duration-300 hover:shadow-md hover:border-gray-300;
+}
+
+.doctor-status-title {
+  @apply font-semibold text-center mb-4 text-gray-800 text-lg;
+}
+
+.doctor-status-info {
+  @apply space-y-4;
+}
+
+.doctor-waiting-count {
+  @apply text-center;
+}
+
+.doctor-waiting-number {
+  @apply text-2xl font-bold text-gray-700;
+}
+
+.doctor-waiting-label {
+  @apply text-xs text-gray-500 font-medium;
+}
+
+/* Modal improvements */
+.modal-content-horizontal {
+  @apply flex items-center gap-6 py-4;
+}
+
+.modal-icon {
+  @apply text-5xl flex-shrink-0 animate-pulse;
+}
+
+.modal-text {
+  @apply flex-1;
+}
+
+.modal-title-text {
+  @apply text-lg font-medium mb-2;
+}
+
+.modal-subtitle-text {
+  @apply text-sm text-gray-600;
+}
+
+/* Animations personnalisées améliorées */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Responsive utilities améliorées */
+@media (max-width: 640px) {
+  .dashboard-grid {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  .stats-grid {
+    @apply grid-cols-2 gap-3;
+  }
+  
+  .dashboard-grid-3 {
+    @apply grid-cols-1;
+  }
+  
+  .dashboard-title {
+    @apply text-2xl;
+  }
+  
+  .dashboard-container {
+    @apply px-4 py-4;
+  }
+
+  .dashboard-header {
+    @apply p-4;
+  }
+
+  .dashboard-section {
+    @apply mb-6;
+  }
+
+  .section-title {
+    @apply text-xl mb-4;
+  }
+
+  .stats-number {
+    @apply text-2xl;
+  }
+
+  .btn-large {
+    @apply py-3 px-6 text-base;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid-2 {
+    @apply grid-cols-1 gap-6;
+  }
+
+  .stats-grid {
+    @apply grid-cols-2;
+  }
+}
+
+/* Hover and focus states améliorés */
+.dashboard-card:hover {
+  @apply transform -translate-y-1 shadow-2xl;
+}
+
+/* Utilities */
+.text-overflow-ellipsis {
+  @apply truncate;
+}
+
+.break-words {
+  @apply break-words;
+}
+
+/* Effet de brillance sur les boutons */
+.btn-primary, .btn-success, .btn-danger, .btn-warning {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before, .btn-success::before, .btn-danger::before, .btn-warning::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover::before, .btn-success:hover::before, .btn-danger:hover::before, .btn-warning:hover::before {
+  left: 100%;
+}
+
+/* Améliorations supplémentaires pour le dashboard modernisé */
+
+/* Animations fluides supplémentaires */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Améliorations des status cards */
+.status-card-consultation {
+  @apply bg-gradient-to-br from-green-50/90 to-emerald-100/90 border-green-300 backdrop-blur-sm;
+}
+
+.status-card-consultation .status-text {
+  @apply text-lg font-bold text-green-800 mb-3;
+}
+
+.status-card-available {
+  @apply bg-gradient-to-br from-blue-50/90 to-indigo-100/90 border-blue-300 backdrop-blur-sm;
+}
+
+.status-card-available .status-text {
+  @apply text-lg font-bold text-blue-800 mb-3;
+}
+
+/* Micro-interactions pour améliorer l'UX */
+.stats-card:hover .stats-number {
+  @apply scale-110 transition-transform duration-300;
+}
+
+.ticket-card:hover .ticket-number {
+  @apply text-blue-600 transition-colors duration-300;
+}
+
+.dashboard-card {
+  @apply bg-white/80 backdrop-blur-sm hover:bg-white/90;
+}
+
+.ticket-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 transition-opacity duration-300;
+}
+
+.ticket-card:hover::before {
+  @apply opacity-100;
+}
+
+/* Améliorations responsive pour mobile */
+@media (max-width: 640px) {
+  .dashboard-header {
+    @apply p-4;
+  }
+
+  .dashboard-section {
+    @apply mb-6;
+  }
+
+  .section-title {
+    @apply text-xl mb-4;
+  }
+
+  .stats-number {
+    @apply text-2xl;
+  }
+
+  .btn-large {
+    @apply py-3 px-6 text-base;
+  }
+
+  .stats-grid {
+    @apply grid-cols-2 gap-3;
+  }
+}
+
+/* Accessibilité améliorée */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Élimination des marges par défaut pour un fond pleine page */
+body, html {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+
+/* Améliorations spéciales pour les modales */
+.modal-responsive {
+  @apply max-w-lg mx-auto;
+}
+
+@media (min-width: 768px) {
+  .modal-responsive {
+    @apply max-w-2xl;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal-responsive {
+    @apply max-w-4xl;
+  }
+}
+
+/* Micro-interactions */
+.stats-card:hover .stats-number {
+  @apply scale-110;
+}
+
+.ticket-card:hover .ticket-number {
+  @apply text-blue-600;
+}
+
+/* Accessibilité améliorée */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+} 
