@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CheckCircle2, X as XIcon, AlertTriangle, Bell, Info } from 'lucide-react';
 
 // Composant Toast principal pour gérer une liste de toasts
 export default function Toast({ toasts, removeToast }) {
@@ -67,16 +68,16 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return '✅';
+        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
       case 'error':
-        return '❌';
+        return <XIcon className="w-5 h-5 text-red-600" />;
       case 'warning':
-        return '⚠️';
+        return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
       case 'important':
-        return '🔔';
+        return <Bell className="w-5 h-5 text-purple-700" />;
       case 'info':
       default:
-        return 'ℹ️';
+        return <Info className="w-5 h-5 text-blue-600" />;
     }
   };
 
@@ -109,12 +110,7 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
       aria-live={getAriaLive()}
     >
       <div className="flex items-start gap-2 xs:gap-3">
-        <span 
-          className={`${type === 'important' ? 'text-lg xs:text-2xl old-android-safe' : 'text-base xs:text-xl'} flex-shrink-0 mt-1`}
-          aria-hidden="true"
-        >
-          {getIcon()}
-        </span>
+        <span className="flex-shrink-0 mt-1" aria-hidden="true">{getIcon()}</span>
         <div className="flex-1 min-w-0">
           <p className={`${type === 'important' ? 'legacy-text-primary font-bold' : 'font-semibold'} leading-relaxed break-words`}>
             {message}
@@ -125,11 +121,11 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="min-h-touch min-w-touch ml-1 xs:ml-2 text-gray-600 hover:text-gray-800 font-bold text-lg xs:text-xl flex-shrink-0 p-1 rounded transition-colors duration-200"
+          className="min-h-touch min-w-touch ml-1 xs:ml-2 text-gray-600 hover:text-gray-800 flex-shrink-0 p-1 rounded transition-colors duration-200"
           aria-label="Fermer cette notification"
           title="Fermer cette notification"
         >
-          ✕
+          <XIcon className="w-5 h-5" />
         </button>
       </div>
     </div>

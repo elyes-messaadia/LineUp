@@ -6,7 +6,7 @@ import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 import { getDoctorDisplayName } from "../../config/doctors";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCcw, CheckCircle2, Stethoscope, ClipboardList, Home as HomeIcon } from "lucide-react";
 
 export default function VisiteurDashboard() {
   const [user, setUser] = useState(null);
@@ -209,13 +209,16 @@ export default function VisiteurDashboard() {
                     disabled={queueLoading || !isOnline}
                     className="btn-primary"
                   >
-                    {queueLoading ? "Actualisation..." : "Actualiser"}
+                    <span className="inline-flex items-center gap-2">
+                      <RefreshCcw className={`w-4 h-4 ${queueLoading ? 'animate-spin' : ''}`} />
+                      {queueLoading ? "Actualisation..." : "Actualiser"}
+                    </span>
                   </button>
                   <button
                     onClick={() => navigate('/')}
                     className="btn-secondary"
                   >
-                    Accueil
+                    <span className="inline-flex items-center gap-2"><HomeIcon className="w-4 h-4" /> Accueil</span>
                   </button>
                 </div>
               </div>
@@ -225,7 +228,7 @@ export default function VisiteurDashboard() {
 
             {/* Sélecteur de médecin */}
             <div className="dashboard-card dashboard-section">
-              <h3 className="dashboard-card-title">Filtrer par médecin</h3>
+              <h3 className="dashboard-card-title inline-flex items-center gap-2"><Stethoscope className="w-4 h-4" /> Filtrer par médecin</h3>
               <div className="space-y-4">
                 <select
                   value={selectedDoctor || ''}
@@ -245,7 +248,7 @@ export default function VisiteurDashboard() {
 
             {/* Statistiques en temps réel */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">Situation actuelle</h2>
+              <h2 className="dashboard-card-title inline-flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Situation actuelle</h2>
               <div className="stats-grid">
                 <div className="stats-card stats-card-blue">
                   <div className="stats-number">{stats.waitingCount || 0}</div>
@@ -276,7 +279,7 @@ export default function VisiteurDashboard() {
 
             {/* État par médecin */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">État des consultations par médecin</h2>
+              <h2 className="dashboard-card-title inline-flex items-center gap-2"><Stethoscope className="w-4 h-4" /> État des consultations par médecin</h2>
               <div className="dashboard-grid-3">
                 {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
                   const doctorQueue = queue.filter(t => t.docteur === doctorId);
@@ -304,7 +307,7 @@ export default function VisiteurDashboard() {
                               </div>
                             ) : (
                               <div className="status-card status-card-available">
-                                 <div className="status-text">Disponible</div>
+                                 <div className="status-text inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Disponible</div>
                               </div>
                             )}
 
@@ -346,7 +349,9 @@ export default function VisiteurDashboard() {
 
             {/* File d'attente détaillée */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">File d'attente détaillée {selectedDoctor && (
+              <h2 className="dashboard-card-title inline-flex items-center gap-2">
+                <ClipboardList className="w-4 h-4" /> File d'attente détaillée
+                {selectedDoctor && (
                   <span className="text-sm font-normal text-gray-600 ml-2">- {getDoctorDisplayName(selectedDoctor)}</span>
                 )}
               </h2>
