@@ -64,7 +64,7 @@ export function getWelcomeMessage(user, prefix = 'Bienvenue') {
  * @param {Object} user - Objet utilisateur
  */
 export function debugUserData(user) {
-  console.group('🔍 Debug User Data');
+  console.group('Debug User Data');
   console.log('Raw user object:', user);
   console.log('user.fullName:', user?.fullName);
   console.log('user.firstName:', user?.firstName);
@@ -88,7 +88,7 @@ export function cleanupUserData() {
       
       // Si les données semblent corrompues, les supprimer
       if (!user.email) {
-        console.warn('🗑️ Données utilisateur corrompues, nettoyage...');
+        console.warn('Données utilisateur corrompues, nettoyage...');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         localStorage.removeItem('isAuthenticated');

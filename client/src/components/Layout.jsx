@@ -17,7 +17,7 @@ export default function Layout({ children, hideTitle = false, fullscreen = false
                     px-2 xs:px-3 se:px-4 sm:px-6 
                     py-3 xs:py-4 sm:py-8 
                     flex flex-col items-center 
-                    pb-safe-bottom pb-16 se:pb-18 sm:pb-20 
+                    pb-safe-bottom se:pb-18 sm:pb-20 
                     overflow-x-hidden old-device-optimized">
       <Header hideTitle={hideTitle} />
       <main 

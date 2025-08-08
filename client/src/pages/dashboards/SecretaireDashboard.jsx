@@ -361,7 +361,7 @@ export default function SecretaireDashboard() {
         <AnimatedPage>
           <div className="loading-container">
             <div className="loading-content">
-              <div className="loading-spinner animate-float">🏥</div>
+              <div className="loading-spinner animate-float" aria-hidden="true"></div>
               <p className="loading-text">Chargement du dashboard...</p>
             </div>
           </div>

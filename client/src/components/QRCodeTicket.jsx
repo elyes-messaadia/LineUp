@@ -146,7 +146,7 @@ export default function QRCodeTicket() {
       onClick={handlePrint}
       className="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-purple-600 transition-all transform hover:scale-[1.02] font-medium shadow-sm flex items-center justify-center gap-2"
     >
-      <span className="text-xl">{/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? '📥' : '🖨️'}</span>
+      <span className="text-xl" aria-hidden="true"></span>
       <span>{/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'Télécharger le QR code' : 'Imprimer le QR code'}</span>
     </button>
   );

@@ -11,6 +11,7 @@ const BACKEND_URL = (isLocalHost || isLocalNetwork)
   ? (ENV_API || DEFAULT_LOCAL_API)
   : 'https://lineup-backend-xxak.onrender.com';
 
-console.log('🔧 API Configuration:', { env: ENV_API, hostname, finalURL: BACKEND_URL, mode: import.meta.env.MODE });
+// Log de configuration API pour debug local
+console.log('API Configuration:', { env: ENV_API, hostname, finalURL: BACKEND_URL, mode: import.meta.env.MODE });
 
 export default BACKEND_URL; 

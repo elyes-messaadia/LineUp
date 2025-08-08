@@ -321,7 +321,7 @@ export default function VisiteurDashboard() {
                               </div>
                             ) : waiting.length === 0 && (
                               <div className="status-card status-card-empty">
-                                <div className="status-text">🚫 File vide</div>
+                                <div className="status-text">File vide</div>
                               </div>
                             )}
                           </div>

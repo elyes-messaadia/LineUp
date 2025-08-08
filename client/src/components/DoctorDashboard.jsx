@@ -36,7 +36,7 @@ const useDoctorCache = (doctorId) => {
     cleanCache();
     const cached = DOCTOR_CACHE.get(doctorId);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log(`📦 Données en cache trouvées pour ${doctorId}`);
+      console.log(`Données en cache trouvées pour ${doctorId}`);
       return cached.data;
     }
     return null;
@@ -48,7 +48,7 @@ const useDoctorCache = (doctorId) => {
       data,
       timestamp: Date.now()
     });
-    console.log(`💾 Données mises en cache pour ${doctorId}`);
+    console.log(`Données mises en cache pour ${doctorId}`);
   }, [doctorId]);
 
   return { getCachedData, setCachedData };
@@ -114,7 +114,7 @@ export default function DoctorDashboard({ doctorId }) {
     
     setIsLoadingQueue(true);
     try {
-      console.log(`🔍 Chargement optimisé pour ${doctorId}...`);
+        console.log(`Chargement optimisé pour ${doctorId}...`);
       
       // Requêtes optimisées avec timeout et signal d'abort
       const timeoutPromise = new Promise((_, reject) =>
@@ -135,7 +135,7 @@ export default function DoctorDashboard({ doctorId }) {
 
       // Vérifier si la requête a été annulée
       if (signal.aborted) {
-        console.log(`🚫 Requête annulée pour ${doctorId}`);
+        console.log(`Requête annulée pour ${doctorId}`);
         return;
       }
 
@@ -167,7 +167,7 @@ export default function DoctorDashboard({ doctorId }) {
       if (globalQueueRes.ok) {
         const globalStats = await globalQueueRes.json();
         globalQueueData = globalStats.total || globalStats || []; // Support différents formats
-        console.log(`📊 Stats globales: ${globalQueueData.length} tickets`);
+        console.log(`Stats globales: ${globalQueueData.length} tickets`);
       } else {
         console.warn("Erreur chargement stats globales, utilisation cache local");
         globalQueueData = queue; // Garder les données précédentes
@@ -191,7 +191,7 @@ export default function DoctorDashboard({ doctorId }) {
       
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.log(`🚫 Requête annulée pour ${doctorId}`);
+        console.log(`Requête annulée pour ${doctorId}`);
         return;
       }
       
@@ -200,7 +200,7 @@ export default function DoctorDashboard({ doctorId }) {
       // En cas d'erreur, essayer d'utiliser le cache même expiré
       const cachedData = getCachedData();
       if (cachedData) {
-        console.log(`🔄 Utilisation du cache expiré en fallback pour ${doctorId}`);
+        console.log(`Utilisation du cache expiré en fallback pour ${doctorId}`);
         setMyQueue(cachedData.myQueue || []);
         setQueue(cachedData.queue || []);
         setCurrentPatient(cachedData.currentPatient || null);
@@ -217,7 +217,7 @@ export default function DoctorDashboard({ doctorId }) {
   // Gestion optimisée du changement de médecin
   useEffect(() => {
     if (previousDoctorId.current !== doctorId) {
-      console.log(`🔄 Changement de médecin: ${previousDoctorId.current} → ${doctorId}`);
+      console.log(`Changement de médecin: ${previousDoctorId.current} → ${doctorId}`);
       setIsTransitioning(true);
       
       // Essayer d'utiliser le cache pour une transition fluide
@@ -243,7 +243,7 @@ export default function DoctorDashboard({ doctorId }) {
   }, [loadQueue, isLoadingQueue]);
 
   useEffect(() => {
-    console.log(`🔄 DoctorDashboard useEffect triggered for doctorId: ${doctorId}`);
+    console.log(`DoctorDashboard useEffect triggered for doctorId: ${doctorId}`);
     
     const userData = localStorage.getItem("user");
     const isAuthenticated = localStorage.getItem("isAuthenticated");
@@ -682,13 +682,13 @@ export default function DoctorDashboard({ doctorId }) {
                           <div className="ticket-number"><TicketIcon className="w-4 h-4 inline mr-1" /> #{ticket.number}</div>
                           {ticket.patientName && (
                             <div className="flex items-center gap-2 text-base font-medium text-blue-700 mt-1">
-                              👤 {ticket.patientName}
+                              {ticket.patientName}
                             </div>
                           )}
                           <div className="flex gap-2 mt-2">
                             {ticket.ticketType === 'physique' && (
                               <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
-                                🎫 Physique
+                                Physique
                               </span>
                             )}
                             {ticket.createdBy === 'secretary' && (

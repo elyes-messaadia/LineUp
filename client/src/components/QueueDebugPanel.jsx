@@ -11,7 +11,7 @@ export default function QueueDebugPanel({ queue, selectedDoctor, stats, lastUpda
           className="bg-purple-600 text-white p-2 rounded-full shadow-lg hover:bg-purple-700 transition"
           title="Debug Queue"
         >
-          🐛
+          
         </button>
       </div>
     );
@@ -20,7 +20,7 @@ export default function QueueDebugPanel({ queue, selectedDoctor, stats, lastUpda
   return (
     <div className="fixed bottom-4 right-4 bg-white border-2 border-purple-300 rounded-lg p-4 shadow-xl z-50 max-w-md">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-bold text-purple-800">🐛 Queue Debug</h3>
+        <h3 className="font-bold text-purple-800">Queue Debug</h3>
         <button
           onClick={() => setIsExpanded(false)}
           className="text-gray-500 hover:text-gray-700"

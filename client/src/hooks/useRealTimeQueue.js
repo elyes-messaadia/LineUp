@@ -30,7 +30,7 @@ const useQueueCache = (selectedDoctor) => {
     cleanQueueCache();
     const cached = QUEUE_CACHE.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log(`📦 Données de file en cache trouvées pour ${cacheKey}`);
+      console.log(`Données de file en cache trouvées pour ${cacheKey}`);
       return cached.data;
     }
     return null;
@@ -42,7 +42,7 @@ const useQueueCache = (selectedDoctor) => {
       data,
       timestamp: Date.now()
     });
-    console.log(`💾 File d'attente mise en cache pour ${cacheKey}`);
+    console.log(`File d'attente mise en cache pour ${cacheKey}`);
   }, [cacheKey]);
 
   return { getCachedData, setCachedData };
@@ -147,7 +147,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
         url += `?docteur=${selectedDoctor}`;
       }
       
-      console.log(`🔄 Fetching queue optimisé: ${url}`); // Debug
+      console.log(`Fetching queue optimisé: ${url}`); // Debug
       
       const response = await fetch(url, {
         method: 'GET',
@@ -170,13 +170,13 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
       
       // Vérifier que nous sommes toujours sur le même docteur (éviter race conditions)
       if (currentDoctorRef.current !== selectedDoctor) {
-        console.log('🚫 Ignoring fetch result - doctor changed'); // Debug
+        console.log('Ignoring fetch result - doctor changed'); // Debug
         return;
       }
       
       // Vérifier si la requête a été annulée
       if (signal.aborted) {
-        console.log(`🚫 Requête annulée pour ${selectedDoctor || 'all'}`);
+        console.log(`Requête annulée pour ${selectedDoctor || 'all'}`);
         return;
       }
       
@@ -215,7 +215,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
       if (!isMountedRef.current) return;
       
       if (err.name === 'AbortError') {
-        console.log(`🚫 Requête fetch annulée pour ${selectedDoctor || 'all'}`);
+        console.log(`Requête fetch annulée pour ${selectedDoctor || 'all'}`);
         return;
       }
       
@@ -225,7 +225,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
       // En cas d'erreur, essayer d'utiliser le cache même expiré
       const cachedData = getCachedData();
       if (cachedData && retryCountRef.current < 3) {
-        console.log(`🔄 Utilisation du cache expiré en fallback pour ${selectedDoctor || 'all'}`);
+        console.log(`Utilisation du cache expiré en fallback pour ${selectedDoctor || 'all'}`);
         setQueue(cachedData.queue);
         setLastUpdate(new Date(cachedData.lastUpdate).getTime());
         setError('Données en cache (connexion instable)');
@@ -278,7 +278,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
   // Gestion optimisée du changement de médecin (nouvelle logique)
   useEffect(() => {
     if (previousDoctorRef.current !== selectedDoctor) {
-      console.log(`🔄 Changement de médecin dans Queue: ${previousDoctorRef.current || 'all'} → ${selectedDoctor || 'all'}`);
+      console.log(`Changement de médecin dans Queue: ${previousDoctorRef.current || 'all'} → ${selectedDoctor || 'all'}`);
       setIsTransitioning(true);
       
       // Essayer d'utiliser le cache pour une transition fluide
@@ -304,7 +304,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
 
   // Effet principal - configuration initiale et gestion des changements
   useEffect(() => {
-    console.log(`🔄 useRealTimeQueue useEffect triggered for: ${selectedDoctor || 'all'}`); // Debug
+    console.log(`useRealTimeQueue useEffect triggered for: ${selectedDoctor || 'all'}`); // Debug
     
     isActiveRef.current = true;
     isMountedRef.current = true;
@@ -313,7 +313,7 @@ export function useRealTimeQueue(onStatusChange = null, selectedDoctor = null) {
     // Pas de reset brutal ! On essaie d'abord le cache
     const cachedData = getCachedData();
     if (cachedData && !isTransitioning) {
-      console.log(`📦 Initialisation avec cache pour ${selectedDoctor || 'all'}`);
+      console.log(`Initialisation avec cache pour ${selectedDoctor || 'all'}`);
       setQueue(cachedData.queue);
       setLastUpdate(new Date(cachedData.lastUpdate).getTime());
       setError(null);

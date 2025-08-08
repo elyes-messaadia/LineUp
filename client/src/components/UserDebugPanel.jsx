@@ -18,7 +18,7 @@ export default function UserDebugPanel() {
     localStorage.removeItem('token');
     localStorage.removeItem('isAuthenticated');
     setUserData(null);
-    console.log('🗑️ Données utilisateur supprimées');
+    console.log('Données utilisateur supprimées');
   };
 
   if (!isOpen) {
@@ -31,7 +31,7 @@ export default function UserDebugPanel() {
         className="fixed bottom-4 right-4 bg-red-500 text-white p-2 rounded-full shadow-lg z-50 text-xs"
         title="Debug utilisateur"
       >
-        🔧
+        
       </button>
     );
   }
@@ -39,7 +39,7 @@ export default function UserDebugPanel() {
   return (
     <div className="fixed bottom-4 right-4 bg-white border-2 border-red-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold text-red-700">🔧 Debug Utilisateur</h3>
+        <h3 className="font-bold text-red-700">Debug Utilisateur</h3>
         <button
           onClick={() => setIsOpen(false)}
           className="text-red-500 hover:text-red-700"
@@ -90,13 +90,13 @@ export default function UserDebugPanel() {
           onClick={loadUserData}
           className="w-full bg-blue-500 text-white p-1 rounded text-xs"
         >
-          🔄 Recharger
+          Recharger
         </button>
         <button
           onClick={clearUserData}
           className="w-full bg-red-500 text-white p-1 rounded text-xs"
         >
-          🗑️ Vider cache
+          Vider cache
         </button>
       </div>
     </div>

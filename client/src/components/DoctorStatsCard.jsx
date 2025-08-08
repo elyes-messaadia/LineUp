@@ -81,7 +81,7 @@ const DoctorStatsCard = ({ doctorId, stats, currentPatient, nextPatient }) => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-8">
-                  <div className="font-medium text-green-800">🩺 En consultation</div>
+                  <div className="font-medium text-green-800">En consultation</div>
                   <div className="text-sm text-green-600">
                     Ticket #{currentPatient.number}
                   </div>
@@ -99,7 +99,7 @@ const DoctorStatsCard = ({ doctorId, stats, currentPatient, nextPatient }) => {
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="text-center text-gray-500">
-                <div className="font-medium">💤 Aucune consultation</div>
+                <div className="font-medium">Aucune consultation</div>
                 <div className="text-sm">Libre actuellement</div>
               </div>
             </div>
@@ -128,14 +128,14 @@ const DoctorStatsCard = ({ doctorId, stats, currentPatient, nextPatient }) => {
           ) : waiting > 0 ? (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="text-center text-blue-600">
-                <div className="font-medium">📋 File d'attente</div>
+                <div className="font-medium">File d'attente</div>
                 <div className="text-sm">{waiting} patient{waiting > 1 ? 's' : ''} en attente</div>
               </div>
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="text-center text-gray-500">
-                <div className="font-medium">🎯 File vide</div>
+                <div className="font-medium">File vide</div>
                 <div className="text-sm">Aucun patient en attente</div>
               </div>
             </div>

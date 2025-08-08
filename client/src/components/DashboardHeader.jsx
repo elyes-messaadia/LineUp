@@ -85,8 +85,7 @@ const DashboardHeader = ({
               "
               title="Se déconnecter"
             >
-              <span className="block sm:hidden">🚪</span>
-              <span className="hidden sm:block">🔒 Déconnexion</span>
+              <span className="hidden sm:block">Déconnexion</span>
             </button>
           )}
         </div>

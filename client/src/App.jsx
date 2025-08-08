@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { Home as HomeIcon, ClipboardList, Ticket as TicketIcon, BarChart3, LogOut, Lock, Star } from "lucide-react";
 
-// Hook pour détecter si on est sur desktop (768px+)
+// Détecte si l’écran est de taille desktop (>= 768px) et renvoie un booléen
 const useIsDesktop = () => {
   const [isDesktop, setIsDesktop] = useState(false);
   
@@ -51,7 +51,7 @@ function App() {
   // Utiliser notre hook pour détecter desktop
   const isDesktop = useIsDesktop();
 
-  // Écouter les changements d'authentification
+  // Écoute les changements d'authentification et synchronise l'état local
   useEffect(() => {
     const handleAuthChange = () => {
       setIsAuthenticated(localStorage.getItem("isAuthenticated"));
@@ -142,10 +142,7 @@ function App() {
                   {/* Badge utilisateur amélioré */}
                   <div className="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
                     <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                      {user.role?.name === "medecin" && "🩺"}
-                      {user.role?.name === "secretaire" && "👩‍💼"}
-                      {user.role?.name === "patient" && "👤"}
-                      {user.role?.name === "visiteur" && "👁️"}
+                      {user.role?.name}
                     </div>
                     <div className="text-sm">
                       <div className="font-medium text-gray-900">{getDisplayName(user)}</div>
@@ -249,10 +246,7 @@ function App() {
                 {/* Badge utilisateur mobile */}
                 <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
-                    {user.role?.name === "medecin" && "🩺"}
-                    {user.role?.name === "secretaire" && "👩‍💼"}
-                    {user.role?.name === "patient" && "👤"}
-                    {user.role?.name === "visiteur" && "👁️"}
+                    {user.role?.name}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-gray-900 truncate">{getDisplayName(user)}</div>

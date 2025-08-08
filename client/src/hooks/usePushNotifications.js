@@ -3,7 +3,7 @@ import BACKEND_URL from '../config/api';
 
 const VAPID_PUBLIC_KEY = 'BE6TTcnzxhHpEBQTomuclPw9snOauTKkweaL4HnnnatHhUjy_xk8xtMqDHVYhm9PolO19WIuE_M41U7yofhAPA0';
 
-console.log('🔔 Push Notifications Hook - Backend URL:', BACKEND_URL);
+console.log('Push Notifications Hook - Backend URL:', BACKEND_URL);
 
 export const usePushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
@@ -45,7 +45,7 @@ export const usePushNotifications = () => {
                        'PushManager' in window && 
                        'Notification' in window;
       setIsSupported(supported);
-      console.log(`🔔 Support notifications push: ${supported ? '✅' : '❌'}`);
+      console.log(`Support notifications push: ${supported ? 'oui' : 'non'}`);
     };
 
     checkSupport();
@@ -102,7 +102,7 @@ export const usePushNotifications = () => {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
 
-      console.log('📱 Nouvel abonnement créé:', newSubscription.endpoint.substring(0, 50) + '...');
+      console.log('Nouvel abonnement créé:', newSubscription.endpoint.substring(0, 50) + '...');
 
       // Envoyer l'abonnement au serveur
       const token = localStorage.getItem('token');
@@ -169,7 +169,7 @@ export const usePushNotifications = () => {
 
       // 2. Ensuite désabonner côté client
       const unsubscribeSuccess = await subscription.unsubscribe();
-      console.log('📱 Désabonnement client:', unsubscribeSuccess ? '✅' : '❌');
+      console.log('Désabonnement client:', unsubscribeSuccess ? 'ok' : 'échec');
 
       // 3. ✅ Mise à jour immédiate des états après succès
       setSubscription(null);
@@ -192,7 +192,7 @@ export const usePushNotifications = () => {
 
   // Fonction pour forcer la vérification (utile pour débugger)
   const refreshStatus = useCallback(async () => {
-    console.log('🔄 Rafraîchissement statut notifications...');
+    console.log('Rafraîchissement statut notifications...');
     await checkExistingSubscription();
   }, [checkExistingSubscription]);
 

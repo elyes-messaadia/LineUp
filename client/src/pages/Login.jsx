@@ -42,7 +42,7 @@ export default function Login() {
       }
 
       // Debug pour diagnostiquer le problème
-      console.log('🔍 Données reçues du serveur:', data.user);
+  console.log('Données reçues du serveur:', data.user);
       debugUserData(data.user);
 
       // Stocker les informations utilisateur

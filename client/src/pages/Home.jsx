@@ -25,7 +25,7 @@ export default function Home() {
   const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
 
   useEffect(() => {
-    // Vérifier l'authentification
+    // Vérifie l’état d’authentification initial au montage
     const userData = localStorage.getItem("user");
     const authStatus = localStorage.getItem("isAuthenticated");
     
@@ -37,6 +37,7 @@ export default function Home() {
 
   // Déclenche la prise de ticket selon l'état d'authentification et le rôle
   const handleTakeTicket = () => {
+    // Utilisateur connecté: diriger en fonction du rôle
     if (isAuthenticated && user) {
       // Si connecté, vérifier le rôle
       if (user.role.name === "visiteur") {
@@ -55,7 +56,7 @@ export default function Home() {
       }
     }
     
-    // Mode anonyme (ancien système)
+    // Mode anonyme: affiche la modale de création de ticket
     setShowTicketModal(true);
   };
 
@@ -77,7 +78,7 @@ export default function Home() {
     try {
       showInfo(`Création de votre ticket pour ${selectedDoctorInfo.label}...`);
       
-      console.log('🎯 Using API URL:', BACKEND_URL);
+  console.log('Using API URL:', BACKEND_URL);
       
       const res = await fetch(`${BACKEND_URL}/ticket`, {
         method: "POST",

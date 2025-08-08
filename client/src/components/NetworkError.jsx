@@ -5,7 +5,7 @@ export default function NetworkError({ error, onRetry, isConnected = false }) {
     <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-6 max-w-md mx-auto">
       <div className="text-center">
         <div className="text-4xl mb-4">
-          {isConnected ? '⚠️' : '🌐'}
+          {isConnected ? '' : ''}
         </div>
         
         <h3 className="text-lg font-bold text-red-800 mb-2">
@@ -27,7 +27,7 @@ export default function NetworkError({ error, onRetry, isConnected = false }) {
               onClick={onRetry}
               className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg border border-red-300 transition-colors touch-target-large font-medium"
             >
-              🔄 Réessayer
+              Réessayer
             </button>
             
             <div className="text-xs text-red-600">

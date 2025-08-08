@@ -91,7 +91,7 @@ export default function ConfirmModal({
   const getIcon = () => {
     switch (type) {
       case 'danger':
-        return "🚨";
+    return "";
       case 'info':
         return "ℹ️";
       case 'warning':

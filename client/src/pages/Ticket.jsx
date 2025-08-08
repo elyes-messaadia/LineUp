@@ -215,7 +215,7 @@ function Ticket() {
                 showSuccess(`Ticket n°${serverTicket.number} - En attente`, 3000);
                 break;
               case "en_consultation":
-                showImportant("🩺 Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
+                showImportant("Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
                 break;
               case "termine":
                 showInfo("✅ Votre consultation est terminée", 4000);
