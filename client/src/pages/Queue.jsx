@@ -193,7 +193,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
             </div>
             {/* Docteur */}
             <div className="text-xs sm:text-sm text-gray-500 legacy-text-secondary truncate">
-              👨‍⚕️ {getDoctorDisplayName(ticket.docteur) || 'Docteur général'}
+              {getDoctorDisplayName(ticket.docteur) || 'Docteur général'}
             </div>
           </div>
         </div>
@@ -244,7 +244,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
         {ticket.status === "en_consultation" && (
           <div className="bg-green-50 border border-green-200 rounded px-3 py-2 mt-2">
             <span className="text-green-700 font-medium text-xs sm:text-sm">
-              🩺 En consultation actuellement
+              En consultation actuellement
             </span>
           </div>
         )}
@@ -252,7 +252,7 @@ const CleanTicketCard = ({ ticket, isMyTicket, position, estimatedWait, hasStatu
         {ticket.status === "termine" && (
           <div className="bg-gray-50 border border-gray-200 rounded px-3 py-2 mt-2">
             <span className="text-gray-600 font-medium text-xs sm:text-sm">
-              ✅ Consultation terminée à {formatTime(ticket.updatedAt || ticket.createdAt)}
+              Consultation terminée à {formatTime(ticket.updatedAt || ticket.createdAt)}
             </span>
           </div>
         )}

@@ -35,6 +35,7 @@ export default function Home() {
     }
   }, []);
 
+  // Déclenche la prise de ticket selon l'état d'authentification et le rôle
   const handleTakeTicket = () => {
     if (isAuthenticated && user) {
       // Si connecté, vérifier le rôle

@@ -540,9 +540,9 @@ export default function DoctorDashboard({ doctorId }) {
 
                   {/* Notes de consultation si disponibles */}
                   {currentPatient.notes && (
-                    <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-300 rounded-r-lg p-4 mb-6">
+                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-300 rounded-r-lg p-4 mb-6">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">📝</span>
+                        <span className="text-lg" aria-hidden="true"></span>
                         <span className="font-medium text-yellow-700">Notes de la secrétaire</span>
                       </div>
                       <p className="text-yellow-800 italic">{currentPatient.notes}</p>

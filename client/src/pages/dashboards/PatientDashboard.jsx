@@ -103,7 +103,7 @@ function PatientDashboard() {
       // D'abord, essayer de récupérer le ticket depuis le serveur (pour les patients connectés)
       const token = localStorage.getItem("token");
       if (token) {
-        console.log(`🎫 Chargement ticket pour patient authentifié...`);
+        console.log(`Chargement ticket pour patient authentifié...`);
         const res = await fetch(`${BACKEND_URL}/patient/my-ticket`, {
           headers: {
             "Authorization": `Bearer ${token}`
@@ -112,7 +112,7 @@ function PatientDashboard() {
         
         if (res.ok) {
           const data = await res.json();
-          console.log(`✅ Ticket trouvé: n°${data.ticket.number} - statut: ${data.ticket.status}`);
+          console.log(`Ticket trouvé: n°${data.ticket.number} - statut: ${data.ticket.status}`);
           setMyTicket(data.ticket);
           localStorage.setItem("lineup_ticket", JSON.stringify(data.ticket));
           return;
@@ -237,13 +237,13 @@ function PatientDashboard() {
     
     // Vérifier si le statut a changé
     if (myTicketInQueue.status !== myTicket.status) {
-      console.log(`🔄 Statut ticket mis à jour: ${myTicket.status} → ${myTicketInQueue.status}`);
+    console.log(`Statut ticket mis à jour: ${myTicket.status} → ${myTicketInQueue.status}`);
       const updatedTicket = { ...myTicket, status: myTicketInQueue.status };
       setMyTicket(updatedTicket);
       localStorage.setItem("lineup_ticket", JSON.stringify(updatedTicket));
       
       if (myTicketInQueue.status === "en_consultation") {
-        showSuccess("C'est votre tour ! Présentez-vous au cabinet 🩺", 5000);
+        showSuccess("C'est votre tour ! Présentez-vous au cabinet", 5000);
       } else if (myTicketInQueue.status === "termine") {
         showInfo("Votre consultation est terminée", 3000);
         setTimeout(() => {
@@ -513,8 +513,8 @@ function PatientDashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       {myTicket ? 
-                        `🎫 Ticket n°${myTicket.number}` : 
-                        "✅ Aucun ticket actif"
+                       `Ticket n°${myTicket.number}` : 
+                       "Aucun ticket actif"
                       }
                     </div>
                     <div className="flex items-center gap-2">
@@ -548,9 +548,9 @@ function PatientDashboard() {
             {myTicket ? (
               <div className="dashboard-card dashboard-section">
                 <h2 className="dashboard-card-title">
-                  🎫 Mon ticket de consultation
+                 Mon ticket de consultation
                   {myTicket.status === "en_consultation" && (
-                    <span className="animate-pulse ml-2">🩺</span>
+                   <span className="animate-pulse ml-2" aria-hidden="true"></span>
                   )}
                 </h2>
                 
@@ -567,7 +567,7 @@ function PatientDashboard() {
                       <p className={`text-3xl font-bold ${
                         myTicket.status === "en_consultation" ? "text-green-800" : "text-blue-800"
                       }`}>
-                        🎫 #{myTicket.number}
+                       #{myTicket.number}
                       </p>
                     </div>
                     
@@ -589,7 +589,7 @@ function PatientDashboard() {
                       <p className={`text-xl font-bold ${
                         myTicket.status === "en_consultation" ? "text-green-800" : "text-blue-800"
                       }`}>
-                        {myTicket.status === "en_consultation" ? "🩺 En consultation" : "⏳ En attente"}
+                       {myTicket.status === "en_consultation" ? "En consultation" : "En attente"}
                       </p>
                     </div>
                     
@@ -603,8 +603,8 @@ function PatientDashboard() {
                         myTicket.status === "en_consultation" ? "text-green-800" : "text-blue-800"
                       }`}>
                         {myTicket.status === "en_consultation" 
-                          ? `⏱️ ${waitingTime}min`
-                          : myPosition ? `📍 #${myPosition}` : "🔄 Calcul..."
+                          ? `${waitingTime}min`
+                          : myPosition ? `#${myPosition}` : "Calcul..."
                         }
                       </p>
                     </div>
@@ -632,7 +632,7 @@ function PatientDashboard() {
                         : "bg-blue-100 border border-blue-200"
                     }`}>
                       <div className="text-sm text-gray-600">Temps d'attente</div>
-                      <div className="font-bold">⏱️ {waitingTime}min</div>
+                      <div className="font-bold">{waitingTime}min</div>
                     </div>
                     
                     {myTicket.status === "en_attente" && estimatedWaitTime && (
@@ -651,14 +651,14 @@ function PatientDashboard() {
                         disabled={isLoading || !isOnline}
                         className="btn-danger btn-large"
                       >
-                        {isLoading ? "🔄 Annulation..." : "❌ Annuler mon ticket"}
+                       {isLoading ? "Annulation..." : "Annuler mon ticket"}
                       </button>
                     )}
                     
                     {myTicket.status === "en_consultation" && (
                       <div className="text-center">
                         <div className="text-lg font-bold text-green-800 mb-2">
-                          🩺 Vous êtes en consultation !
+                          Vous êtes en consultation !
                         </div>
                         <div className="text-sm text-green-600">
                           Veuillez vous rendre dans le cabinet médical
@@ -672,7 +672,7 @@ function PatientDashboard() {
               /* Créer un nouveau ticket */
               <div className="dashboard-card dashboard-section">
                 <h2 className="dashboard-card-title">
-                  🎫 Prendre un ticket de consultation
+                 Prendre un ticket de consultation
                 </h2>
                 
                 <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-l-4 border-emerald-500 rounded-lg p-6">
@@ -691,7 +691,7 @@ function PatientDashboard() {
                     disabled={isLoading || !isOnline}
                     className="btn-success btn-full btn-large"
                   >
-                    {isLoading ? "🔄 Création..." : "🎫 Prendre un ticket"}
+                   {isLoading ? "Création..." : "Prendre un ticket"}
                   </button>
                 </div>
               </div>
@@ -700,7 +700,7 @@ function PatientDashboard() {
             {/* Situation générale */}
             <div className="dashboard-card dashboard-section">
               <h2 className="dashboard-card-title">
-                📊 Situation des consultations
+               Situation des consultations
                 <span className="animate-pulse ml-2">🔴</span>
               </h2>
               
@@ -718,17 +718,17 @@ function PatientDashboard() {
                         <div className="col-span-7">
                           <h4 className="doctor-status-title mb-2">
                             {getDoctorDisplayName(doctor.value)}
-                            {isMyDoctor && <span className="ml-2">👤</span>}
+                           {isMyDoctor && <span className="ml-2" aria-hidden="true"></span>}
                           </h4>
                           
                           <div className="mt-2">
                             {doctorStats.inConsultation > 0 ? (
                               <div className="status-card status-card-consultation">
-                                <div className="status-text">🩺 En consultation</div>
+                                <div className="status-text">En consultation</div>
                               </div>
                             ) : (
                               <div className="status-card status-card-available">
-                                <div className="status-text">✅ Disponible</div>
+                                <div className="status-text">Disponible</div>
                               </div>
                             )}
                           </div>
@@ -738,11 +738,11 @@ function PatientDashboard() {
                           <div className="grid grid-cols-1 gap-2">
                             <div className="doctor-waiting-count text-center">
                               <div className="doctor-waiting-number text-lg">{doctorStats.waiting || 0}</div>
-                              <div className="doctor-waiting-label text-xs">👥 en attente</div>
+                              <div className="doctor-waiting-label text-xs">en attente</div>
                             </div>
                             <div className="doctor-waiting-count text-center">
                               <div className="doctor-waiting-number text-lg">{doctorStats.estimatedWait || 0}min</div>
-                              <div className="doctor-waiting-label text-xs">⏱️ temps estimé</div>
+                              <div className="doctor-waiting-label text-xs">temps estimé</div>
                             </div>
                           </div>
                         </div>
@@ -756,7 +756,7 @@ function PatientDashboard() {
             {/* Actions rapides */}
             <div className="dashboard-card dashboard-section">
               <h2 className="dashboard-card-title">
-                ⚡ Actions rapides
+               Actions rapides
               </h2>
               
               <div className="dashboard-grid-3">
@@ -768,7 +768,7 @@ function PatientDashboard() {
                   disabled={isLoading || !isOnline}
                   className="btn-primary btn-large"
                 >
-                  {isLoading ? "🔄 Actualisation..." : "🔄 Actualiser"}
+                  {isLoading ? "Actualisation..." : "Actualiser"}
                 </button>
                 
                 {!myTicket && (
@@ -777,7 +777,7 @@ function PatientDashboard() {
                     disabled={isLoading || !isOnline}
                     className="btn-success btn-large"
                   >
-                    🎫 Prendre un ticket
+                    Prendre un ticket
                   </button>
                 )}
                 
@@ -785,32 +785,32 @@ function PatientDashboard() {
                   onClick={() => navigate('/queue')}
                   className="btn-secondary btn-large"
                 >
-                  📋 Voir la file complète
+                  Voir la file complète
                 </button>
               </div>
 
               {/* Diagnostic - Mode développement ou en cas de problème */}
               {(myTicket && process.env.NODE_ENV === 'development') && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">🔧 Diagnostic Ticket</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Diagnostic Ticket</h4>
                   <div className="text-xs space-y-1 text-gray-600">
                     <p><strong>ID:</strong> {myTicket._id}</p>
                     <p><strong>Numéro:</strong> {myTicket.number}</p>
                     <p><strong>Statut:</strong> {myTicket.status}</p>
                     <p><strong>Docteur:</strong> {myTicket.docteur}</p>
                     <p><strong>SessionId:</strong> {myTicket.sessionId || 'N/A'}</p>
-                    <p><strong>Dans la file:</strong> {queue.find(t => t._id === myTicket._id) ? '✅ Oui' : '❌ Non'}</p>
+                    <p><strong>Dans la file:</strong> {queue.find(t => t._id === myTicket._id) ? 'Oui' : 'Non'}</p>
                   </div>
                   <button
                     onClick={() => {
-                      console.log('🎫 Ticket actuel:', myTicket);
-                      console.log('📋 File actuelle:', queue);
+                      console.log('Ticket actuel:', myTicket);
+                      console.log('File actuelle:', queue);
                       const ticketInQueue = queue.find(t => t._id === myTicket._id);
-                      console.log('🔍 Ticket dans la file:', ticketInQueue);
+                      console.log('Ticket dans la file:', ticketInQueue);
                     }}
                     className="mt-2 text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
                   >
-                    📊 Log Debug Console
+                    Log Debug Console
                   </button>
                 </div>
               )}
@@ -819,13 +819,13 @@ function PatientDashboard() {
             {/* Informations utiles */}
             <div className="dashboard-card dashboard-section">
               <h2 className="dashboard-card-title">
-                💡 Informations utiles
+               Informations utiles
               </h2>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">🎫</div>
+                    <div className="text-blue-600 text-xl" aria-hidden="true"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Votre ticket</h4>
                       <p className="text-sm text-blue-600">
@@ -835,7 +835,7 @@ function PatientDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">⏱️</div>
+                    <div className="text-blue-600 text-xl" aria-hidden="true"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Temps d'attente</h4>
                       <p className="text-sm text-blue-600">
@@ -845,7 +845,7 @@ function PatientDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">🔄</div>
+                    <div className="text-blue-600 text-xl" aria-hidden="true"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Actualisation</h4>
                       <p className="text-sm text-blue-600">
@@ -887,11 +887,11 @@ function PatientDashboard() {
             {/* Modales */}
             <ConfirmModal
               isOpen={showTicketModal}
-              title="🎫 Prendre un ticket de consultation"
+              title="Prendre un ticket de consultation"
               message={
                 <div className="space-y-6">
                   <div className="modal-content-horizontal">
-                    <div className="modal-icon">🎫</div>
+                   <div className="modal-icon"></div>
                     <div className="modal-text">
                       <p className="modal-title-text">
                         Sélectionnez le médecin que vous souhaitez consulter :
@@ -915,7 +915,7 @@ function PatientDashboard() {
                           <div className="flex-1">
                             <div className="font-medium">{doctor.label}</div>
                             <div className="text-sm text-gray-600">
-                              👥 {doctorStats.waiting || 0} en attente • ⏱️ ~{doctorStats.estimatedWait || 0}min
+                              {doctorStats.waiting || 0} en attente • ~{doctorStats.estimatedWait || 0}min
                             </div>
                           </div>
                         </label>
@@ -929,7 +929,7 @@ function PatientDashboard() {
                 setShowTicketModal(false);
                 setSelectedDoctor("");
               }}
-              confirmText="🎫 Créer mon ticket"
+              confirmText="Créer mon ticket"
               cancelText="❌ Annuler"
               isLoading={isLoading}
             />
