@@ -12,7 +12,7 @@ import { getDisplayName } from "../../utils/userUtils";
 import NotificationSettings from "../../components/NotificationSettings";
 import PushTestPanel from "../../components/PushTestPanel";
 
-export default function PatientDashboard() {
+function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [myTicket, setMyTicket] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -961,4 +961,6 @@ export default function PatientDashboard() {
       </AnimatedPage>
     </Layout>
   );
-} 
+}
+
+export default PatientDashboard;

@@ -9,7 +9,7 @@ import { useToast } from "../hooks/useToast";
 import BACKEND_URL from "../config/api";
 import { Loader2, Ticket as TicketIcon, CheckCircle2, X as XIcon, RefreshCcw, ClipboardList, Info } from "lucide-react";
 
-export default function Ticket() {
+function Ticket() {
   const [ticket, setTicket] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -559,3 +559,5 @@ export default function Ticket() {
     </Layout>
   );
 }
+
+export default Ticket;
