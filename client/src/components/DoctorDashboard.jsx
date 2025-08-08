@@ -761,7 +761,6 @@ export default function DoctorDashboard({ doctorId }) {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-icon">🎯</div>
                   <div className="empty-text">
                     <h3>Aucun patient en attente</h3>
                     <p>Votre file d'attente est actuellement vide. Profitez de cette pause !</p>
