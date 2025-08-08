@@ -691,13 +691,13 @@ export default function SecretaireDashboard() {
                        "Appeler le patient suivant"}
                     </button>
                     
-                    <button
-                      onClick={() => fetchQueue()}
-                      disabled={isLoading || !isOnline}
-                      className="btn-secondary btn-full btn-large"
-                    >
-                      {isLoading ? "Actualisation..." : "Actualiser maintenant"}
-                    </button>
+                  <button
+                    onClick={() => fetchQueue()}
+                    disabled={isLoading || !isOnline}
+                    className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg border border-blue-600 hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? "Actualisation..." : "Actualiser maintenant"}
+                  </button>
                   </div>
                 </div>
 

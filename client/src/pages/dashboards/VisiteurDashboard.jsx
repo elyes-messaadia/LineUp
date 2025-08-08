@@ -207,7 +207,7 @@ export default function VisiteurDashboard() {
                   <button
                     onClick={() => loadQueue()}
                     disabled={queueLoading || !isOnline}
-                    className="btn-primary"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg border border-blue-600 hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
                   >
                     <span className="inline-flex items-center gap-2">
                       <RefreshCcw className={`w-4 h-4 ${queueLoading ? 'animate-spin' : ''}`} />
