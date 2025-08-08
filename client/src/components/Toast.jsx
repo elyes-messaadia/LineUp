@@ -8,8 +8,8 @@ export default function Toast({ toasts, removeToast }) {
   return (
     <div 
       className="fixed 
-                 top-safe-top top-3 xs:top-4 
-                 left-safe-left left-3 right-safe-right right-3 xs:right-4 
+                 top-safe-top xs:top-4 
+                 left-safe-left right-safe-right xs:right-4 
                  se:left-auto se:max-w-sm 
                  z-50 space-y-2 xs:space-y-3 
                  old-device-optimized"
