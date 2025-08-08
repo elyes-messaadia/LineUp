@@ -3,6 +3,8 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
+const ticketRoutes = require("./routes/ticket");
+const ticketLegacyRoutes = require("./routes/ticket-legacy");
 const { authenticateOptional } = require("./middlewares/auth");
 const errorHandler = require("./middlewares/errorHandler");
 const Ticket = require("./models/Ticket");
@@ -145,6 +147,14 @@ connectDB();
 
 // 🔐 Routes d'authentification centralisées
 app.use("/auth", authRoutes);
+
+// 🎫 Routes tickets (basées sur controllers)
+app.use("/tickets", ticketRoutes);
+
+// 🧩 Routes historiques (compat et logique avancée désormais en controllers)
+app.use("/", ticketLegacyRoutes);
+
+// Anciennes routes inline supprimées au profit des controllers et routeurs dédiés
 
 // 🎫 Créer un ticket (version améliorée avec support tickets physiques)
 app.post("/ticket", authenticateOptional, async (req, res) => {
