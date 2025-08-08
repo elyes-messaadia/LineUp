@@ -110,7 +110,7 @@ export default function SecretaireDashboard() {
     } catch (error) {
       console.error("Erreur chargement queue:", error);
       if (isOnline) {
-        showError("❌ Erreur de connexion au serveur", 3000);
+        showError("Erreur de connexion au serveur", 3000);
       }
     }
   };
@@ -231,16 +231,16 @@ export default function SecretaireDashboard() {
         
         // Messages d'erreur personnalisés pour une meilleure UX
         if (errorMessage.includes("aucun patient")) {
-          throw new Error("ℹ️ Aucun patient en attente pour ce médecin actuellement.");
+          throw new Error("Aucun patient en attente pour ce médecin actuellement.");
         } else if (errorMessage.includes("déjà en consultation")) {
-          throw new Error("⚠️ Ce médecin a déjà un patient en consultation.");
+          throw new Error("Ce médecin a déjà un patient en consultation.");
         } else {
           throw new Error(errorMessage);
         }
       }
 
       const data = await res.json();
-      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation pour ${getDoctorDisplayName(selectedDoctorForCall)} ! 🎉`, 4000);
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation pour ${getDoctorDisplayName(selectedDoctorForCall)} !`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -285,7 +285,7 @@ export default function SecretaireDashboard() {
         // Messages d'erreur personnalisés pour une meilleure UX
         // (Les secrétaires peuvent créer plusieurs tickets sans restriction)
         if (errorMessage.includes("limite") && user.role.name !== 'secretaire') {
-          throw new Error("⚠️ Limite de tickets atteinte pour aujourd'hui.");
+          throw new Error("Limite de tickets atteinte pour aujourd'hui.");
         } else {
           throw new Error(errorMessage);
         }
@@ -294,7 +294,7 @@ export default function SecretaireDashboard() {
       const data = await res.json();
       const ticketNumber = data.ticket?.number || data.number || "N/A";
       const patientDisplay = ticketType === 'physique' && patientName ? ` (${patientName})` : '';
-      showSuccess(`Ticket n°${ticketNumber}${patientDisplay} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} ! 🎫`, 4000);
+      showSuccess(`Ticket n°${ticketNumber}${patientDisplay} créé pour ${getDoctorDisplayName(selectedDoctorForTicket)} !`, 4000);
       
       // Réinitialiser le formulaire
       setPatientName('');
@@ -342,12 +342,12 @@ export default function SecretaireDashboard() {
       const deletedCount = data.deletedCount || 0;
       const targetText = selectedDoctor ? `de ${getDoctorDisplayName(selectedDoctor)}` : "globale";
       
-      showSuccess(`✅ File d'attente ${targetText} réinitialisée ! ${deletedCount} ticket(s) supprimé(s)`, 5000);
+      showSuccess(`File d'attente ${targetText} réinitialisée ! ${deletedCount} ticket(s) supprimé(s)`, 5000);
       fetchQueue();
 
     } catch (error) {
       console.error("Erreur reset:", error);
-      showError(`❌ Impossible de réinitialiser la file: ${error.message}`, 5000);
+      showError(`Impossible de réinitialiser la file: ${error.message}`, 5000);
     } finally {
       setIsLoading(false);
     }

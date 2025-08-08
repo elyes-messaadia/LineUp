@@ -39,13 +39,13 @@ export default function MedecinDashboard() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      showInfo("🌐 Connexion rétablie", 2000);
+      showInfo("Connexion rétablie", 2000);
       fetchQueue();
     };
     
     const handleOffline = () => {
       setIsOnline(false);
-      showWarning("⚠️ Connexion perdue - Mode hors ligne", 0);
+      showWarning("Connexion perdue - Mode hors ligne", 0);
     };
 
     window.addEventListener('online', handleOnline);
@@ -252,7 +252,7 @@ export default function MedecinDashboard() {
 
       const data = await res.json();
       playNotificationSound();
-      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation ! 🎉`, 4000);
+      showSuccess(`Patient n°${data.called.ticket.number} appelé en consultation !`, 4000);
       fetchQueue();
 
     } catch (error) {
@@ -291,7 +291,7 @@ export default function MedecinDashboard() {
         throw new Error(`Erreur ${res.status}`);
       }
 
-      showSuccess(`Consultation du patient n°${currentPatient.number} terminée ! 🎉`, 4000);
+      showSuccess(`Consultation du patient n°${currentPatient.number} terminée !`, 4000);
       setCurrentPatient(null);
       setConsultationStartTime(null);
       fetchQueue();
@@ -329,7 +329,7 @@ export default function MedecinDashboard() {
       }
 
       const data = await res.json();
-      showSuccess(`✅ ${data.message} - ${data.deletedCount} ticket(s) supprimé(s)`, 5000);
+      showSuccess(`${data.message} - ${data.deletedCount} ticket(s) supprimé(s)`, 5000);
       fetchQueue();
 
     } catch (error) {

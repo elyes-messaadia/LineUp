@@ -40,14 +40,14 @@ export default function PatientDashboard() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      showInfo("🌐 Connexion rétablie", 2000);
+      showInfo("Connexion rétablie", 2000);
       loadMyTicket();
       loadQueue();
     };
     
     const handleOffline = () => {
       setIsOnline(false);
-      showWarning("⚠️ Connexion perdue - Données en local", 0);
+      showWarning("Connexion perdue - Données en local", 0);
     };
 
     window.addEventListener('online', handleOnline);

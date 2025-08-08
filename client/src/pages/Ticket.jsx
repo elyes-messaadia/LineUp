@@ -87,19 +87,19 @@ export default function Ticket() {
       if (lastStatusRef.current && lastStatusRef.current !== serverTicket.status) {
         switch (serverTicket.status) {
           case "en_consultation":
-            showImportant("🩺 C'est votre tour ! Veuillez vous présenter au cabinet médical", 10000);
+            showImportant("C'est votre tour ! Veuillez vous présenter au cabinet médical", 10000);
             break;
           case "termine":
-            showImportant("✅ Votre consultation est terminée. Merci de votre visite !", 8000);
+            showImportant("Votre consultation est terminée. Merci de votre visite !", 8000);
             setTimeout(() => navigate("/"), 5000);
             break;
           case "desiste":
-            showImportant("❌ Votre ticket a été annulé", 8000);
+            showImportant("Votre ticket a été annulé", 8000);
             localStorage.removeItem("lineup_ticket");
             setTimeout(() => navigate("/"), 3000);
             break;
           case "en_attente":
-            showInfo("⏱️ Votre ticket est de retour en attente", 4000, true);
+            showInfo("Votre ticket est de retour en attente", 4000, true);
             break;
         }
       }
@@ -197,13 +197,13 @@ export default function Ticket() {
           if (serverTicket.status !== parsedTicket.status) {
             switch (serverTicket.status) {
               case "en_consultation":
-                showImportant("🩺 Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
+                showImportant("Vous êtes en consultation ! Présentez-vous au cabinet", 8000);
                 break;
               case "termine":
-                showInfo("✅ Votre consultation est terminée", 4000);
+                showInfo("Votre consultation est terminée", 4000);
                 break;
               case "desiste":
-                showWarning("❌ Votre ticket a été annulé", 4000, true);
+                showWarning("Votre ticket a été annulé", 4000, true);
                 localStorage.removeItem("lineup_ticket");
                 setTimeout(() => navigate("/"), 2000);
                 break;
