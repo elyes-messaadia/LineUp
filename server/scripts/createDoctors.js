@@ -65,15 +65,18 @@ async function createDoctors() {
       
       if (existingUser) {
         console.log(`⚠️ Docteur ${doctorData.email} existe déjà - mise à jour...`);
-        
-        // Mettre à jour le mot de passe et les infos
+
+        // Mettre à jour le mot de passe et les infos (respect du schéma User)
         const hashedPassword = await bcrypt.hash(doctorData.password, 12);
-        existingUser.firstName = doctorData.firstName;
-        existingUser.lastName = doctorData.lastName;
         existingUser.password = hashedPassword;
-        existingUser.phone = doctorData.phone;
         existingUser.role = medecinRole._id;
         existingUser.isActive = true;
+
+        // Assurer la structure profile
+        existingUser.profile = existingUser.profile || {};
+        existingUser.profile.firstName = doctorData.firstName;
+        existingUser.profile.lastName = doctorData.lastName;
+        existingUser.profile.phone = doctorData.phone;
         
         await existingUser.save();
         console.log(`   ✅ Docteur ${doctorData.firstName} ${doctorData.lastName} mis à jour`);
@@ -83,13 +86,15 @@ async function createDoctors() {
         const hashedPassword = await bcrypt.hash(doctorData.password, 12);
         
         const newUser = new User({
-          firstName: doctorData.firstName,
-          lastName: doctorData.lastName,
           email: doctorData.email,
           password: hashedPassword,
-          phone: doctorData.phone,
           role: medecinRole._id,
-          isActive: true
+          isActive: true,
+          profile: {
+            firstName: doctorData.firstName,
+            lastName: doctorData.lastName,
+            phone: doctorData.phone
+          }
         });
 
         await newUser.save();

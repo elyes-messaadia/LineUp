@@ -7,6 +7,7 @@ import { useToast } from "../hooks/useToast";
 import BACKEND_URL from "../config/api";
 import { getDoctorDisplayName, getDoctorInfo } from "../config/doctors";
 import { formatTime } from "../utils/dateUtils";
+import { Stethoscope, Loader2, RefreshCcw, Home as HomeIcon, UsersRound, Ticket as TicketIcon, User as UserIcon, ClipboardList, AlertTriangle, BarChart3, Zap, X as XIcon, CheckCircle2, Phone, Save as SaveIcon, Moon } from "lucide-react";
 
 // Cache global pour les données des médecins (persiste entre les changements)
 const DOCTOR_CACHE = new Map();
@@ -432,15 +433,15 @@ export default function DoctorDashboard({ doctorId }) {
               <div className="dashboard-header-content">
                 <div className="flex-1">
                   <h1 className="dashboard-title flex items-center gap-3">
-                    <span className="text-4xl">{doctorInfo?.emoji || '👨‍⚕️'}</span>
+                    <Stethoscope className="w-6 h-6 text-blue-700" />
                     <div>
                       <div style={{ color: doctorInfo?.colorCode || '#1e40af' }}>
                         {doctorName}
                       </div>
                       {(isLoadingQueue || isTransitioning) && (
                         <div className="flex items-center gap-2 mt-1">
-                          {isLoadingQueue && <span className="text-lg animate-spin">⏳</span>}
-                          {isTransitioning && <span className="text-lg animate-pulse">🔄</span>}
+                          {isLoadingQueue && <Loader2 className="w-4 h-4 animate-spin text-blue-600" />}
+                          {isTransitioning && <RefreshCcw className="w-4 h-4 text-blue-600 animate-pulse" />}
                         </div>
                       )}
                     </div>
@@ -451,7 +452,7 @@ export default function DoctorDashboard({ doctorId }) {
                   {lastUpdate && (
                     <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
                       <span>Dernière mise à jour : {lastUpdate.toLocaleTimeString('fr-FR')}</span>
-                      {DOCTOR_CACHE.has(doctorId) && <span className="text-blue-600">💾</span>}
+                      {DOCTOR_CACHE.has(doctorId) && <SaveIcon className="w-4 h-4 text-blue-600" />}
                     </div>
                   )}
                 </div>
@@ -461,14 +462,14 @@ export default function DoctorDashboard({ doctorId }) {
                     disabled={isLoadingQueue || isLoading}
                     className="btn-secondary flex items-center gap-2"
                   >
-                    <span className={isLoadingQueue ? 'animate-spin' : ''}>🔄</span>
+                    <RefreshCcw className={`w-4 h-4 ${isLoadingQueue ? 'animate-spin' : ''}`} />
                     {isLoadingQueue ? 'Actualisation...' : 'Actualiser'}
                   </button>
                   <button
                     onClick={() => navigate('/')}
                     className="btn-secondary flex items-center gap-2"
                   >
-                    🏠 Accueil
+                    <HomeIcon className="w-4 h-4" /> Accueil
                   </button>
                 </div>
               </div>
@@ -478,7 +479,7 @@ export default function DoctorDashboard({ doctorId }) {
             {isTransitioning && (
               <div className="dashboard-card bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 mb-6">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl animate-spin">🔄</span>
+                  <RefreshCcw className="w-5 h-5 animate-spin text-blue-600" />
                   <div>
                     <h3 className="font-semibold text-blue-800">Changement de médecin en cours</h3>
                     <p className="text-blue-700">Transition optimisée activée</p>
@@ -490,7 +491,7 @@ export default function DoctorDashboard({ doctorId }) {
             {isLoadingQueue && !isTransitioning && (
               <div className="dashboard-card bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 mb-6">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl animate-pulse">⏳</span>
+                  <Loader2 className="w-5 h-5 animate-spin text-yellow-600" />
                   <div>
                     <h3 className="font-semibold text-yellow-800">Chargement en cours</h3>
                     <p className="text-yellow-700">
@@ -510,21 +511,21 @@ export default function DoctorDashboard({ doctorId }) {
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <div className="status-text flex items-center gap-3 mb-2">
-                        <span className="text-3xl">🩺</span>
+                        <Stethoscope className="w-6 h-6" />
                         <span>Consultation en cours</span>
                       </div>
                       <div className="status-detail">
                         <div className="flex items-center gap-2 text-2xl font-bold text-green-700 mb-1">
-                          🎫 #{currentPatient.number}
+                          <TicketIcon className="w-5 h-5" /> #{currentPatient.number}
                         </div>
                         {currentPatient.patientName && (
                           <div className="flex items-center gap-2 text-lg font-medium text-blue-700">
-                            👤 {currentPatient.patientName}
+                            <UserIcon className="w-4 h-4" /> {currentPatient.patientName}
                           </div>
                         )}
                         {currentPatient.ticketType === 'physique' && (
                           <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-purple-100 text-purple-800 rounded-full mt-2">
-                            🎫 Ticket physique
+                            <TicketIcon className="w-4 h-4 mr-1" /> Ticket physique
                           </span>
                         )}
                       </div>
@@ -554,14 +555,14 @@ export default function DoctorDashboard({ doctorId }) {
                       disabled={isLoading}
                       className="btn-success btn-large flex items-center justify-center gap-2"
                     >
-                      <span className="text-lg">✅</span>
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                       {isLoading ? 'Finalisation...' : 'Terminer la consultation'}
                     </button>
                     <button
                       onClick={() => setShowNotesModal(true)}
                       className="btn-secondary btn-large flex items-center justify-center gap-2"
                     >
-                      <span className="text-lg">📝</span>
+                      <ClipboardList className="w-4 h-4" />
                       Ajouter des notes médicales
                     </button>
                   </div>
@@ -570,7 +571,7 @@ export default function DoctorDashboard({ doctorId }) {
                 <div className="status-card status-card-available">
                   <div className="text-center py-8">
                     <div className="animate-float mb-6">
-                      <span className="text-6xl">💤</span>
+                      <Moon className="w-10 h-10 text-blue-400 mx-auto" />
                     </div>
                     <div className="status-text mb-4">Disponible pour consultation</div>
                     <p className="text-blue-700 mb-6">
@@ -583,10 +584,10 @@ export default function DoctorDashboard({ doctorId }) {
                         disabled={isLoading}
                         className="btn-primary btn-large flex items-center justify-center gap-3 mx-auto"
                       >
-                        <span className="text-xl">📢</span>
+                        <Phone className="w-5 h-5" />
                         {isLoading ? (
                           <span className="flex items-center gap-2">
-                            <span className="animate-spin">⏳</span>
+                            <Loader2 className="w-4 h-4 animate-spin" />
                             Appel en cours...
                           </span>
                         ) : waitingPatients[0]?.patientName ? (
@@ -599,7 +600,6 @@ export default function DoctorDashboard({ doctorId }) {
                     
                     {waitingPatients.length === 0 && !isLoadingQueue && (
                       <div className="empty-state">
-                        <div className="empty-icon">🎯</div>
                         <div className="empty-text">Aucun patient en attente dans votre file</div>
                       </div>
                     )}
@@ -651,7 +651,7 @@ export default function DoctorDashboard({ doctorId }) {
             {/* Ma file d'attente - Design amélioré */}
             <div className="dashboard-section">
               <h2 className="section-title flex items-center gap-3">
-                <span className="text-2xl">👥</span>
+                <UsersRound className="w-5 h-5" />
                 Ma file d'attente ({waitingPatients.length} patients)
               </h2>
               
@@ -679,7 +679,7 @@ export default function DoctorDashboard({ doctorId }) {
                               </span>
                             )}
                           </div>
-                          <div className="ticket-number">🎫 #{ticket.number}</div>
+                          <div className="ticket-number"><TicketIcon className="w-4 h-4 inline mr-1" /> #{ticket.number}</div>
                           {ticket.patientName && (
                             <div className="flex items-center gap-2 text-base font-medium text-blue-700 mt-1">
                               👤 {ticket.patientName}
@@ -722,7 +722,7 @@ export default function DoctorDashboard({ doctorId }) {
                       {ticket.notes && (
                         <div className="mt-3 p-3 bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-300 rounded-r">
                           <div className="flex items-center gap-2 mb-1">
-                            <span>📝</span>
+                            <ClipboardList className="w-4 h-4" />
                             <span className="text-sm font-medium text-yellow-700">Notes</span>
                           </div>
                           <p className="text-sm text-yellow-800 italic">{ticket.notes}</p>
@@ -733,7 +733,7 @@ export default function DoctorDashboard({ doctorId }) {
                       {ticket.docteur !== doctorId && (
                         <div className="mt-3 p-3 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-400 rounded-r">
                           <div className="flex items-center gap-2">
-                            <span>⚠️</span>
+                            <AlertTriangle className="w-4 h-4 text-red-600" />
                             <span className="text-sm text-red-700">
                               Ticket non assigné à vous : {ticket.docteur}
                             </span>
@@ -745,7 +745,7 @@ export default function DoctorDashboard({ doctorId }) {
                   
                   {waitingPatients.length > 6 && (
                     <div className="dashboard-card text-center">
-                      <div className="text-3xl mb-3">📋</div>
+                      <div className="text-3xl mb-3"><ClipboardList className="w-6 h-6 mx-auto" /></div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-2">
                         {waitingPatients.length - 6} autres patients
                       </h3>
@@ -773,7 +773,7 @@ export default function DoctorDashboard({ doctorId }) {
             {/* Actions rapides - Design modernisé */}
             <div className="dashboard-section">
               <h2 className="section-title flex items-center gap-3">
-                <span className="text-2xl">⚡</span>
+                <Zap className="w-5 h-5" />
                 Actions rapides
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -782,7 +782,7 @@ export default function DoctorDashboard({ doctorId }) {
                   disabled={isLoading || waitingPatients.length === 0 || currentPatient || isLoadingQueue}
                   className="btn-primary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-2xl">📢</span>
+                  <Phone className="w-5 h-5" />
                   <span className="text-sm font-semibold text-center leading-tight">
                     {isLoading ? 'Appel...' : 'Appeler suivant'}
                   </span>
@@ -792,7 +792,7 @@ export default function DoctorDashboard({ doctorId }) {
                   onClick={() => setShowStatistiquesModal(true)}
                   className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-2xl">📊</span>
+                  <BarChart3 className="w-5 h-5" />
                   <span className="text-sm font-semibold text-center leading-tight">
                     Statistiques
                   </span>
@@ -802,7 +802,7 @@ export default function DoctorDashboard({ doctorId }) {
                   onClick={() => navigate('/queue')}
                   className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-2xl">👥</span>
+                  <UsersRound className="w-5 h-5" />
                   <span className="text-sm font-semibold text-center leading-tight">
                     File complète
                   </span>
@@ -812,7 +812,7 @@ export default function DoctorDashboard({ doctorId }) {
                   onClick={handleLogout}
                   className="btn-secondary btn-large flex flex-col items-center justify-center gap-2 h-20"
                 >
-                  <span className="text-2xl">🔒</span>
+                  <XIcon className="w-5 h-5" />
                   <span className="text-sm font-semibold text-center leading-tight">
                     Déconnexion
                   </span>
@@ -830,9 +830,9 @@ export default function DoctorDashboard({ doctorId }) {
               } mb-4`}>
                 <div className="flex items-center gap-3">
                   <span className="text-xl">
-                    {toast.type === 'error' ? '❌' : 
-                     toast.type === 'success' ? '✅' : 
-                     toast.type === 'warning' ? '⚠️' : 'ℹ️'}
+                    {toast.type === 'error' ? <XIcon className="w-5 h-5 text-red-600" /> : 
+                     toast.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : 
+                     toast.type === 'warning' ? <AlertTriangle className="w-5 h-5 text-yellow-600" /> : <Info className="w-5 h-5 text-blue-600" />}
                   </span>
                   <p className={`font-medium ${
                     toast.type === 'error' ? 'text-red-800' :
@@ -852,15 +852,15 @@ export default function DoctorDashboard({ doctorId }) {
                 <div className="modal-responsive animate-in bg-white rounded-xl shadow-2xl">
                   <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">📝</span>
+                      <ClipboardList className="w-5 h-5" />
                       <h2 className="text-2xl font-bold text-gray-800">Notes de consultation</h2>
                     </div>
                   </div>
                   
                   <div className="p-6 space-y-6">
                     <div>
-                      <label className="block text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <span className="text-lg">🩺</span>
+                      <label className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <Stethoscope className="w-4 h-4" />
                         Notes de consultation
                       </label>
                       <textarea
@@ -873,8 +873,8 @@ export default function DoctorDashboard({ doctorId }) {
                     </div>
 
                     <div>
-                      <label className="block text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <span className="text-lg">💊</span>
+                      <label className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4" />
                         Diagnostic et traitement
                       </label>
                       <textarea
@@ -894,14 +894,14 @@ export default function DoctorDashboard({ doctorId }) {
                         disabled={isLoading}
                         className="btn-success btn-large flex items-center justify-center gap-2 order-2 md:order-1"
                       >
-                        <span className="text-lg">{isLoading ? '⏳' : '💾'}</span>
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <SaveIcon className="w-4 h-4" />}
                         {isLoading ? 'Sauvegarde en cours...' : 'Sauvegarder les notes'}
                       </button>
                       <button
                         onClick={() => setShowNotesModal(false)}
                         className="btn-secondary btn-large flex items-center justify-center gap-2 order-1 md:order-2"
                       >
-                        <span className="text-lg">❌</span>
+                        <XIcon className="w-4 h-4" />
                         Annuler
                       </button>
                     </div>
@@ -916,7 +916,7 @@ export default function DoctorDashboard({ doctorId }) {
                 <div className="modal-responsive animate-in bg-white rounded-xl shadow-2xl max-w-5xl">
                   <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl">📊</span>
+                      <BarChart3 className="w-6 h-6" />
                       <div>
                         <h2 className="text-2xl font-bold text-gray-800">Statistiques détaillées</h2>
                         <p className="text-lg text-gray-600">Dr. {doctorName}</p>
@@ -927,7 +927,7 @@ export default function DoctorDashboard({ doctorId }) {
                   <div className="p-6 space-y-8">
                     <div>
                       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <span className="text-2xl">🎯</span>
+                        <Zap className="w-5 h-5" />
                         Performance du jour
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -956,7 +956,7 @@ export default function DoctorDashboard({ doctorId }) {
 
                     <div>
                       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <span className="text-2xl">📈</span>
+                        <BarChart3 className="w-5 h-5" />
                         Répartition des statuts
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -983,12 +983,12 @@ export default function DoctorDashboard({ doctorId }) {
 
                     <div>
                       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <span className="text-2xl">⚡</span>
+                        <Zap className="w-5 h-5" />
                         Informations système
                       </h3>
                       <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
                         <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <span className="text-xl">💾</span>
+                          <SaveIcon className="w-4 h-4" />
                           <span>Système de cache actif - Données mises à jour en temps réel</span>
                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                             Optimisé
@@ -1003,7 +1003,7 @@ export default function DoctorDashboard({ doctorId }) {
                       onClick={() => setShowStatistiquesModal(false)}
                       className="btn-primary btn-large w-full flex items-center justify-center gap-2"
                     >
-                      <span className="text-lg">✅</span>
+                      <CheckCircle2 className="w-5 h-5" />
                       Fermer les statistiques
                     </button>
                   </div>

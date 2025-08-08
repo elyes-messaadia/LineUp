@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useToast } from '../hooks/useToast';
 import BACKEND_URL from '../config/api';
+import { Bell, BellOff, AlertTriangle, ChevronDown, ChevronRight, Loader2, CheckCircle2, RefreshCcw } from 'lucide-react';
 
 export default function NotificationSettings() {
   const { 
@@ -81,7 +82,7 @@ export default function NotificationSettings() {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div className="flex items-center space-x-2">
-          <span className="text-yellow-600">⚠️</span>
+          <AlertTriangle className="text-yellow-600 w-4 h-4" />
           <span className="text-sm text-yellow-800">
             Les notifications push ne sont pas supportées sur ce navigateur
           </span>
@@ -104,9 +105,13 @@ export default function NotificationSettings() {
         <div className="grid grid-cols-12 gap-3 items-center">
           <div className="col-span-9 flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-lg">
-                {isActuallyLoading ? '⏳' : isSubscribed ? '🔔' : '🔕'}
-              </span>
+              {isActuallyLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              ) : isSubscribed ? (
+                <Bell className="w-5 h-5 text-blue-600" />
+              ) : (
+                <BellOff className="w-5 h-5 text-blue-600" />
+              )}
             </div>
             <div className="text-left">
               <h3 className="font-medium text-gray-900">Notifications Push</h3>
@@ -120,7 +125,7 @@ export default function NotificationSettings() {
           <div className="col-span-3 flex items-center justify-end space-x-2">
             <div className={`w-3 h-3 rounded-full transition-all duration-300 ${statusColor} ${statusTransition}`}></div>
             <span className="text-gray-400">
-              {isExpanded ? '▼' : '▶'}
+              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </span>
           </div>
         </div>
@@ -166,12 +171,12 @@ export default function NotificationSettings() {
             >
               {isActuallyLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Traitement...</span>
                 </>
               ) : (
                 <>
-                  <span>{isSubscribed ? '🔕' : '🔔'}</span>
+                  {isSubscribed ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                   <span>
                     {isSubscribed ? 'Désactiver les notifications' : 'Activer les notifications'}
                   </span>
@@ -183,7 +188,7 @@ export default function NotificationSettings() {
             {isSubscribed && (
               <div className="text-xs text-gray-500 bg-gray-50 rounded p-3 space-y-2">
                 <p className="flex items-center space-x-1">
-                  <span>✅</span>
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
                   <span>Notifications activées et synchronisées</span>
                 </p>
                 <p className="text-gray-400">
@@ -205,8 +210,8 @@ export default function NotificationSettings() {
                      onClick={handleRefreshStatus}
                      disabled={isActuallyLoading}
                      className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
-                   >
-                     🔄 Rafraîchir statut
+                    >
+                      <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Rafraîchir statut</span>
                    </button>
                  </div>
                </div>

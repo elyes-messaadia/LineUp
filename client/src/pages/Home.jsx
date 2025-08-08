@@ -1,5 +1,6 @@
 // Force Netlify rebuild with new API URL - 2025-01-27
 import { useState, useEffect } from "react";
+import { Hospital, Stethoscope, UsersRound, Eye as EyeIcon, Ticket as TicketIcon, User as UserIcon, Info, Sparkles, Mail, BarChart3, CheckCircle2, AlertTriangle, Clock, ChevronRight, XCircle, RefreshCcw, UserPlus, Lock, ClipboardList, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AnimatedPage from "../components/AnimatedPage";
 import Toast from "../components/Toast";
@@ -144,7 +145,7 @@ export default function Home() {
         <div className="text-center space-y-4 md:space-y-6">
           <div className="inline-flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-2xl p-3 md:p-4 shadow-lg border border-white/50 w-full max-w-sm mx-auto md:max-w-none md:w-auto">
             <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-xl md:text-2xl">🏥</span>
+              <Hospital className="text-white w-6 h-6 md:w-7 md:h-7" />
             </div>
             <div className="text-left min-w-0">
               <ResponsiveText 
@@ -176,10 +177,10 @@ export default function Home() {
             <Card.Content>
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl flex-shrink-0">
-                  {user.role?.name === "medecin" && "🩺"}
-                  {user.role?.name === "secretaire" && "👩‍💼"}
-                  {user.role?.name === "patient" && "👤"}
-                  {user.role?.name === "visiteur" && "👁️"}
+                  {user.role?.name === "medecin" && <Stethoscope className="w-6 h-6" />}
+                  {user.role?.name === "secretaire" && <UsersRound className="w-6 h-6" />}
+                  {user.role?.name === "patient" && <UserIcon className="w-6 h-6" />}
+                  {user.role?.name === "visiteur" && <EyeIcon className="w-6 h-6" />}
                 </div>
                 <div className="text-center sm:text-left min-w-0">
                   <h3 className="text-lg font-bold text-blue-900 truncate">
@@ -193,9 +194,9 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <Button 
+                <Button 
                 onClick={() => navigate(`/dashboard/${user.role.name}`)}
-                icon="📊"
+                icon={<BarChart3 className="w-4 h-4" />}
                 size="lg"
                 className="w-full"
               >
@@ -218,7 +219,7 @@ export default function Home() {
               <Card variant="info" hover gradient>
                 <Card.Content className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
-                    🎟️
+                    <TicketIcon className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-bold text-blue-900 mb-3">
                     Prendre un ticket rapidement
@@ -229,7 +230,7 @@ export default function Home() {
                   <Button 
                     onClick={handleTakeTicket}
                     loading={isLoading}
-                    icon="🎫"
+                    icon={<TicketIcon className="w-4 h-4" />}
                     size="lg"
                     fullWidth
                   >
@@ -242,7 +243,7 @@ export default function Home() {
               <Card variant="success" hover gradient>
                 <Card.Content className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
-                    👤
+                    <UserIcon className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-bold text-green-900 mb-3">
                     Connexion personnalisée
@@ -254,7 +255,7 @@ export default function Home() {
                     <Button 
                       onClick={() => navigate("/login")}
                       variant="success"
-                      icon="🔐"
+                      icon={<Lock className="w-4 h-4" />}
                       fullWidth
                     >
                       Se connecter
@@ -262,7 +263,7 @@ export default function Home() {
                     <Button 
                       onClick={() => navigate("/register")}
                       variant="outline"
-                      icon="✨"
+                      icon={<Sparkles className="w-4 h-4" />}
                       fullWidth
                     >
                       Créer un compte
@@ -277,12 +278,12 @@ export default function Home() {
               {user.role?.name === "patient" && (
                 <Card variant="info" hover>
                   <Card.Content className="text-center">
-                    <h3 className="text-xl font-bold text-blue-900 mb-4">
-                      🎟️ Prendre un ticket de consultation
+                     <h3 className="text-xl font-bold text-blue-900 mb-4">
+                      <TicketIcon className="inline w-5 h-5 mr-2" /> Prendre un ticket de consultation
                     </h3>
                     <Button 
                       onClick={handleTakeTicket}
-                      icon="🎫"
+                       icon={<TicketIcon className="w-4 h-4" />}
                       size="lg"
                       fullWidth
                     >
@@ -296,12 +297,12 @@ export default function Home() {
                 <Card variant="success" hover>
                   <Card.Content className="text-center">
                     <h3 className="text-xl font-bold text-green-900 mb-4">
-                      ⚙️ Gestion de la file d'attente
+                      <Settings className="inline w-5 h-5 mr-2" /> Gestion de la file d'attente
                     </h3>
                     <Button 
                       onClick={handleTakeTicket}
                       variant="success"
-                      icon="⚙️"
+                      icon={<Settings className="w-4 h-4" />}
                       size="lg"
                       fullWidth
                     >
@@ -315,15 +316,15 @@ export default function Home() {
                 <Card variant="warning" hover>
                   <Card.Content className="text-center">
                     <h3 className="text-xl font-bold text-yellow-900 mb-4">
-                      👁️ Mode visiteur
+                      <EyeIcon className="inline w-5 h-5 mr-2" /> Mode visiteur
                     </h3>
                     <p className="text-yellow-700 mb-6">
                       Vous pouvez consulter la file d'attente mais pas prendre de tickets
                     </p>
-                    <Button 
+                      <Button 
                       onClick={() => navigate("/register")}
                       variant="primary"
-                      icon="✨"
+                      icon={<Sparkles className="w-4 h-4" />}
                       size="lg"
                       fullWidth
                     >
@@ -340,7 +341,7 @@ export default function Home() {
         <Card>
           <Card.Header>
             <h3 className="text-xl font-bold text-gray-900 text-center">
-              🧭 Navigation rapide
+              Navigation rapide
             </h3>
           </Card.Header>
           <Card.Content>
@@ -348,7 +349,7 @@ export default function Home() {
               <Button 
                 onClick={() => navigate("/queue")}
                 variant="secondary"
-                icon="📋"
+                icon={<ClipboardList className="w-4 h-4" />}
                 fullWidth
               >
                 Voir la file d'attente
@@ -358,7 +359,7 @@ export default function Home() {
                 <Button 
                   onClick={() => navigate("/ticket")}
                   variant="warning"
-                  icon="🎫"
+                  icon={<TicketIcon className="w-4 h-4" />}
                   fullWidth
                 >
                   Mon ticket actuel
@@ -369,7 +370,7 @@ export default function Home() {
                 <Button 
                   onClick={() => navigate(`/dashboard/${user.role.name}`)}
                   variant="primary"
-                  icon="📊"
+                  icon={<BarChart3 className="w-4 h-4" />}
                   fullWidth
                 >
                   Mon tableau de bord
@@ -383,13 +384,13 @@ export default function Home() {
         <Card>
           <Card.Header>
             <h3 className="text-xl font-bold text-gray-900 text-center">
-              ℹ️ Types d'utilisateurs
+              Types d'utilisateurs
             </h3>
           </Card.Header>
           <Card.Content>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <span className="text-2xl">🩺</span>
+                <Stethoscope className="w-6 h-6 text-blue-600" />
                 <div>
                   <h4 className="font-semibold text-gray-800">Médecins</h4>
                   <p className="text-sm text-gray-600">Gestion consultations</p>
@@ -397,7 +398,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <span className="text-2xl">👩‍💼</span>
+                <UsersRound className="w-6 h-6 text-emerald-600" />
                 <div>
                   <h4 className="font-semibold text-gray-800">Secrétaires</h4>
                   <p className="text-sm text-gray-600">Coordination</p>
@@ -405,7 +406,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <span className="text-2xl">👤</span>
+                <UserIcon className="w-6 h-6 text-gray-700" />
                 <div>
                   <h4 className="font-semibold text-gray-800">Patients</h4>
                   <p className="text-sm text-gray-600">Prise de tickets</p>
@@ -413,7 +414,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <span className="text-2xl">👁️</span>
+                <EyeIcon className="w-6 h-6 text-yellow-700" />
                 <div>
                   <h4 className="font-semibold text-gray-800">Visiteurs</h4>
                   <p className="text-sm text-gray-600">Consultation attente</p>
@@ -424,7 +425,7 @@ export default function Home() {
             {!isAuthenticated && (
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Conseil :</strong> Créez un compte pour bénéficier de notifications,
+                  <strong>Conseil :</strong> Créez un compte pour bénéficier de notifications,
                   d'un historique de vos consultations et de fonctionnalités avancées.
                 </p>
               </div>
@@ -518,7 +519,7 @@ export default function Home() {
 
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6">
                 <div className="flex items-center space-x-2 justify-center">
-                  <span className="text-blue-500 text-lg">💡</span>
+                  <Info className="text-blue-500 w-5 h-5" />
                   <p className="text-sm text-blue-800 font-medium">
                     <strong>Recommandation :</strong> Créer un compte vous permet un meilleur suivi et l'accès aux notifications.
                   </p>
@@ -534,7 +535,7 @@ export default function Home() {
                   }}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
                 >
-                  <span>✨</span>
+                  <Sparkles className="w-4 h-4" />
                   <span>Créer un compte</span>
                 </button>
                 <button
@@ -548,10 +549,10 @@ export default function Home() {
                       <span>Création...</span>
                     </>
                   ) : (
-                    <>
-                      <span>✅</span>
-                      <span>Continuer anonyme</span>
-                    </>
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Continuer anonyme</span>
+                      </>
                   )}
                 </button>
               </div>

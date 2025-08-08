@@ -9,13 +9,13 @@ export default function ResponsiveHelper() {
     <div className="dashboard-container">
       <div className="dashboard-card">
         <h2 className="dashboard-title text-purple-800">
-          📱 Améliorations Responsives - LineUp
+          Améliorations Responsives - LineUp
         </h2>
         
         {/* Nouvelles classes CSS responsives */}
         <div className="dashboard-section">
           <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-            🎨 Nouvelles classes CSS responsives
+            Nouvelles classes CSS responsives
           </h3>
           
           <div className="info-grid">
@@ -44,7 +44,7 @@ export default function ResponsiveHelper() {
         {/* Breakpoints optimisés */}
         <div className="dashboard-section">
           <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-            📏 Breakpoints optimisés
+            Breakpoints optimisés
           </h3>
           
           <div className="space-y-3">
@@ -78,27 +78,27 @@ export default function ResponsiveHelper() {
         {/* Dashboards améliorés */}
         <div className="dashboard-section">
           <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-            🖥️ Dashboards modernisés
+            Dashboards modernisés
           </h3>
           
           <div className="dashboard-grid">
             <div className="ticket-card bg-blue-50 border-blue-200">
-              <h4 className="text-responsive-base font-semibold text-blue-800">👤 PatientDashboard</h4>
+              <h4 className="text-responsive-base font-semibold text-blue-800">PatientDashboard</h4>
               <p className="text-responsive-sm text-blue-700">Grille moderne pour les informations de ticket, actions responsives</p>
             </div>
             
             <div className="ticket-card bg-purple-50 border-purple-200">
-              <h4 className="text-responsive-base font-semibold text-purple-800">👁️ VisiteurDashboard</h4>
+              <h4 className="text-responsive-base font-semibold text-purple-800">VisiteurDashboard</h4>
               <p className="text-responsive-sm text-purple-700">Statistiques temps réel, analyse de journée, aide contextuelle</p>
             </div>
             
             <div className="ticket-card bg-pink-50 border-pink-200">
-              <h4 className="text-responsive-base font-semibold text-pink-800">👩‍💼 SecretaireDashboard</h4>
+              <h4 className="text-responsive-base font-semibold text-pink-800">SecretaireDashboard</h4>
               <p className="text-responsive-sm text-pink-700">Actions par médecin, état des consultations, file détaillée</p>
             </div>
             
             <div className="ticket-card bg-green-50 border-green-200">
-              <h4 className="text-responsive-base font-semibold text-green-800">👨‍⚕️ MedecinDashboard</h4>
+              <h4 className="text-responsive-base font-semibold text-green-800">MedecinDashboard</h4>
               <p className="text-responsive-sm text-green-700">Statut consultation, prochain patient, actions principales</p>
             </div>
           </div>
@@ -107,12 +107,12 @@ export default function ResponsiveHelper() {
         {/* Optimisations pour anciens appareils */}
         <div className="dashboard-section">
           <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-            🔧 Optimisations pour anciens appareils
+            Optimisations pour anciens appareils
           </h3>
           
           <div className="info-grid">
             <div className="help-text">
-              <h4 className="text-responsive-base font-semibold mb-2">📱 Compatibilité étendue</h4>
+              <h4 className="text-responsive-base font-semibold mb-2">Compatibilité étendue</h4>
               <p className="text-responsive-sm">
                 Support des anciens modèles Android, iPhone SE, avec optimisations de performance
                 et réduction des animations coûteuses.
@@ -120,7 +120,7 @@ export default function ResponsiveHelper() {
             </div>
             
             <div className="help-text">
-              <h4 className="text-responsive-base font-semibold mb-2">♿ Accessibilité</h4>
+              <h4 className="text-responsive-base font-semibold mb-2">Accessibilité</h4>
               <p className="text-responsive-sm">
                 Zones de touch agrandies (44px min), contrastes améliorés, 
                 navigation clavier optimisée.
@@ -132,7 +132,7 @@ export default function ResponsiveHelper() {
         {/* Exemples de classes */}
         <div className="dashboard-section">
           <h3 className="text-responsive-lg font-semibold text-gray-800 mb-4">
-            📝 Exemples d'utilisation
+            Exemples d'utilisation
           </h3>
           
           <div className="space-y-4">
@@ -176,7 +176,7 @@ export default function ResponsiveHelper() {
         {/* Résultats */}
         <div className="alert-card bg-green-50 border border-green-200">
           <h3 className="text-responsive-lg font-semibold text-green-800 mb-3">
-            ✅ Résultats obtenus
+            Résultats obtenus
           </h3>
           <ul className="space-y-2 text-responsive-sm text-green-700">
             <li>• <strong>100% responsive</strong> sur tous les appareils mobiles</li>

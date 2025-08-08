@@ -7,6 +7,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import QRCodeTicket from "../components/QRCodeTicket";
 import { useToast } from "../hooks/useToast";
 import BACKEND_URL from "../config/api";
+import { Loader2, Ticket as TicketIcon, CheckCircle2, X as XIcon, RefreshCcw, ClipboardList, Info } from "lucide-react";
 
 export default function Ticket() {
   const [ticket, setTicket] = useState(null);
@@ -391,7 +392,7 @@ export default function Ticket() {
       <Layout>
         <AnimatedPage>
           <div className="text-center">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
+            <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4 mx-auto" />
             <p className="text-sm sm:text-base text-gray-600">Vérification de votre ticket...</p>
           </div>
         </AnimatedPage>
@@ -404,8 +405,8 @@ export default function Ticket() {
     return (
       <Layout>
         <AnimatedPage>
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎫</div>
+            <div className="text-center">
+            <div className="text-6xl mb-4"><TicketIcon className="w-12 h-12 mx-auto text-blue-600" /></div>
             <h2 className="text-lg sm:text-xl font-semibold mb-2 text-gray-700">
               Aucun ticket actif
             </h2>
@@ -466,7 +467,7 @@ export default function Ticket() {
           <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg border border-blue-100 p-6 sm:p-8">
             <div className="relative mb-6">
               <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-500 rounded-full p-4 shadow-lg">
-                <div className="text-4xl sm:text-5xl">🎫</div>
+                <TicketIcon className="w-10 h-10 text-white" />
               </div>
             </div>
 
@@ -475,7 +476,7 @@ export default function Ticket() {
             </h1>
 
             {/* Affichage du statut */}
-            <div className="mb-8">
+              <div className="mb-8">
               <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${ticket.status === "en_attente" ? "bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900" :
                 ticket.status === "en_consultation" ? "bg-gradient-to-r from-green-400 to-green-300 text-green-900" :
                   ticket.status === "termine" ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-800" :
@@ -486,11 +487,11 @@ export default function Ticket() {
             </div>
 
             {/* Conseil */}
-            <div className="relative mb-8">
+              <div className="relative mb-8">
               <div className="bg-yellow-300 rounded-[32px] p-1">
                 <div className="bg-white rounded-[28px] p-4">
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-xl">💡</span>
+                      <Info className="w-5 h-5 text-blue-600" />
                     <p className="text-blue-700 text-sm sm:text-base font-medium">
                       <span className="text-blue-800 font-semibold">Conseil :</span> Surveillez la file d'attente pour connaître votre position.
                     </p>
@@ -509,7 +510,7 @@ export default function Ticket() {
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-600 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 font-medium shadow-sm"
                 >
-                  ❌ Annuler mon ticket
+                  <span className="inline-flex items-center gap-2"><XIcon className="w-5 h-5" /> Annuler mon ticket</span>
                 </button>
               )}
 
@@ -519,7 +520,7 @@ export default function Ticket() {
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 font-medium shadow-sm"
                 >
-                  🔄 Reprendre mon ticket
+                  <span className="inline-flex items-center gap-2"><RefreshCcw className="w-5 h-5" /> Reprendre mon ticket</span>
                 </button>
               )}
 
@@ -527,7 +528,7 @@ export default function Ticket() {
                 onClick={() => navigate("/queue")}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all transform hover:scale-[1.02] font-medium shadow-sm"
               >
-                📋 Voir la file d'attente
+                <span className="inline-flex items-center gap-2"><ClipboardList className="w-5 h-5" /> Voir la file d'attente</span>
               </button>
             </div>
           </div>

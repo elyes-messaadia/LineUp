@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getDoctorDisplayName } from '../config/doctors';
 import BACKEND_URL from '../config/api';
+import { Trash2, AlertTriangle, Loader2, X as XIcon } from 'lucide-react';
 
 const ResetQueueButton = ({ 
   selectedDoctor = null, 
@@ -97,7 +98,7 @@ const ResetQueueButton = ({
         disabled={isResetting}
         title={`Réinitialiser ${targetText}`}
       >
-        <span>🗑️</span>
+        <Trash2 className="w-4 h-4" />
         <span className="hidden sm:inline">
           Réinitialiser {selectedDoctor ? "cette file" : "toutes les files"}
         </span>
@@ -109,7 +110,7 @@ const ResetQueueButton = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
             <div className="text-center">
-              <div className="text-4xl mb-4">⚠️</div>
+              <AlertTriangle className="w-10 h-10 text-orange-600 mb-4 mx-auto" />
               <h3 className="text-lg font-bold text-gray-900 mb-2">
                 Attention : Action Irréversible
               </h3>
@@ -125,13 +126,13 @@ const ResetQueueButton = ({
                   onClick={handleCancel}
                   className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                 >
-                  ❌ Annuler
+                  <span className="inline-flex items-center gap-1"><XIcon className="w-4 h-4" /> Annuler</span>
                 </button>
                 <button
                   onClick={handleFirstConfirm}
                   className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
                 >
-                  ⚠️ Continuer
+                  <span className="inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Continuer</span>
                 </button>
               </div>
             </div>
@@ -144,7 +145,7 @@ const ResetQueueButton = ({
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border-2 border-red-300">
             <div className="text-center">
-              <div className="text-4xl mb-4">🚨</div>
+              <AlertTriangle className="w-10 h-10 text-red-600 mb-4 mx-auto" />
               <h3 className="text-xl font-bold text-red-900 mb-2">
                 CONFIRMATION FINALE
               </h3>
@@ -182,7 +183,7 @@ const ResetQueueButton = ({
                   className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                   disabled={isResetting}
                 >
-                  ❌ Annuler
+                  <span className="inline-flex items-center gap-1"><XIcon className="w-4 h-4" /> Annuler</span>
                 </button>
                 <button
                   onClick={handleReset}
@@ -197,11 +198,11 @@ const ResetQueueButton = ({
                 >
                   {isResetting ? (
                     <span className="flex items-center justify-center space-x-2">
-                      <span className="animate-spin">⏳</span>
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Suppression...</span>
                     </span>
                   ) : (
-                    '🗑️ SUPPRIMER DÉFINITIVEMENT'
+                    <span className="inline-flex items-center gap-2"><Trash2 className="w-4 h-4" /> SUPPRIMER DÉFINITIVEMENT</span>
                   )}
                 </button>
               </div>

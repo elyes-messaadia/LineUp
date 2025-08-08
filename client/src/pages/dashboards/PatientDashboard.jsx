@@ -7,7 +7,6 @@ import ConfirmModal from "../../components/ConfirmModal";
 import DashboardHeader from "../../components/DashboardHeader";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
-import UserDebugPanel from "../../components/UserDebugPanel";
 import { DOCTEURS, getDoctorDisplayName } from "../../config/doctors";
 import { getDisplayName } from "../../utils/userUtils";
 import NotificationSettings from "../../components/NotificationSettings";

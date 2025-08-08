@@ -1,6 +1,7 @@
 const webpush = require('web-push');
 const User = require('../models/User');
 const Ticket = require('../models/Ticket');
+const Role = require('../models/Role');
 
 // Configuration Web Push (récupérée depuis auth.js)
 webpush.setVapidDetails(

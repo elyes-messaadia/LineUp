@@ -14,7 +14,7 @@ export default function PushTestPanel() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
 
       if (!token || !user._id) {
-        setTestResult('❌ Utilisateur non connecté');
+        setTestResult('Utilisateur non connecté');
         return;
       }
 
@@ -26,7 +26,7 @@ export default function PushTestPanel() {
         },
         body: JSON.stringify({
           userId: user._id,
-          title: '🧪 Test LineUp',
+          title: 'Test LineUp',
           body: 'Ceci est une notification de test !',
           data: {
             type: 'test',
@@ -36,13 +36,13 @@ export default function PushTestPanel() {
       });
 
       if (response.ok) {
-        setTestResult('✅ Notification test envoyée !');
+        setTestResult('Notification test envoyée !');
       } else {
         const error = await response.text();
-        setTestResult(`❌ Erreur: ${error}`);
+        setTestResult(`Erreur: ${error}`);
       }
     } catch (error) {
-      setTestResult(`❌ Erreur: ${error.message}`);
+      setTestResult(`Erreur: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -50,14 +50,14 @@ export default function PushTestPanel() {
 
   const testLocalNotification = () => {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('🧪 Test local', {
+      new Notification('Test local', {
         body: 'Notification locale directe',
         icon: '/icon-192x192.png',
         badge: '/icon-192x192.png'
       });
-      setTestResult('✅ Notification locale affichée');
+      setTestResult('Notification locale affichée');
     } else {
-      setTestResult('❌ Permission manquante pour notification locale');
+      setTestResult('Permission manquante pour notification locale');
     }
   };
 
@@ -67,7 +67,7 @@ export default function PushTestPanel() {
 
   return (
     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
-      <h3 className="font-medium text-purple-800 mb-3">🧪 Panel de test Push</h3>
+      <h3 className="font-medium text-purple-800 mb-3">Panel de test Push</h3>
       
       <div className="space-y-3">
         <button
@@ -75,14 +75,14 @@ export default function PushTestPanel() {
           disabled={isLoading}
           className="w-full bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm"
         >
-          {isLoading ? '⏳ Envoi...' : '📤 Test notification serveur'}
+          {isLoading ? 'Envoi...' : 'Test notification serveur'}
         </button>
         
         <button
           onClick={testLocalNotification}
           className="w-full bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 text-sm"
         >
-          📱 Test notification locale
+          Test notification locale
         </button>
         
         {testResult && (

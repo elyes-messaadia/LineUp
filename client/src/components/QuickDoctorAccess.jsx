@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DOCTEURS } from '../config/doctors';
 import { useToast } from '../hooks/useToast';
 import BACKEND_URL from '../config/api';
+import { Stethoscope, UserRound, ShieldPlus, ChevronDown } from 'lucide-react';
 
 /**
  * Composant générique pour l'accès rapide des médecins
@@ -104,16 +105,9 @@ export default function QuickDoctorAccess({
         aria-controls="doctor-access-section"
       >
         <div className="flex items-center justify-center space-x-3">
-          <span className="text-2xl">👨‍⚕️</span>
+          <Stethoscope className="w-5 h-5" />
           <span>{title}</span>
-          <svg 
-            className={`w-5 h-5 transition-transform duration-200 ${showDoctorAccess ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${showDoctorAccess ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
@@ -124,9 +118,9 @@ export default function QuickDoctorAccess({
           role="region"
           aria-label={`${title} - Zone d'accès rapide`}
         >
-          <div className="text-center mb-4">
+              <div className="text-center mb-4">
             <h3 className="font-bold text-blue-900 text-lg mb-2">
-              🩺 {mode === "login" ? "Connexion rapide médecins" : "Espace médecins"}
+                  {mode === "login" ? "Connexion rapide médecins" : "Espace médecins"}
             </h3>
             <p className="text-sm text-blue-700">
               {mode === "login" 
@@ -154,7 +148,7 @@ export default function QuickDoctorAccess({
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-2xl flex-shrink-0 border-2 border-blue-200">
-                    {doctor.emoji}
+                    <UserRound className="w-6 h-6 text-blue-700" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-blue-900 truncate text-lg">
@@ -164,7 +158,7 @@ export default function QuickDoctorAccess({
                       {doctor.specialite}
                     </p>
                     <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${doctor.disponible ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                       <div className={`w-2 h-2 rounded-full ${doctor.disponible ? 'bg-green-500' : 'bg-red-500'}`}></div>
                       <span className={`text-xs font-medium ${doctor.disponible ? 'text-green-600' : 'text-red-600'}`}>
                         {doctor.disponible ? 'Disponible' : 'Non disponible'}
                       </span>
@@ -184,7 +178,7 @@ export default function QuickDoctorAccess({
                           />
                         </svg>
                         <span className="text-xs text-blue-600 font-medium hidden sm:block">
-                          {mode === "login" ? "Connecter" : "Accéder"}
+                           {mode === "login" ? "Connecter" : "Accéder"}
                         </span>
                       </div>
                     )}
@@ -192,6 +186,29 @@ export default function QuickDoctorAccess({
                 </div>
               </button>
             ))}
+            {/* Ajouter la secrétaire dans la liste pour login rapide */}
+            {mode === 'login' && (
+              <button
+                onClick={() => handleDoctorAction({ credentials: { email: 'secretaire@lineup.com', password: 'secretaire123' } })}
+                disabled={isLoading}
+                className={`
+                  w-full p-4 rounded-xl transition-all duration-200 border-2 text-left
+                  bg-white hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 text-purple-900 border-purple-300 hover:border-purple-400 hover:shadow-md transform hover:scale-[1.02]
+                  ${isLoading ? 'opacity-50 cursor-wait' : ''}
+                `}
+                aria-label="Se connecter en tant que secrétaire"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center text-2xl flex-shrink-0 border-2 border-purple-200">
+                    <ShieldPlus className="w-6 h-6 text-purple-700" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-purple-900 truncate text-lg">Secrétaire</p>
+                    <p className="text-sm text-purple-700 mb-1">Accès secrétaire (démo)</p>
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
 
           <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-300 rounded-lg">

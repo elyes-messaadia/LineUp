@@ -6,6 +6,7 @@ import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 import { getDoctorDisplayName } from "../../config/doctors";
+import { Loader2 } from "lucide-react";
 
 export default function VisiteurDashboard() {
   const [user, setUser] = useState(null);
@@ -32,13 +33,13 @@ export default function VisiteurDashboard() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      showInfo("🌐 Connexion rétablie", 2000);
+      showInfo("Connexion rétablie", 2000);
       loadQueue();
     };
     
     const handleOffline = () => {
       setIsOnline(false);
-      showWarning("⚠️ Connexion perdue - Affichage des dernières données", 0);
+      showWarning("Connexion perdue - Affichage des dernières données", 0);
     };
 
     window.addEventListener('online', handleOnline);
@@ -142,17 +143,17 @@ export default function VisiteurDashboard() {
 
   const getWelcomeMessage = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return "🌅 Bonjour";
-    if (hour < 18) return "☀️ Bon après-midi";
-    return "🌙 Bonsoir";
+    if (hour < 12) return "Bonjour";
+    if (hour < 18) return "Bon après-midi";
+    return "Bonsoir";
   };
 
   const getActivityLevel = () => {
     const totalWaiting = stats.waitingCount || 0;
-    if (totalWaiting === 0) return { level: "Calme", color: "green", icon: "😌" };
-    if (totalWaiting <= 5) return { level: "Normal", color: "blue", icon: "😊" };
-    if (totalWaiting <= 10) return { level: "Actif", color: "yellow", icon: "😐" };
-    return { level: "Très occupé", color: "red", icon: "😰" };
+    if (totalWaiting === 0) return { level: "Calme", color: "green" };
+    if (totalWaiting <= 5) return { level: "Normal", color: "blue" };
+    if (totalWaiting <= 10) return { level: "Actif", color: "yellow" };
+    return { level: "Très occupé", color: "red" };
   };
 
   if (!user) {
@@ -161,7 +162,7 @@ export default function VisiteurDashboard() {
         <AnimatedPage>
           <div className="loading-container">
             <div className="loading-content">
-              <div className="loading-spinner animate-float">👁️</div>
+              <div className="loading-spinner animate-float"><Loader2 className="w-6 h-6 animate-spin" /></div>
               <p className="loading-text">Chargement de la vue visiteur...</p>
             </div>
           </div>
@@ -183,21 +184,19 @@ export default function VisiteurDashboard() {
             <div className="dashboard-header">
               <div className="dashboard-header-content">
                 <div>
-                  <h1 className="dashboard-title">
-                    👁️ Vue Visiteur
-                  </h1>
+                  <h1 className="dashboard-title">Vue Visiteur</h1>
                   <p className="dashboard-subtitle">
-                    {getWelcomeMessage()} ! ✨ Consultez la file d'attente en temps réel
+                    {getWelcomeMessage()} ! Consultez la file d'attente en temps réel
                   </p>
                   <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
+                      {currentTime.toLocaleTimeString('fr-FR')}
                     </div>
                     <div className="flex items-center gap-2">
-                      {activity.icon} Activité: <span className={`font-medium text-${activity.color}-600`}>{activity.level}</span>
+                      Activité: <span className={`font-medium text-${activity.color}-600`}>{activity.level}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                      {isOnline ? "En ligne" : "Hors ligne"}
                     </div>
                     <div className="text-xs">
                       ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
@@ -210,13 +209,13 @@ export default function VisiteurDashboard() {
                     disabled={queueLoading || !isOnline}
                     className="btn-primary"
                   >
-                    {queueLoading ? "🔄 Actualisation..." : "🔄 Actualiser"}
+                    {queueLoading ? "Actualisation..." : "Actualiser"}
                   </button>
                   <button
                     onClick={() => navigate('/')}
                     className="btn-secondary"
                   >
-                    🏠 Accueil
+                    Accueil
                   </button>
                 </div>
               </div>
@@ -226,57 +225,50 @@ export default function VisiteurDashboard() {
 
             {/* Sélecteur de médecin */}
             <div className="dashboard-card dashboard-section">
-              <h3 className="dashboard-card-title">
-                🔍 Filtrer par médecin
-              </h3>
+              <h3 className="dashboard-card-title">Filtrer par médecin</h3>
               <div className="space-y-4">
                 <select
                   value={selectedDoctor || ''}
                   onChange={(e) => setSelectedDoctor(e.target.value || null)}
                   className="form-select"
                 >
-                  <option value="">👨‍⚕️ Tous les médecins</option>
-                  <option value="dr-husni-said-habibi">🩺 {getDoctorDisplayName('dr-husni-said-habibi')}</option>
-                  <option value="dr-helios-blasco">🏥 {getDoctorDisplayName('dr-helios-blasco')}</option>
-                  <option value="dr-jean-eric-panacciulli">⚕️ {getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
+                  <option value="">Tous les médecins</option>
+                  <option value="dr-husni-said-habibi">{getDoctorDisplayName('dr-husni-said-habibi')}</option>
+                  <option value="dr-helios-blasco">{getDoctorDisplayName('dr-helios-blasco')}</option>
+                  <option value="dr-jean-eric-panacciulli">{getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
                 </select>
                 {selectedDoctor && (
-                  <div className="text-sm text-blue-600">
-                    📊 Affichage de la file pour {getDoctorDisplayName(selectedDoctor)}
-                  </div>
+                  <div className="text-sm text-blue-600">Affichage de la file pour {getDoctorDisplayName(selectedDoctor)}</div>
                 )}
               </div>
             </div>
 
             {/* Statistiques en temps réel */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                📊 Situation actuelle
-                <span className="animate-pulse ml-2">🔴</span>
-              </h2>
+              <h2 className="dashboard-card-title">Situation actuelle</h2>
               <div className="stats-grid">
                 <div className="stats-card stats-card-blue">
-                  <div className="stats-number">👥 {stats.waitingCount || 0}</div>
+                  <div className="stats-number">{stats.waitingCount || 0}</div>
                   <div className="stats-label">Patients en attente</div>
                 </div>
                 <div className="stats-card stats-card-yellow">
-                  <div className="stats-number">🩺 {stats.inConsultationCount || 0}</div>
+                  <div className="stats-number">{stats.inConsultationCount || 0}</div>
                   <div className="stats-label">En consultation</div>
                 </div>
                 <div className="stats-card stats-card-green">
-                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
+                  <div className="stats-number">{stats.completedToday || 0}</div>
                   <div className="stats-label">Terminées aujourd'hui</div>
                 </div>
                 <div className="stats-card stats-card-purple">
-                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
+                  <div className="stats-number">{stats.totalToday || 0}</div>
                   <div className="stats-label">Total du jour</div>
                 </div>
                 <div className="stats-card stats-card-orange">
-                  <div className="stats-number">⏱️ {stats.averageWaitTime || 0}min</div>
+                  <div className="stats-number">{stats.averageWaitTime || 0}min</div>
                   <div className="stats-label">Temps d'attente estimé</div>
                 </div>
                 <div className="stats-card stats-card-cyan">
-                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                  <div className="stats-number">{stats.efficiency || 0}%</div>
                   <div className="stats-label">Efficacité</div>
                 </div>
               </div>
@@ -284,10 +276,7 @@ export default function VisiteurDashboard() {
 
             {/* État par médecin */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                👨‍⚕️ État des consultations par médecin
-                <span className="animate-pulse ml-2">🔴</span>
-              </h2>
+              <h2 className="dashboard-card-title">État des consultations par médecin</h2>
               <div className="dashboard-grid-3">
                 {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
                   const doctorQueue = queue.filter(t => t.docteur === doctorId);
@@ -308,14 +297,14 @@ export default function VisiteurDashboard() {
                             {/* État actuel */}
                             {inConsultation ? (
                               <div className="status-card status-card-consultation">
-                                <div className="status-text">🩺 En consultation</div>
+                                <div className="status-text">En consultation</div>
                                 <div className="status-detail text-xs mt-1">
                                   Ticket n°{inConsultation.number}
                                 </div>
                               </div>
                             ) : (
                               <div className="status-card status-card-available">
-                                <div className="status-text">✅ Disponible</div>
+                                 <div className="status-text">Disponible</div>
                               </div>
                             )}
 
@@ -340,11 +329,11 @@ export default function VisiteurDashboard() {
                           <div className="grid grid-cols-1 gap-3">
                             <div className="doctor-waiting-count text-center">
                               <div className="doctor-waiting-number text-xl">{waiting.length}</div>
-                              <div className="doctor-waiting-label text-xs">👥 en attente</div>
+                              <div className="doctor-waiting-label text-xs">en attente</div>
                             </div>
                             <div className="doctor-waiting-count text-center">
                               <div className="doctor-waiting-number text-xl">{estimatedWaitTime}min</div>
-                              <div className="doctor-waiting-label text-xs">⏱️ temps estimé</div>
+                              <div className="doctor-waiting-label text-xs">temps estimé</div>
                             </div>
                           </div>
                         </div>
@@ -357,18 +346,14 @@ export default function VisiteurDashboard() {
 
             {/* File d'attente détaillée */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                📋 File d'attente détaillée
-                {selectedDoctor && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    - {getDoctorDisplayName(selectedDoctor)}
-                  </span>
+              <h2 className="dashboard-card-title">File d'attente détaillée {selectedDoctor && (
+                  <span className="text-sm font-normal text-gray-600 ml-2">- {getDoctorDisplayName(selectedDoctor)}</span>
                 )}
               </h2>
               
               {queueLoading ? (
                 <div className="empty-state">
-                  <div className="empty-icon animate-spin">⏳</div>
+                  <div className="empty-icon"><Loader2 className="w-6 h-6 animate-spin" /></div>
                   <p className="empty-text">Chargement des données...</p>
                 </div>
               ) : waitingPatients.length > 0 ? (
@@ -380,28 +365,19 @@ export default function VisiteurDashboard() {
                     return (
                       <div key={ticket._id} className="ticket-card">
                         <div className="ticket-header">
-                          <span className="ticket-number">🎫 #{ticket.number}</span>
-                          <div className="ticket-status ticket-status-waiting">
-                            📍 Position {index + 1}
-                          </div>
+                           <span className="ticket-number">#{ticket.number}</span>
+                           <div className="ticket-status ticket-status-waiting">Position {index + 1}</div>
                         </div>
                         
                         <div className="space-y-2 mt-3">
-                          <div className="text-sm font-medium text-gray-800">
-                            👨‍⚕️ {getDoctorDisplayName(ticket.docteur)}
-                          </div>
-                          <div className="ticket-time">
-                            🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                           <div className="text-sm font-medium text-gray-800">{getDoctorDisplayName(ticket.docteur)}</div>
+                           <div className="ticket-time">Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}
                           </div>
-                          <div className="text-sm text-gray-600">
-                            ⏱️ Temps d'attente: {waitTime}min
-                          </div>
-                          <div className="text-xs text-blue-600">
-                            ⏳ Temps estimé: {estimatedTime}
-                          </div>
+                           <div className="text-sm text-gray-600">Temps d'attente: {waitTime}min</div>
+                           <div className="text-xs text-blue-600">Temps estimé: {estimatedTime}</div>
                         </div>
                       </div>
                     );
@@ -409,7 +385,7 @@ export default function VisiteurDashboard() {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-icon">😌</div>
+                  <div className="empty-icon"></div>
                   <p className="empty-text">
                     {selectedDoctor 
                       ? `Aucun patient en attente pour ${getDoctorDisplayName(selectedDoctor)}`
@@ -418,8 +394,8 @@ export default function VisiteurDashboard() {
                   </p>
                   <p className="text-sm text-gray-400 mt-2">
                     {selectedDoctor 
-                      ? "Ce médecin est disponible ! 🟢"
-                      : "Tous les médecins sont disponibles ! 🎉"
+                      ? "Ce médecin est disponible !"
+                      : "Tous les médecins sont disponibles !"
                     }
                   </p>
                 </div>
@@ -428,13 +404,11 @@ export default function VisiteurDashboard() {
 
             {/* Informations utiles */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                💡 Informations utiles
-              </h2>
+              <h2 className="dashboard-card-title">Informations utiles</h2>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">🔄</div>
+                    <div className="text-blue-600 text-xl"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Actualisation automatique</h4>
                       <p className="text-sm text-blue-600">Les données se mettent à jour automatiquement toutes les 5 secondes</p>
@@ -442,7 +416,7 @@ export default function VisiteurDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">⏱️</div>
+                    <div className="text-blue-600 text-xl"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Temps d'attente</h4>
                       <p className="text-sm text-blue-600">Les temps sont estimatifs et basés sur une moyenne de 15min par consultation</p>
@@ -450,7 +424,7 @@ export default function VisiteurDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">🎫</div>
+                    <div className="text-blue-600 text-xl"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Prendre un ticket</h4>
                       <p className="text-sm text-blue-600">Pour prendre un ticket, connectez-vous en tant que patient</p>
@@ -458,7 +432,7 @@ export default function VisiteurDashboard() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="text-blue-600 text-xl">📍</div>
+                    <div className="text-blue-600 text-xl"></div>
                     <div>
                       <h4 className="font-medium text-blue-800">Positions</h4>
                       <p className="text-sm text-blue-600">Les positions peuvent changer selon les priorités médicales</p>
@@ -470,30 +444,28 @@ export default function VisiteurDashboard() {
             
             {/* Actions rapides */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                ⚡ Actions rapides
-              </h2>
+              <h2 className="dashboard-card-title">Actions rapides</h2>
               <div className="dashboard-grid-3">
                 <button
                   onClick={() => loadQueue()}
                   disabled={queueLoading || !isOnline}
                   className="btn-primary btn-large"
                 >
-                  {queueLoading ? "🔄 Actualisation..." : "🔄 Actualiser maintenant"}
+                  {queueLoading ? "Actualisation..." : "Actualiser maintenant"}
                 </button>
                 
                 <button
                   onClick={() => navigate('/login')}
                   className="btn-success btn-large"
                 >
-                  🎫 Prendre un ticket
+                  Prendre un ticket
                 </button>
                 
                 <button
                   onClick={() => navigate('/')}
                   className="btn-secondary btn-large"
                 >
-                  🏠 Retour accueil
+                  Retour accueil
                 </button>
               </div>
             </div>

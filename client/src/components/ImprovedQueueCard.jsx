@@ -1,5 +1,6 @@
 import { getDoctorDisplayName, getDoctorById } from '../config/doctors';
 import { formatTime } from '../utils/dateUtils';
+import { Clock3, Stethoscope, CheckCircle2, X as XIcon, UserRound, ClipboardList, Flame } from 'lucide-react';
 
 const formatWaitingTime = (createdAt) => {
   if (!createdAt) return '';
@@ -29,7 +30,7 @@ const getStatusConfig = (status) => {
   switch (status) {
     case 'en_attente':
       return {
-        icon: '⏱️',
+        icon: <Clock3 className="w-5 h-5" />,
         label: 'En attente',
         bgClass: 'bg-blue-50 border-blue-200',
         badgeClass: 'bg-blue-100 text-blue-800',
@@ -37,7 +38,7 @@ const getStatusConfig = (status) => {
       };
     case 'en_consultation':
       return {
-        icon: '🩺',
+        icon: <Stethoscope className="w-5 h-5" />,
         label: 'En consultation',
         bgClass: 'bg-green-50 border-green-200',
         badgeClass: 'bg-green-100 text-green-800',
@@ -45,7 +46,7 @@ const getStatusConfig = (status) => {
       };
     case 'termine':
       return {
-        icon: '✅',
+        icon: <CheckCircle2 className="w-5 h-5" />,
         label: 'Terminé',
         bgClass: 'bg-gray-50 border-gray-200',
         badgeClass: 'bg-gray-100 text-gray-700',
@@ -53,7 +54,7 @@ const getStatusConfig = (status) => {
       };
     case 'desiste':
       return {
-        icon: '❌',
+        icon: <XIcon className="w-5 h-5" />,
         label: 'Annulé',
         bgClass: 'bg-red-50 border-red-200',
         badgeClass: 'bg-red-100 text-red-800',
@@ -61,7 +62,7 @@ const getStatusConfig = (status) => {
       };
     default:
       return {
-        icon: '❓',
+        icon: <ClipboardList className="w-5 h-5" />,
         label: status,
         bgClass: 'bg-gray-50 border-gray-200',
         badgeClass: 'bg-gray-100 text-gray-700',
@@ -94,14 +95,14 @@ const ImprovedQueueCard = ({
       {/* Badge "Mon ticket" */}
       {isMyTicket && (
         <div className="absolute -top-2 -right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
-          👤 MON TICKET
+          <span className="inline-flex items-center gap-1"><UserRound className="w-4 h-4" /> MON TICKET</span>
         </div>
       )}
 
       {/* Badge "Suivant" */}
       {position === 1 && !isMyTicket && (
         <div className="absolute -top-2 -right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md animate-pulse">
-          🔥 SUIVANT
+          <span className="inline-flex items-center gap-1"><Flame className="w-4 h-4" /> SUIVANT</span>
         </div>
       )}
 
@@ -143,7 +144,7 @@ const ImprovedQueueCard = ({
             {/* Informations docteur améliorées */}
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="text-lg">{doctor?.emoji || '👨‍⚕️'}</span>
+                <Stethoscope className="w-4 h-4 text-blue-600" />
                 <span className="font-semibold text-gray-900">
                   {doctorName}
                 </span>
@@ -151,7 +152,7 @@ const ImprovedQueueCard = ({
               
               {showDetailedDoctorInfo && doctor?.specialite && (
                 <div className="text-sm text-gray-600 ml-6">
-                  📋 {doctor.specialite}
+                  <span className="inline-flex items-center gap-1"><ClipboardList className="w-4 h-4" /> {doctor.specialite}</span>
                 </div>
               )}
             </div>
@@ -174,7 +175,7 @@ const ImprovedQueueCard = ({
         <div className="bg-white bg-opacity-60 rounded-lg p-3 border border-gray-200">
           <div className="text-gray-600 text-xs font-medium mb-1">Créé à</div>
           <div className="font-semibold text-gray-900">
-            🕐 {formatTime(ticket.createdAt)}
+            <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> {formatTime(ticket.createdAt)}</span>
           </div>
         </div>
         
@@ -183,7 +184,7 @@ const ImprovedQueueCard = ({
           <div className="bg-white bg-opacity-60 rounded-lg p-3 border border-blue-200">
             <div className="text-blue-600 text-xs font-medium mb-1">Temps d'attente</div>
             <div className="font-semibold text-blue-900">
-              ⏱️ {formatWaitingTime(ticket.createdAt)}
+              <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> {formatWaitingTime(ticket.createdAt)}</span>
             </div>
           </div>
         )}
@@ -193,7 +194,7 @@ const ImprovedQueueCard = ({
           <div className="bg-white bg-opacity-60 rounded-lg p-3 border border-orange-200">
             <div className="text-orange-600 text-xs font-medium mb-1">Estimation</div>
             <div className="font-semibold text-orange-900">
-              📊 {formatEstimatedTime(estimatedWait)}
+              {formatEstimatedTime(estimatedWait)}
             </div>
           </div>
         )}
@@ -203,7 +204,7 @@ const ImprovedQueueCard = ({
           <div className="bg-white bg-opacity-60 rounded-lg p-3 border border-green-200 sm:col-span-2 lg:col-span-1">
             <div className="text-green-600 text-xs font-medium mb-1">Consultation</div>
             <div className="font-semibold text-green-900">
-              🩺 En cours actuellement
+              <span className="inline-flex items-center gap-1"><Stethoscope className="w-4 h-4" /> En cours actuellement</span>
             </div>
           </div>
         )}
@@ -212,7 +213,7 @@ const ImprovedQueueCard = ({
           <div className="bg-white bg-opacity-60 rounded-lg p-3 border border-gray-200">
             <div className="text-gray-600 text-xs font-medium mb-1">Terminé à</div>
             <div className="font-semibold text-gray-900">
-              ✅ {formatTime(ticket.updatedAt || ticket.createdAt)}
+              <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> {formatTime(ticket.updatedAt || ticket.createdAt)}</span>
             </div>
           </div>
         )}
@@ -222,7 +223,7 @@ const ImprovedQueueCard = ({
       {position === 1 && (
         <div className="mt-4 bg-green-100 border border-green-300 rounded-lg p-3">
           <div className="text-green-800 font-medium text-center">
-            🎯 C'est votre tour ! Préparez-vous à être appelé
+            C'est votre tour ! Préparez-vous à être appelé
           </div>
         </div>
       )}
@@ -230,7 +231,7 @@ const ImprovedQueueCard = ({
       {position === 2 && (
         <div className="mt-4 bg-orange-100 border border-orange-300 rounded-lg p-3">
           <div className="text-orange-800 font-medium text-center">
-            ⚡ Vous êtes le prochain ! Restez à proximité
+            Vous êtes le prochain ! Restez à proximité
           </div>
         </div>
       )}

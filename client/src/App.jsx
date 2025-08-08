@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
+import { Home as HomeIcon, ClipboardList, Ticket as TicketIcon, BarChart3, LogOut, Lock, Star } from "lucide-react";
 
 // Hook pour détecter si on est sur desktop (768px+)
 const useIsDesktop = () => {
@@ -25,7 +26,6 @@ import Ticket from "./pages/Ticket";
 import Queue from "./pages/Queue";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import UserDebugPanel from "./components/UserDebugPanel";
 import { getDisplayName } from "./utils/userUtils";
 import { getDoctorDashboardRoute } from "./utils/doctorMapping";
 
@@ -111,14 +111,14 @@ function App() {
                   to="/" 
                   className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                 >
-                  <span>🏠</span>
+                  <HomeIcon className="w-4 h-4" />
                   <span className="font-medium">Accueil</span>
                 </Link>
                 <Link 
                   to="/queue" 
                   className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                 >
-                  <span>📋</span>
+                  <ClipboardList className="w-4 h-4" />
                   <span className="font-medium">File d'attente</span>
                 </Link>
                 {!isAuthenticated && (
@@ -126,7 +126,7 @@ function App() {
                       to="/ticket" 
                       className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                     >
-                      <span>🎫</span>
+                      <TicketIcon className="w-4 h-4" />
                       <span className="font-medium">Mon ticket</span>
                     </Link>
                 )}
@@ -158,7 +158,7 @@ function App() {
                     to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
-                    <span>📊</span>
+                    <BarChart3 className="w-4 h-4" />
                     <span className="font-medium">Mon espace</span>
                   </Link>
                   
@@ -168,7 +168,7 @@ function App() {
                     className="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 px-4 py-2 rounded-lg transition-all duration-200 border border-red-200"
                     title="Se déconnecter"
                   >
-                    <span>🚪</span>
+                    <LogOut className="w-4 h-4" />
                     <span className="font-medium">Déconnexion</span>
                   </button>
                 </div>
@@ -178,14 +178,14 @@ function App() {
                     to="/login" 
                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
-                    <span>🔐</span>
+                    <Lock className="w-4 h-4" />
                     <span className="font-medium">Connexion</span>
                   </Link>
                   <Link 
                     to="/register" 
                     className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                   >
-                    <span>✨</span>
+                    <Star className="w-4 h-4" />
                     <span className="font-medium">Inscription</span>
                   </Link>
                 </div>
@@ -219,8 +219,8 @@ function App() {
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
-              >
-                <span>🏠</span>
+                >
+                <HomeIcon className="w-4 h-4" />
                 <span className="font-medium">Accueil</span>
               </Link>
               <Link 
@@ -228,7 +228,7 @@ function App() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
               >
-                <span>📋</span>
+                <ClipboardList className="w-4 h-4" />
                 <span className="font-medium">File d'attente</span>
               </Link>
               {!isAuthenticated && (
@@ -237,7 +237,7 @@ function App() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
                 >
-                  <span>🎫</span>
+                  <TicketIcon className="w-4 h-4" />
                   <span className="font-medium">Mon ticket</span>
                 </Link>
               )}
@@ -267,7 +267,7 @@ function App() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors touch-target-large"
                   >
-                    <span>📊</span>
+                    <BarChart3 className="w-4 h-4" />
                     <span className="font-medium">Mon espace</span>
                   </Link>
                   <button
@@ -277,7 +277,7 @@ function App() {
                     }}
                     className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors touch-target-large"
                   >
-                    <span>🚪</span>
+                    <LogOut className="w-4 h-4" />
                     <span className="font-medium">Déconnexion</span>
                   </button>
                 </div>
@@ -291,7 +291,7 @@ function App() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors hover:bg-blue-700 touch-target-large"
                   >
-                    <span>🔐</span>
+                    <Lock className="w-4 h-4" />
                     <span className="font-medium">Connexion</span>
                   </Link>
                   <Link 
@@ -299,7 +299,7 @@ function App() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg transition-colors hover:from-green-700 hover:to-emerald-700 touch-target-large"
                   >
-                    <span>✨</span>
+                    <Star className="w-4 h-4" />
                     <span className="font-medium">Inscription</span>
                   </Link>
                 </div>
@@ -336,8 +336,7 @@ function App() {
         </div>
       </main>
       
-      {/* Panneau de debug (toujours visible pour diagnostiquer) */}
-      <UserDebugPanel />
+      {/* Panneau de debug retiré en production */}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Title from "../components/Title";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 import BACKEND_URL from "../config/api";
+import { UserRound, Mail, Eye, EyeOff, Lock, Info, Loader2 } from "lucide-react";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -161,7 +162,7 @@ export default function Register() {
                         p-4 sm:p-6 lg:p-8 
                         rounded-xl 
                         accessible-shadow old-device-optimized">
-          <Title level={1}>✨ Créer un compte</Title>
+          <Title level={1} icon={<UserRound className="w-6 h-6" />}>Créer un compte</Title>
 
           {/* Message d'aide principal */}
           <div className="help-text mb-6 sm:mb-8">
@@ -181,7 +182,7 @@ export default function Register() {
                   htmlFor="firstName"
                   className="block legacy-text-primary font-semibold text-gray-800 mb-3"
                 >
-                  👤 Prénom *
+                  Prénom *
                 </label>
                 <input
                   id="firstName"
@@ -203,9 +204,9 @@ export default function Register() {
                 <div id="firstName-help" className="mt-2 text-sm text-gray-600">
                   Votre prénom tel qu'il apparaîtra sur vos tickets
                 </div>
-                {validationErrors.firstName && (
+                  {validationErrors.firstName && (
                   <div id="firstName-error" className="mt-2 text-sm text-red-600 font-medium">
-                    ⚠️ {validationErrors.firstName}
+                    {validationErrors.firstName}
                   </div>
                 )}
               </div>
@@ -215,7 +216,7 @@ export default function Register() {
                   htmlFor="lastName"
                   className="block legacy-text-primary font-semibold text-gray-800 mb-3"
                 >
-                  👤 Nom de famille *
+                  Nom de famille *
                 </label>
                 <input
                   id="lastName"
@@ -239,7 +240,7 @@ export default function Register() {
                 </div>
                 {validationErrors.lastName && (
                   <div id="lastName-error" className="mt-2 text-sm text-red-600 font-medium">
-                    ⚠️ {validationErrors.lastName}
+                    {validationErrors.lastName}
                   </div>
                 )}
               </div>
@@ -251,7 +252,7 @@ export default function Register() {
                 htmlFor="email"
                 className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
-                📧 Adresse email *
+                 Adresse email *
               </label>
               <input
                 id="email"
@@ -273,9 +274,9 @@ export default function Register() {
               <div id="email-help" className="mt-2 text-sm text-gray-600">
                 Cette adresse servira pour vous connecter
               </div>
-              {validationErrors.email && (
+               {validationErrors.email && (
                 <div id="email-error" className="mt-2 text-sm text-red-600 font-medium">
-                  ⚠️ {validationErrors.email}
+                  {validationErrors.email}
                 </div>
               )}
             </div>
@@ -286,7 +287,7 @@ export default function Register() {
                 htmlFor="phone"
                 className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
-                📱 Numéro de téléphone (optionnel)
+                 Numéro de téléphone (optionnel)
               </label>
               <input
                 id="phone"
@@ -313,7 +314,7 @@ export default function Register() {
                 htmlFor="role"
                 className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
-                🎭 Type de compte *
+                 Type de compte *
               </label>
               <select
                 id="role"
@@ -326,8 +327,8 @@ export default function Register() {
                 disabled={isLoading}
                 aria-describedby="role-help"
               >
-                <option value="patient">👤 Patient - Je veux prendre des tickets de consultation</option>
-                <option value="visiteur">👁️ Visiteur - Je veux seulement consulter les files d'attente</option>
+                <option value="patient">Patient - Je veux prendre des tickets de consultation</option>
+                <option value="visiteur">Visiteur - Je veux seulement consulter les files d'attente</option>
               </select>
               <div id="role-help" className="mt-2 text-sm text-gray-600">
                 Choisissez selon votre utilisation prévue du système
@@ -340,7 +341,7 @@ export default function Register() {
                 htmlFor="password"
                 className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
-                🔒 Mot de passe *
+                 Mot de passe *
               </label>
               <div className="relative">
                 <input
@@ -367,7 +368,7 @@ export default function Register() {
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                   disabled={isLoading}
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               <div id="password-help" className="mt-2 text-sm text-gray-600">
@@ -386,7 +387,7 @@ export default function Register() {
                 htmlFor="confirmPassword"
                 className="block legacy-text-primary font-semibold text-gray-800 mb-3"
               >
-                🔒 Confirmer le mot de passe *
+                 Confirmer le mot de passe *
               </label>
               <div className="relative">
                 <input
@@ -413,15 +414,15 @@ export default function Register() {
                   aria-label={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
                   disabled={isLoading}
                 >
-                  {showConfirmPassword ? "🙈" : "👁️"}
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               <div id="confirmPassword-help" className="mt-2 text-sm text-gray-600">
                 Retapez le même mot de passe pour confirmation
               </div>
-              {validationErrors.confirmPassword && (
+               {validationErrors.confirmPassword && (
                 <div id="confirmPassword-error" className="mt-2 text-sm text-red-600 font-medium">
-                  ⚠️ {validationErrors.confirmPassword}
+                  {validationErrors.confirmPassword}
                 </div>
               )}
             </div>
@@ -439,7 +440,7 @@ export default function Register() {
             >
               {isLoading ? (
                 <>
-                  <span className="old-android-safe inline-block mr-3">⏳</span>
+                  <Loader2 className="w-4 h-4 animate-spin inline-block mr-3" />
                   Création en cours...
                 </>
               ) : (
@@ -464,13 +465,13 @@ export default function Register() {
               className="block w-full text-center px-4 py-3 border-2 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-all duration-200 no-underline"
               aria-label="Aller à la page de connexion"
             >
-              🔐 Se connecter
+              <span className="inline-flex items-center gap-2"><Lock className="w-4 h-4" /> Se connecter</span>
             </Link>
           </div>
 
           {/* Information importante */}
           <div className="mt-8 help-text">
-            <h3 className="legacy-text-primary font-bold mb-3">ℹ️ Information importante</h3>
+            <h3 className="legacy-text-primary font-bold mb-3"><span className="inline-flex items-center gap-2"><Info className="w-4 h-4" /> Information importante</span></h3>
             <p className="text-sm leading-relaxed">
               Les comptes <strong>Médecin</strong> et <strong>Secrétaire</strong> sont réservés au personnel médical 
               et ne peuvent pas être créés via cette page. Si vous êtes membre du personnel médical, 

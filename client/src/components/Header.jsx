@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import Title from './Title';
+import { Home, ArrowLeft, Ticket as TicketIcon } from 'lucide-react';
 
 export default function Header({ hideTitle = false }) {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function Header({ hideTitle = false }) {
             aria-label="Retour à la page précédente"
             title="Retour à la page précédente"
           >
-            <span className="text-sm">←</span>
+            <ArrowLeft className="w-4 h-4" />
             <span className="hidden md:inline">Retour</span>
           </button>
         )}
@@ -42,12 +43,12 @@ export default function Header({ hideTitle = false }) {
           aria-label="Retour à l'accueil"
           title="Retour à l'accueil"
         >
-          <span className="text-sm">🏠</span>
+          <Home className="w-4 h-4" />
           <span className="hidden md:inline">Accueil</span>
         </button>
       </div>
       
-      <Title left="Ticket" emoji="🎫" />
+      <Title left="Ticket" icon={<TicketIcon className="w-6 h-6 inline" />} />
     </header>
   );
 } 

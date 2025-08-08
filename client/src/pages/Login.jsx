@@ -8,6 +8,7 @@ import QuickDoctorAccess from "../components/QuickDoctorAccess";
 import { useToast } from "../hooks/useToast";
 import { getWelcomeMessage, debugUserData } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
+import { Mail, Lock, Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,6 @@ export default function Login() {
     password: ""
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [showQuickLogin, setShowQuickLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, removeToast } = useToast();
@@ -111,7 +111,7 @@ export default function Login() {
     <Layout>
       <AnimatedPage>
         <div className="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-xl accessible-shadow">
-          <Title level={1}>🔐 Connexion</Title>
+          <Title level={1}>Connexion</Title>
 
           {/* Message d'aide principal */}
           <div className="help-text mb-6">
@@ -120,85 +120,15 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Connexions rapides des docteurs */}
-                            <QuickDoctorAccess 
-                    mode="login"
-                    onQuickLogin={handleQuickLogin} 
-                    isExternalLoading={isLoading}
-                    title="Connexions rapides médecins"
-                  />
+          {/* Connexions rapides (médecins + secrétaire intégrée) */}
+          <QuickDoctorAccess 
+            mode="login"
+            onQuickLogin={handleQuickLogin} 
+            isExternalLoading={isLoading}
+            title="Connexions rapides"
+          />
 
-          {/* Boutons de test simplifié */}
-          <div className="mb-8">
-            <button
-              onClick={() => setShowQuickLogin(!showQuickLogin)}
-              className="w-full high-contrast-button touch-target-large bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300 gentle-transition"
-              type="button"
-              aria-expanded={showQuickLogin}
-              aria-controls="quick-login-section"
-            >
-              🧪 {showQuickLogin ? 'Masquer' : 'Voir'} les comptes de démonstration
-            </button>
-
-            {showQuickLogin && (
-              <div 
-                id="quick-login-section"
-                className="mt-4 bg-gray-50 border-2 border-gray-200 rounded-xl p-4"
-                role="region"
-                aria-label="Comptes de démonstration"
-              >
-                <h3 className="font-bold text-gray-900 mb-4 text-center senior-friendly-text">
-                  Comptes de test disponibles
-                </h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => handleQuickLogin({
-                      email: "medecin@lineup.com",
-                      password: "medecin123"
-                    })}
-                    className="w-full high-contrast-button touch-target-large bg-green-100 hover:bg-green-200 text-green-800 border-green-300 gentle-transition"
-                    disabled={isLoading}
-                    aria-label="Se connecter en tant que médecin de démonstration"
-                  >
-                    👨‍⚕️ Médecin (Démonstration)
-                  </button>
-                  <button
-                    onClick={() => handleQuickLogin({
-                      email: "secretaire@lineup.com",
-                      password: "secretaire123"
-                    })}
-                    className="w-full high-contrast-button touch-target-large bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 gentle-transition"
-                    disabled={isLoading}
-                    aria-label="Se connecter en tant que secrétaire de démonstration"
-                  >
-                    👩‍💼 Secrétaire (Démonstration)
-                  </button>
-                  <button
-                    onClick={() => handleQuickLogin({
-                      email: "patient@lineup.com",
-                      password: "patient123"
-                    })}
-                    className="w-full high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition"
-                    disabled={isLoading}
-                    aria-label="Se connecter en tant que patient de démonstration"
-                  >
-                    🏥 Patient (Démonstration)
-                  </button>
-                  <button
-                    onClick={() => handleQuickLogin({
-                      email: "visiteur@lineup.com",
-                      password: "visiteur123"
-                    })}
-                    className="w-full high-contrast-button touch-target-large bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300 gentle-transition"
-                    disabled={isLoading}
-                    aria-label="Se connecter en tant que visiteur de démonstration"
-                  >
-                    👁️ Visiteur (Démonstration)
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Section comptes de démonstration supprimée */}
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
@@ -206,7 +136,7 @@ export default function Login() {
                 htmlFor="email"
                 className="block senior-friendly-text font-semibold text-gray-800 mb-3 text-left"
               >
-                📧 Adresse email
+                <span className="inline-flex items-center gap-2"><Mail className="w-4 h-4"/> Adresse email</span>
               </label>
               <input
                 id="email"
@@ -231,7 +161,7 @@ export default function Login() {
                 htmlFor="password"
                 className="block senior-friendly-text font-semibold text-gray-800 mb-3 text-left"
               >
-                🔒 Mot de passe
+                <span className="inline-flex items-center gap-2"><Lock className="w-4 h-4"/> Mot de passe</span>
               </label>
               <div className="relative">
                 <input
@@ -254,7 +184,7 @@ export default function Login() {
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                   disabled={isLoading}
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
                 </button>
               </div>
               <div id="password-help" className="mt-2 text-sm text-gray-600 text-left">
@@ -272,14 +202,7 @@ export default function Login() {
               }`}
               aria-describedby="submit-help"
             >
-              {isLoading ? (
-                <>
-                  <span className="animate-spin inline-block mr-3">⏳</span>
-                  Connexion en cours...
-                </>
-              ) : (
-                "Se connecter"
-              )}
+              {isLoading ? (<span className="inline-flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin"/> Connexion en cours...</span>) : ("Se connecter")}
             </button>
             
             {(!formData.email || !formData.password) && (
@@ -299,7 +222,7 @@ export default function Login() {
               className="block w-full text-center high-contrast-button touch-target-large bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 gentle-transition no-underline"
               aria-label="Créer un nouveau compte"
             >
-              ✨ Créer un compte
+              <span className="inline-flex items-center gap-2"><UserPlus className="w-4 h-4"/> Créer un compte</span>
             </Link>
           </div>
         </div>

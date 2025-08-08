@@ -9,6 +9,7 @@ import DoctorQueueSelector from "../../components/DoctorQueueSelector";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
 import { getDoctorDisplayName } from "../../config/doctors";
+import { RefreshCcw, CheckCircle2, Stethoscope, ClipboardList, Home as HomeIcon } from "lucide-react";
 
 export default function SecretaireDashboard() {
   const [user, setUser] = useState(null);
@@ -44,13 +45,13 @@ export default function SecretaireDashboard() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      showInfo("🌐 Connexion rétablie", 2000);
+      showInfo("Connexion rétablie", 2000);
       fetchQueue(); // Rechargement automatique
     };
     
     const handleOffline = () => {
       setIsOnline(false);
-      showWarning("⚠️ Connexion perdue - Mode hors ligne", 0);
+      showWarning("Connexion perdue - Mode hors ligne", 0);
     };
 
     window.addEventListener('online', handleOnline);
@@ -150,17 +151,17 @@ export default function SecretaireDashboard() {
 
   const getWelcomeMessage = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return "🌅 Bonjour";
-    if (hour < 18) return "☀️ Bon après-midi";
-    return "🌙 Bonsoir";
+    if (hour < 12) return "Bonjour";
+    if (hour < 18) return "Bon après-midi";
+    return "Bonsoir";
   };
 
   const getActivityLevel = () => {
     const totalWaiting = stats.waitingCount || 0;
-    if (totalWaiting === 0) return { level: "Calme", color: "green", icon: "😌" };
-    if (totalWaiting <= 5) return { level: "Normal", color: "blue", icon: "😊" };
-    if (totalWaiting <= 10) return { level: "Actif", color: "yellow", icon: "😐" };
-    return { level: "Très occupé", color: "red", icon: "😰" };
+    if (totalWaiting === 0) return { level: "Calme", color: "green" };
+    if (totalWaiting <= 5) return { level: "Normal", color: "blue" };
+    if (totalWaiting <= 10) return { level: "Actif", color: "yellow" };
+    return { level: "Très occupé", color: "red" };
   };
 
   const handleCallNext = (doctorId = null) => {
@@ -381,21 +382,19 @@ export default function SecretaireDashboard() {
             <div className="dashboard-header">
               <div className="dashboard-header-content">
                 <div>
-                  <h1 className="dashboard-title">
-                    🏥 Dashboard Secrétaire
-                  </h1>
+                  <h1 className="dashboard-title">Dashboard Secrétaire</h1>
                   <p className="dashboard-subtitle">
                     {getWelcomeMessage()}, {user.firstName} ! ✨ Gestion centralisée des consultations médicales
                   </p>
                   <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
+                      {currentTime.toLocaleTimeString('fr-FR')}
                     </div>
                     <div className="flex items-center gap-2">
-                      {activity.icon} Activité: <span className={`font-medium text-${activity.color}-600`}>{activity.level}</span>
+                      Activité: <span className={`font-medium text-${activity.color}-600`}>{activity.level}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                      {isOnline ? "En ligne" : "Hors ligne"}
                     </div>
                     <div className="text-xs">
                       ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
@@ -407,19 +406,19 @@ export default function SecretaireDashboard() {
                     onClick={() => navigate('/queue')}
                     className="btn-primary"
                   >
-                    📋 File complète
+                    <span className="inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" /> File complète</span>
                   </button>
                   <button
                     onClick={() => navigate('/admin')}
                     className="btn-secondary"
                   >
-                    ⚙️ Administration
+                    Administration
                   </button>
                   <button
                     onClick={() => navigate('/')}
                     className="btn-secondary"
                   >
-                    🏠 Accueil
+                    <span className="inline-flex items-center gap-2"><HomeIcon className="w-4 h-4" /> Accueil</span>
                   </button>
                 </div>
               </div>
@@ -437,33 +436,30 @@ export default function SecretaireDashboard() {
 
             {/* Statistiques en temps réel améliorées */}
             <div className="dashboard-card dashboard-section">
-              <h2 className="dashboard-card-title">
-                📊 Statistiques en temps réel
-                <span className="animate-pulse ml-2">🔴</span>
-              </h2>
+              <h2 className="dashboard-card-title">Statistiques en temps réel</h2>
               <div className="stats-grid">
                 <div className="stats-card stats-card-blue">
-                  <div className="stats-number">⏳ {stats.waitingCount || 0}</div>
+                  <div className="stats-number">{stats.waitingCount || 0}</div>
                   <div className="stats-label">Patients en attente</div>
                 </div>
                 <div className="stats-card stats-card-yellow">
-                  <div className="stats-number">👨‍⚕️ {stats.inConsultationCount || 0}</div>
+                  <div className="stats-number">{stats.inConsultationCount || 0}</div>
                   <div className="stats-label">En consultation</div>
                 </div>
                 <div className="stats-card stats-card-green">
-                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
+                  <div className="stats-number">{stats.completedToday || 0}</div>
                   <div className="stats-label">Consultations terminées</div>
                 </div>
                 <div className="stats-card stats-card-red">
-                  <div className="stats-number">❌ {stats.cancelledToday || 0}</div>
+                  <div className="stats-number">{stats.cancelledToday || 0}</div>
                   <div className="stats-label">Annulations du jour</div>
                 </div>
                 <div className="stats-card stats-card-purple">
-                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
+                  <div className="stats-number">{stats.totalToday || 0}</div>
                   <div className="stats-label">Total journée</div>
                 </div>
                 <div className="stats-card stats-card-orange">
-                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                  <div className="stats-number">{stats.efficiency || 0}%</div>
                   <div className="stats-label">Taux d'efficacité</div>
                 </div>
               </div>
@@ -471,10 +467,7 @@ export default function SecretaireDashboard() {
 
             {/* État des médecins amélioré */}
             <div className="dashboard-card">
-              <h3 className="dashboard-card-title">
-                👩‍⚕️ État des consultations en temps réel
-                <span className="animate-pulse ml-2">🔴</span>
-              </h3>
+              <h3 className="dashboard-card-title">État des consultations en temps réel</h3>
               <div className="space-y-8">
                 {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map((doctorId, index) => {
                   const doctorQueue = queue.filter(t => t.docteur === doctorId);
@@ -487,16 +480,16 @@ export default function SecretaireDashboard() {
                     <div key={doctorId}>
                       <div className="doctor-status-card bg-white border-2 border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                         <h4 className="doctor-status-title text-lg font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">
-                          👨‍⚕️ {getDoctorDisplayName(doctorId)}
+                          {getDoctorDisplayName(doctorId)}
                         </h4>
                         
                         <div className="doctor-status-info space-y-6">
                           {/* État actuel */}
                           {inConsultation ? (
                             <div className="status-card status-card-consultation bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                              <div className="status-text text-yellow-800 font-semibold text-base">🩺 Consultation en cours</div>
+                              <div className="status-text text-yellow-800 font-semibold text-base inline-flex items-center gap-2"><Stethoscope className="w-4 h-4" /> Consultation en cours</div>
                               <div className="status-detail text-yellow-600 mt-2">
-                                🎫 Ticket n°{inConsultation.number}
+                                Ticket n°{inConsultation.number}
                                 <span className="ml-3 text-sm">
                                   Depuis {new Date(inConsultation.updatedAt || inConsultation.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                 </span>
@@ -504,7 +497,7 @@ export default function SecretaireDashboard() {
                             </div>
                           ) : (
                             <div className="status-card status-card-available bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-                              <div className="status-text text-green-800 font-semibold text-base">✅ Médecin disponible</div>
+                              <div className="status-text text-green-800 font-semibold text-base inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Médecin disponible</div>
                               <div className="status-detail text-green-600 mt-2">Prêt à recevoir un patient</div>
                             </div>
                           )}
@@ -512,9 +505,9 @@ export default function SecretaireDashboard() {
                           {/* Patient suivant */}
                           {nextPatient ? (
                             <div className="status-card status-card-next bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                              <div className="status-text text-blue-800 font-semibold text-base">⏳ Prochain patient</div>
+                              <div className="status-text text-blue-800 font-semibold text-base">Prochain patient</div>
                               <div className="status-detail text-blue-600 mt-2">
-                                🎫 Ticket n°{nextPatient.number}
+                                Ticket n°{nextPatient.number}
                                 <span className="ml-3 text-sm">
                                   Arrivé à {new Date(nextPatient.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                 </span>
@@ -522,7 +515,7 @@ export default function SecretaireDashboard() {
                             </div>
                           ) : (
                             <div className="status-card status-card-empty bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg">
-                              <div className="status-text text-gray-600 font-semibold text-base">🚫 File d'attente vide</div>
+                               <div className="status-text text-gray-600 font-semibold text-base">File d'attente vide</div>
                               <div className="status-detail text-gray-500 mt-2">Aucun patient en attente</div>
                             </div>
                           )}
@@ -532,7 +525,7 @@ export default function SecretaireDashboard() {
                             <div className="grid grid-cols-2 gap-6">
                               <div className="doctor-waiting-count text-center">
                                 <div className="doctor-waiting-number text-2xl font-bold text-blue-600 mb-1">{waiting.length}</div>
-                                <div className="doctor-waiting-label text-sm text-gray-600">👥 patients en attente</div>
+                                <div className="doctor-waiting-label text-sm text-gray-600">patients en attente</div>
                               </div>
                               <div className="doctor-waiting-count text-center">
                                 <div className="doctor-waiting-number text-2xl font-bold text-orange-600 mb-1">{estimatedWaitTime}min</div>
@@ -567,13 +560,11 @@ export default function SecretaireDashboard() {
                 
                 {/* Création de ticket améliorée avec support physique */}
                 <div className="dashboard-card">
-                  <h3 className="dashboard-card-title">
-                    🎫 Nouveau ticket patient
-                  </h3>
+                  <h3 className="dashboard-card-title">Nouveau ticket patient</h3>
                   <div className="space-y-6">
                     {/* Type de ticket */}
                     <div>
-                      <label className="form-label">📱 Type de ticket</label>
+                      <label className="form-label">Type de ticket</label>
                       <div className="flex gap-4 mt-2">
                         <label className="flex items-center cursor-pointer">
                           <input
@@ -584,7 +575,7 @@ export default function SecretaireDashboard() {
                             onChange={(e) => setTicketType(e.target.value)}
                             className="mr-2"
                           />
-                          <span className="text-sm font-medium">📱 Numérique (QR Code)</span>
+                          <span className="text-sm font-medium">Numérique (QR Code)</span>
                         </label>
                         <label className="flex items-center cursor-pointer">
                           <input
@@ -595,7 +586,7 @@ export default function SecretaireDashboard() {
                             onChange={(e) => setTicketType(e.target.value)}
                             className="mr-2"
                           />
-                          <span className="text-sm font-medium">🎫 Physique (avec nom)</span>
+                          <span className="text-sm font-medium">Physique (avec nom)</span>
                         </label>
                       </div>
                     </div>
@@ -603,7 +594,7 @@ export default function SecretaireDashboard() {
                     {/* Nom du patient (si ticket physique) */}
                     {ticketType === 'physique' && (
                       <div>
-                        <label className="form-label">👤 Nom du patient *</label>
+                        <label className="form-label">Nom du patient *</label>
                         <input
                           type="text"
                           value={patientName}
@@ -620,21 +611,21 @@ export default function SecretaireDashboard() {
                     )}
 
                     <div>
-                      <label className="form-label">👨‍⚕️ Sélectionner le médecin</label>
+                      <label className="form-label">Sélectionner le médecin</label>
                       <select
                         value={selectedDoctorForTicket}
                         onChange={(e) => setSelectedDoctorForTicket(e.target.value)}
                         className="form-select"
                       >
-                        <option value="dr-husni-said-habibi">🩺 {getDoctorDisplayName('dr-husni-said-habibi')}</option>
-                        <option value="dr-helios-blasco">🏥 {getDoctorDisplayName('dr-helios-blasco')}</option>
-                        <option value="dr-jean-eric-panacciulli">⚕️ {getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
+                        <option value="dr-husni-said-habibi">{getDoctorDisplayName('dr-husni-said-habibi')}</option>
+                        <option value="dr-helios-blasco">{getDoctorDisplayName('dr-helios-blasco')}</option>
+                        <option value="dr-jean-eric-panacciulli">{getDoctorDisplayName('dr-jean-eric-panacciulli')}</option>
                       </select>
                     </div>
 
                     {/* Notes optionnelles */}
                     <div>
-                      <label className="form-label">📝 Notes (optionnel)</label>
+                      <label className="form-label">Notes (optionnel)</label>
                       <textarea
                         value={ticketNotes}
                         onChange={(e) => setTicketNotes(e.target.value)}
@@ -649,7 +640,7 @@ export default function SecretaireDashboard() {
                     {/* Info sur la file d'attente du médecin sélectionné */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <div className="text-sm font-medium text-blue-800 mb-1">
-                        📊 État de la file pour {getDoctorDisplayName(selectedDoctorForTicket)}
+                        État de la file pour {getDoctorDisplayName(selectedDoctorForTicket)}
                       </div>
                       <div className="text-xs text-blue-600">
                         {(() => {
@@ -659,9 +650,9 @@ export default function SecretaireDashboard() {
                           
                           return (
                             <div className="flex items-center gap-4">
-                              <span>👥 {waiting} en attente</span>
-                              <span>{inConsultation ? "🩺 En consultation" : "✅ Disponible"}</span>
-                              <span>⏱️ ~{waiting * 15}min d'attente</span>
+                              <span>{waiting} en attente</span>
+                              <span>{inConsultation ? "En consultation" : "Disponible"}</span>
+                              <span>~{waiting * 15}min d'attente</span>
                             </div>
                           );
                         })()}
@@ -673,10 +664,10 @@ export default function SecretaireDashboard() {
                       disabled={isLoading || !isOnline || (ticketType === 'physique' && !patientName.trim())}
                       className="btn-primary btn-full btn-large"
                     >
-                      {isLoading ? "🔄 Création en cours..." : 
+                      {isLoading ? "Création en cours..." : 
                        ticketType === 'physique' ? 
-                       `🎫 Créer ticket physique ${patientName ? `pour ${patientName}` : ''}` :
-                       "📱 Créer ticket numérique"}
+                       `Créer ticket physique ${patientName ? `pour ${patientName}` : ''}` :
+                       "Créer ticket numérique"}
                     </button>
                     <div className="text-xs text-gray-500 text-center">
                       ✨ En tant que secrétaire, vous pouvez créer des tickets sans limite
@@ -687,7 +678,7 @@ export default function SecretaireDashboard() {
                 {/* Actions rapides améliorées */}
                 <div className="dashboard-card">
                   <h3 className="dashboard-card-title">
-                    ⚡ Actions rapides
+                      <span className="inline-flex items-center gap-2"><RefreshCcw className="w-4 h-4" /> Actions rapides</span>
                   </h3>
                   <div className="space-y-4">
                     <button
@@ -695,9 +686,9 @@ export default function SecretaireDashboard() {
                       disabled={isLoading || !isOnline || stats.waitingCount === 0}
                       className="btn-success btn-full btn-large"
                     >
-                      {isLoading ? "🔄 Appel en cours..." : 
-                       stats.waitingCount === 0 ? "😴 Aucun patient en attente" :
-                       "📢 Appeler le patient suivant"}
+                      {isLoading ? "Appel en cours..." : 
+                       stats.waitingCount === 0 ? "Aucun patient en attente" :
+                       "Appeler le patient suivant"}
                     </button>
                     
                     <button
@@ -705,7 +696,7 @@ export default function SecretaireDashboard() {
                       disabled={isLoading || !isOnline}
                       className="btn-secondary btn-full btn-large"
                     >
-                      {isLoading ? "🔄 Actualisation..." : "🔄 Actualiser maintenant"}
+                      {isLoading ? "Actualisation..." : "Actualiser maintenant"}
                     </button>
                   </div>
                 </div>
@@ -713,7 +704,7 @@ export default function SecretaireDashboard() {
                 {/* Bouton Reset Rouge Proéminent */}
                 <div className="dashboard-card bg-gradient-to-r from-red-50 to-red-100 border-red-200">
                   <h3 className="dashboard-card-title text-red-700">
-                    🚨 Gestion de la file d'attente
+                    Gestion de la file d'attente
                   </h3>
                   <div className="space-y-3">
                     <div className="bg-white p-4 rounded-lg border border-red-200">
@@ -722,7 +713,7 @@ export default function SecretaireDashboard() {
                           <p className="text-sm text-red-600 font-medium">Action d'urgence</p>
                           <p className="text-xs text-gray-500">Supprimer tous les patients en attente</p>
                         </div>
-                        <div className="text-2xl">🗑️</div>
+                         <div className="text-2xl"> </div>
                       </div>
                       
                       <button
@@ -732,12 +723,12 @@ export default function SecretaireDashboard() {
                       >
                         {isLoading ? (
                           <span className="flex items-center justify-center">
-                            <span className="animate-spin mr-2">🔄</span>
+                             <span className="animate-spin mr-2"> </span>
                             Réinitialisation...
                           </span>
                         ) : (
                           <span className="flex items-center justify-center">
-                            <span className="mr-2">🗑️</span>
+                             <span className="mr-2"> </span>
                             RÉINITIALISER TOUTES LES FILES
                           </span>
                         )}
@@ -745,7 +736,7 @@ export default function SecretaireDashboard() {
                       
                       {stats.waitingCount > 0 && (
                         <p className="text-xs text-center text-red-500 mt-2">
-                          ⚠️ {stats.waitingCount} patient{stats.waitingCount > 1 ? 's' : ''} en attente
+                           {stats.waitingCount} patient{stats.waitingCount > 1 ? 's' : ''} en attente
                         </p>
                       )}
                     </div>
@@ -757,7 +748,7 @@ export default function SecretaireDashboard() {
               {/* Colonne droite - Appels spécifiques par médecin */}
               <div className="dashboard-card">
                 <h3 className="dashboard-card-title">
-                  📞 Appels spécifiques par médecin
+                  Appels spécifiques par médecin
                 </h3>
                 <div className="space-y-6">
                   {['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].map(doctorId => {
@@ -769,20 +760,18 @@ export default function SecretaireDashboard() {
                       <div key={doctorId} className="border border-gray-200 rounded-xl p-4 bg-gradient-to-r from-white to-gray-50 hover:shadow-md transition-all duration-200">
                         <div className="grid grid-cols-12 gap-3 items-center">
                           <div className="col-span-8">
-                            <h4 className="text-base font-bold text-gray-800 mb-1 leading-tight">
-                              📞 {getDoctorDisplayName(doctorId)}
-                            </h4>
+                              <h4 className="text-base font-bold text-gray-800 mb-1 leading-tight">{getDoctorDisplayName(doctorId)}</h4>
                             <div className="text-sm text-gray-600">
                               {waiting === 0 ? (
-                                <span className="text-gray-500">😴 Aucun patient en attente</span>
+                                <span className="text-gray-500">Aucun patient en attente</span>
                               ) : inConsultation ? (
                                 <div>
-                                  <span className="text-yellow-600">🩺 En consultation</span>
+                                  <span className="text-yellow-600">En consultation</span>
                                   <div className="text-xs text-blue-600 mt-1">{waiting} patient{waiting > 1 ? 's' : ''} en attente</div>
                                 </div>
                               ) : (
                                 <div>
-                                  <span className="text-green-600">✅ Disponible</span>
+                                  <span className="text-green-600">Disponible</span>
                                   <div className="text-xs text-blue-600 mt-1">{waiting} patient{waiting > 1 ? 's' : ''} en attente</div>
                                 </div>
                               )}
@@ -799,9 +788,9 @@ export default function SecretaireDashboard() {
                                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
                               }`}
                             >
-                              {waiting === 0 ? "😴 Aucun" :
-                               inConsultation ? "🩺 Occupé" :
-                               "📞 Appeler"}
+                              {waiting === 0 ? "Aucun" :
+                               inConsultation ? "Occupé" :
+                               "Appeler"}
                             </button>
                           </div>
                         </div>
@@ -817,14 +806,13 @@ export default function SecretaireDashboard() {
             {selectedDoctor && (
               <div className="dashboard-card">
                 <h3 className="dashboard-card-title">
-                  📋 File d'attente de {getDoctorDisplayName(selectedDoctor)}
-                  <span className="animate-pulse ml-2">🔴</span>
+                  <span className="inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" /> File d'attente de {getDoctorDisplayName(selectedDoctor)}</span>
                 </h3>
                 {queue.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-icon">🎯</div>
+                    <div className="empty-icon"></div>
                     <p className="empty-text">Aucun patient dans cette file d'attente</p>
-                    <p className="text-sm text-gray-400 mt-2">La consultation est libre ! 🎉</p>
+                     <p className="text-sm text-gray-400 mt-2">La consultation est libre !</p>
                   </div>
                 ) : (
                   <div className="dashboard-grid">
@@ -836,15 +824,15 @@ export default function SecretaireDashboard() {
                         <div key={ticket._id} className="ticket-card">
                           <div className="ticket-header">
                             <div className="flex flex-col">
-                              <span className="ticket-number">🎫 #{ticket.number}</span>
+                              <span className="ticket-number">#{ticket.number}</span>
                               {ticket.patientName && (
                                 <span className="text-sm font-medium text-blue-700 mt-1">
-                                  👤 {ticket.patientName}
+                                  {ticket.patientName}
                                 </span>
                               )}
                               {ticket.ticketType === 'physique' && (
                                 <span className="text-xs text-purple-600 mt-1">
-                                  🎫 Ticket physique
+                                  Ticket physique
                                 </span>
                               )}
                             </div>
@@ -855,14 +843,14 @@ export default function SecretaireDashboard() {
                               "ticket-status-cancelled"
                             }`}>
                               {ticket.status === "en_attente" ? "⏳ En attente" :
-                               ticket.status === "en_consultation" ? "🩺 En consultation" :
+                               ticket.status === "en_consultation" ? "En consultation" :
                                ticket.status === "termine" ? "✅ Terminé" : "❌ Annulé"}
                             </div>
                           </div>
                           
                           <div className="space-y-2 mt-3">
                             <div className="ticket-time">
-                              🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                              Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })}
@@ -879,13 +867,13 @@ export default function SecretaireDashboard() {
 
                             {ticket.notes && (
                               <div className="text-sm bg-gray-50 border-l-4 border-blue-300 p-2 rounded-r">
-                                <span className="text-gray-700 italic">📝 {ticket.notes}</span>
+                                <span className="text-gray-700 italic">{ticket.notes}</span>
                               </div>
                             )}
                             
                             {ticket.status === "en_attente" && position > 0 && (
                               <div className="ticket-position">
-                                📍 Position {position} dans la file
+                                Position {position} dans la file
                                 <span className="text-xs block mt-1">
                                   ⏳ Temps estimé: ~{position * 15}min
                                 </span>
@@ -903,17 +891,17 @@ export default function SecretaireDashboard() {
             {/* Modales avec style professionnel amélioré */}
             <ConfirmModal
               isOpen={showCallModal}
-              title="📢 Confirmation d'appel patient"
+              title="Confirmation d'appel patient"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">📞</div>
+                  <div className="modal-icon"></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous appeler le patient suivant pour une consultation avec 
                       <span className="font-bold text-blue-600"> {getDoctorDisplayName(selectedDoctorForCall)}</span> ?
                     </p>
                     <p className="modal-subtitle-text">
-                      🎫 Le patient sera automatiquement placé en consultation et retiré de la file d'attente.
+                      Le patient sera automatiquement placé en consultation et retiré de la file d'attente.
                     </p>
                   </div>
                 </div>
@@ -923,41 +911,41 @@ export default function SecretaireDashboard() {
                 setShowCallModal(false);
                 setSelectedDoctorForCall(null);
               }}
-              confirmText="📢 Confirmer l'appel"
+              confirmText="Confirmer l'appel"
               cancelText="❌ Annuler"
               isLoading={isLoading}
             />
 
             <ConfirmModal
               isOpen={showCreateTicketModal}
-              title="🎫 Confirmation de création de ticket"
+              title="Confirmation de création de ticket"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">🎫</div>
+                  <div className="modal-icon"></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous créer un nouveau ticket de consultation pour 
                       <span className="font-bold text-blue-600"> {getDoctorDisplayName(selectedDoctorForTicket)}</span> ?
                     </p>
                     <p className="modal-subtitle-text">
-                      📋 Le ticket sera automatiquement ajouté à la file d'attente du médecin sélectionné.
+                      Le ticket sera automatiquement ajouté à la file d'attente du médecin sélectionné.
                     </p>
                   </div>
                 </div>
               }
               onConfirm={confirmCreateTicket}
               onCancel={() => setShowCreateTicketModal(false)}
-              confirmText="🎫 Créer le ticket"
+              confirmText="Créer le ticket"
               cancelText="❌ Annuler"
               isLoading={isLoading}
             />
 
             <ConfirmModal
               isOpen={showResetModal}
-              title="🗑️ Confirmation de réinitialisation"
+              title="Confirmation de réinitialisation"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">⚠️</div>
+                  <div className="modal-icon"></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous vraiment réinitialiser {selectedDoctor ? 
@@ -966,14 +954,14 @@ export default function SecretaireDashboard() {
                       } ?
                     </p>
                     <p className="modal-subtitle-text">
-                      🚨 Cette action supprimera <strong>définitivement</strong> tous les patients en attente ({stats.waitingCount || 0} ticket{(stats.waitingCount || 0) > 1 ? 's' : ''}).
+                      Cette action supprimera <strong>définitivement</strong> tous les patients en attente ({stats.waitingCount || 0} ticket{(stats.waitingCount || 0) > 1 ? 's' : ''}).
                     </p>
                   </div>
                 </div>
               }
               onConfirm={confirmResetQueue}
               onCancel={() => setShowResetModal(false)}
-              confirmText="🗑️ Confirmer la réinitialisation"
+              confirmText="Confirmer la réinitialisation"
               cancelText="❌ Annuler"
               isLoading={isLoading}
             />

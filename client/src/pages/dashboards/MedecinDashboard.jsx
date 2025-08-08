@@ -6,6 +6,7 @@ import Toast from "../../components/Toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useToast } from "../../hooks/useToast";
 import BACKEND_URL from "../../config/api";
+import { Stethoscope, Clock3, CheckCircle2, UsersRound, LogOut, Home as HomeIcon, RefreshCcw, Pause, Play, Phone, Ticket as TicketIcon, MapPin, Smile, Zap, X as XIcon, BarChart3 } from "lucide-react";
 import { getDoctorDashboardRoute } from "../../utils/doctorMapping";
 
 export default function MedecinDashboard() {
@@ -160,9 +161,9 @@ export default function MedecinDashboard() {
 
   const getWelcomeMessage = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return "🌅 Bonjour";
-    if (hour < 18) return "☀️ Bon après-midi";
-    return "🌙 Bonsoir";
+    if (hour < 12) return "Bonjour";
+    if (hour < 18) return "Bon après-midi";
+    return "Bonsoir";
   };
 
   const getDoctorName = () => {
@@ -176,10 +177,10 @@ export default function MedecinDashboard() {
   };
 
   const getActivityStatus = () => {
-    if (!disponible) return { status: "En pause", color: "red", icon: "⏸️" };
-    if (currentPatient) return { status: "En consultation", color: "yellow", icon: "🩺" };
-    if (stats.waitingCount > 0) return { status: "Patients en attente", color: "blue", icon: "👥" };
-    return { status: "Disponible", color: "green", icon: "✅" };
+    if (!disponible) return { status: "En pause", color: "red", icon: <Pause className="w-4 h-4" /> };
+    if (currentPatient) return { status: "En consultation", color: "yellow", icon: <Stethoscope className="w-4 h-4" /> };
+    if (stats.waitingCount > 0) return { status: "Patients en attente", color: "blue", icon: <UsersRound className="w-4 h-4" /> };
+    return { status: "Disponible", color: "green", icon: <CheckCircle2 className="w-4 h-4" /> };
   };
 
   const handleCallNext = () => {
@@ -384,23 +385,23 @@ export default function MedecinDashboard() {
               <div className="dashboard-header-content">
                 <div>
                   <h1 className="dashboard-title">
-                    👨‍⚕️ Interface Médecin
+                    <span className="inline-flex items-center gap-2"><Stethoscope className="w-5 h-5" /> Interface Médecin</span>
                   </h1>
                   <p className="dashboard-subtitle">
-                    {getWelcomeMessage()}, Dr. {getDoctorName()} ! ✨ Votre espace de consultation
+                    {getWelcomeMessage()}, Dr. {getDoctorName()} ! Votre espace de consultation
                   </p>
                   <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      🕐 {currentTime.toLocaleTimeString('fr-FR')}
+                      <Clock3 className="w-4 h-4" /> {currentTime.toLocaleTimeString('fr-FR')}
                     </div>
                     <div className="flex items-center gap-2">
-                      {activity.icon} Statut: <span className={`font-medium text-${activity.color}-600`}>{activity.status}</span>
+                      <span className="inline-flex items-center gap-1">{activity.icon} Statut:</span> <span className={`font-medium text-${activity.color}-600`}>{activity.status}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isOnline ? "🟢 En ligne" : "🔴 Hors ligne"}
+                      {isOnline ? "En ligne" : "Hors ligne"}
                     </div>
                     <div className="text-xs">
-                      ↻ Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
+                      Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
                     </div>
                   </div>
                 </div>
@@ -409,13 +410,13 @@ export default function MedecinDashboard() {
                     onClick={() => setDisponible(!disponible)}
                     className={`${disponible ? 'btn-success' : 'btn-warning'} transition-all duration-300`}
                   >
-                    {disponible ? '✅ Disponible' : '⏸️ En pause'}
+                    {disponible ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Disponible</span> : <span className="inline-flex items-center gap-1"><Pause className="w-4 h-4" /> En pause</span>}
                   </button>
                   <button
                     onClick={() => navigate('/')}
                     className="btn-secondary"
                   >
-                    🏠 Accueil
+                    <span className="inline-flex items-center gap-1"><HomeIcon className="w-4 h-4" /> Accueil</span>
                   </button>
                 </div>
               </div>
@@ -427,7 +428,7 @@ export default function MedecinDashboard() {
             {currentPatient && (
               <div className="dashboard-card dashboard-section">
                 <h2 className="dashboard-card-title">
-                  🩺 Consultation en cours
+                  <span className="inline-flex items-center gap-2"><Stethoscope className="w-5 h-5" /> Consultation en cours</span>
                   {consultationDuration && (
                     <span className="text-sm font-normal text-gray-600 ml-2">
                       (Durée: {consultationDuration}min)
@@ -439,28 +440,28 @@ export default function MedecinDashboard() {
                     <div className="text-center">
                       <p className="text-sm text-blue-600 font-medium">Patient</p>
                       <p className="text-xl font-bold text-blue-800">
-                        🧑‍🦱 {currentPatient.nom || 'Patient'} {currentPatient.prenom || ''}
+                        {currentPatient.nom || 'Patient'} {currentPatient.prenom || ''}
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-blue-600 font-medium">Ticket</p>
                       <p className="text-xl font-bold text-blue-800">
-                        🎫 #{currentPatient.number}
+                        <span className="inline-flex items-center gap-1"><TicketIcon className="w-4 h-4" /> #{currentPatient.number}</span>
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-blue-600 font-medium">Heure d'arrivée</p>
                       <p className="text-xl font-bold text-blue-800">
-                        🕐 {new Date(currentPatient.createdAt).toLocaleTimeString('fr-FR', {
+                        <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> {new Date(currentPatient.createdAt).toLocaleTimeString('fr-FR', {
                           hour: '2-digit',
                           minute: '2-digit'
-                        })}
+                        })}</span>
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-blue-600 font-medium">Temps d'attente</p>
                       <p className="text-xl font-bold text-blue-800">
-                        ⏱️ {Math.round((new Date() - new Date(currentPatient.createdAt)) / (1000 * 60))}min
+                        <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> {Math.round((new Date() - new Date(currentPatient.createdAt)) / (1000 * 60))}min</span>
                       </p>
                     </div>
                   </div>
@@ -471,20 +472,20 @@ export default function MedecinDashboard() {
                       disabled={isLoading || !isOnline}
                       className="btn-success btn-large"
                     >
-                      {isLoading ? "🔄 Finalisation..." : "✅ Terminer la consultation"}
+                      {isLoading ? <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Finalisation...</span> : <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminer la consultation</span>}
                     </button>
                     <button
                       onClick={() => fetchQueue()}
                       disabled={isLoading || !isOnline}
                       className="btn-secondary"
                     >
-                      🔄 Actualiser
+                      <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Actualiser</span>
                     </button>
                     <button
                       onClick={() => setDisponible(false)}
                       className="btn-warning"
                     >
-                      ⏸️ Mettre en pause
+                      <span className="inline-flex items-center gap-1"><Pause className="w-4 h-4" /> Mettre en pause</span>
                     </button>
                   </div>
                 </div>
@@ -495,32 +496,32 @@ export default function MedecinDashboard() {
             {nextPatient && !currentPatient && (
               <div className="dashboard-card dashboard-section">
                 <h2 className="dashboard-card-title">
-                  ⏭️ Prochain patient en attente
+                  Prochain patient en attente
                 </h2>
                 <div className="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 rounded-lg p-6">
                   <div className="dashboard-grid mb-6">
                     <div className="text-center">
                       <p className="text-sm text-green-600 font-medium">Patient</p>
                       <p className="text-xl font-bold text-green-800">
-                        🧑‍🦱 {nextPatient.nom || 'Patient anonyme'} {nextPatient.prenom || ''}
+                        {nextPatient.nom || 'Patient anonyme'} {nextPatient.prenom || ''}
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-green-600 font-medium">Ticket</p>
                       <p className="text-xl font-bold text-green-800">
-                        🎫 #{nextPatient.number}
+                        <span className="inline-flex items-center gap-1"><TicketIcon className="w-4 h-4" /> #{nextPatient.number}</span>
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-green-600 font-medium">Position</p>
                       <p className="text-xl font-bold text-green-800">
-                        🥇 1ère position
+                        1ère position
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-green-600 font-medium">Temps d'attente</p>
                       <p className="text-xl font-bold text-green-800">
-                        ⏱️ {Math.round((new Date() - new Date(nextPatient.createdAt)) / (1000 * 60))}min
+                        <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> {Math.round((new Date() - new Date(nextPatient.createdAt)) / (1000 * 60))}min</span>
                       </p>
                     </div>
                   </div>
@@ -531,16 +532,16 @@ export default function MedecinDashboard() {
                       disabled={isLoading || !isOnline || !disponible}
                       className="btn-primary btn-large"
                     >
-                      {isLoading ? "🔄 Appel en cours..." : 
-                       !disponible ? "⏸️ En pause" :
-                       "📞 Appeler ce patient"}
+                      {isLoading ? <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Appel en cours...</span> : 
+                       !disponible ? <span className="inline-flex items-center gap-1"><Pause className="w-4 h-4" /> En pause</span> :
+                       <span className="inline-flex items-center gap-1"><Phone className="w-4 h-4" /> Appeler ce patient</span>}
                     </button>
                     <button
                       onClick={() => fetchQueue()}
                       disabled={isLoading || !isOnline}
                       className="btn-secondary"
                     >
-                      🔄 Actualiser la file
+                      <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Actualiser la file</span>
                     </button>
                   </div>
                 </div>
@@ -551,17 +552,17 @@ export default function MedecinDashboard() {
             {!currentPatient && !nextPatient && (
               <div className="dashboard-card dashboard-section">
                 <div className="empty-state">
-                  <div className="empty-icon">😌</div>
+                  <div className="empty-icon"><Smile className="w-8 h-8 text-gray-400" /></div>
                   <p className="empty-text">Aucun patient en attente</p>
                   <p className="text-sm text-gray-400 mt-2">
-                    {disponible ? "Vous êtes disponible pour recevoir des patients 🟢" : "Vous êtes en pause ⏸️"}
+                    {disponible ? "Vous êtes disponible pour recevoir des patients" : "Vous êtes en pause"}
                   </p>
                   <button
                     onClick={() => fetchQueue()}
                     disabled={isLoading || !isOnline}
                     className="btn-secondary mt-4"
                   >
-                    🔄 Vérifier les nouveaux patients
+                    <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Vérifier les nouveaux patients</span>
                   </button>
                 </div>
               </div>
@@ -570,32 +571,31 @@ export default function MedecinDashboard() {
             {/* Statistiques du médecin */}
             <div className="dashboard-card dashboard-section">
               <h2 className="dashboard-card-title">
-                📊 Mes statistiques du jour
-                <span className="animate-pulse ml-2">🔴</span>
+                <span className="inline-flex items-center gap-2"><BarChart3 className="w-5 h-5" /> Mes statistiques du jour</span>
               </h2>
               <div className="stats-grid">
                 <div className="stats-card stats-card-blue">
-                  <div className="stats-number">👥 {stats.waitingCount || 0}</div>
+                    <div className="stats-number"><UsersRound className="w-4 h-4 inline mr-1" /> {stats.waitingCount || 0}</div>
                   <div className="stats-label">Patients en attente</div>
                 </div>
                 <div className="stats-card stats-card-green">
-                  <div className="stats-number">✅ {stats.completedToday || 0}</div>
+                    <div className="stats-number"><CheckCircle2 className="w-4 h-4 inline mr-1" /> {stats.completedToday || 0}</div>
                   <div className="stats-label">Consultations terminées</div>
                 </div>
                 <div className="stats-card stats-card-purple">
-                  <div className="stats-number">📈 {stats.totalToday || 0}</div>
+                    <div className="stats-number"><BarChart3 className="w-4 h-4 inline mr-1" /> {stats.totalToday || 0}</div>
                   <div className="stats-label">Total du jour</div>
                 </div>
                 <div className="stats-card stats-card-orange">
-                  <div className="stats-number">⚡ {stats.efficiency || 0}%</div>
+                    <div className="stats-number"><Zap className="w-4 h-4 inline mr-1" /> {stats.efficiency || 0}%</div>
                   <div className="stats-label">Taux d'efficacité</div>
                 </div>
                 <div className="stats-card stats-card-yellow">
-                  <div className="stats-number">⏱️ {stats.averageConsultationTime || 0}min</div>
+                    <div className="stats-number"><Clock3 className="w-4 h-4 inline mr-1" /> {stats.averageConsultationTime || 0}min</div>
                   <div className="stats-label">Durée moyenne</div>
                 </div>
                 <div className="stats-card stats-card-red">
-                  <div className="stats-number">❌ {stats.cancelledToday || 0}</div>
+                    <div className="stats-number"><XIcon className="w-4 h-4 inline mr-1" /> {stats.cancelledToday || 0}</div>
                   <div className="stats-label">Annulations</div>
                 </div>
               </div>
@@ -605,7 +605,7 @@ export default function MedecinDashboard() {
             {queue.length > 0 && (
               <div className="dashboard-card dashboard-section">
                 <h2 className="dashboard-card-title">
-                  📋 File d'attente complète
+                  File d'attente complète
                   <span className="text-sm font-normal text-gray-600 ml-2">
                     ({queue.filter(t => t.status === "en_attente").length} patients en attente)
                   </span>
@@ -618,27 +618,27 @@ export default function MedecinDashboard() {
                     return (
                       <div key={ticket._id} className="ticket-card">
                         <div className="ticket-header">
-                          <span className="ticket-number">🎫 #{ticket.number}</span>
+                          <span className="ticket-number"><TicketIcon className="w-4 h-4 inline mr-1" /> #{ticket.number}</span>
                           <div className="ticket-status ticket-status-waiting">
-                            📍 Position {index + 1}
+                            <span className="inline-flex items-center gap-1"><MapPin className="w-4 h-4" /> Position {index + 1}</span>
                           </div>
                         </div>
                         
                         <div className="space-y-2 mt-3">
                           <div className="text-sm font-medium text-gray-800">
-                            👤 {ticket.nom || 'Patient anonyme'} {ticket.prenom || ''}
+                            {ticket.nom || 'Patient anonyme'} {ticket.prenom || ''}
                           </div>
                           <div className="ticket-time">
-                            🕐 Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
+                            <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> Arrivée: {new Date(ticket.createdAt).toLocaleTimeString('fr-FR', {
                               hour: '2-digit',
                               minute: '2-digit'
-                            })}
+                            })}</span>
                           </div>
                           <div className="text-sm text-gray-600">
-                            ⏱️ Temps d'attente: {waitTime}min
+                            <span className="inline-flex items-center gap-1"><Clock3 className="w-4 h-4" /> Temps d'attente: {waitTime}min</span>
                           </div>
                           <div className="text-xs text-blue-600">
-                            ⏳ Temps estimé: {estimatedTime}
+                            Temps estimé: {estimatedTime}
                           </div>
                         </div>
                       </div>
@@ -653,14 +653,14 @@ export default function MedecinDashboard() {
                     disabled={isLoading || !isOnline}
                     className="btn-danger"
                   >
-                    🗑️ Réinitialiser la file
+                    Réinitialiser la file
                   </button>
                   <button
                     onClick={() => fetchQueue()}
                     disabled={isLoading || !isOnline}
                     className="btn-secondary"
                   >
-                    🔄 Actualiser
+                    <span className="inline-flex items-center gap-1"><RefreshCcw className="w-4 h-4" /> Actualiser</span>
                   </button>
                 </div>
               </div>
@@ -669,70 +669,70 @@ export default function MedecinDashboard() {
             {/* Modales */}
             <ConfirmModal
               isOpen={showCallModal}
-              title="📞 Confirmation d'appel patient"
+                title="Confirmation d'appel patient"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">📞</div>
+                  <div className="modal-icon"><Phone className="w-5 h-5" /></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous appeler le patient suivant en consultation ?
                     </p>
                     <p className="modal-subtitle-text">
-                      🎫 Le patient sera automatiquement placé en consultation avec vous.
+                        Le patient sera automatiquement placé en consultation avec vous.
                     </p>
                   </div>
                 </div>
               }
               onConfirm={confirmCallNext}
               onCancel={() => setShowCallModal(false)}
-              confirmText="📞 Confirmer l'appel"
-              cancelText="❌ Annuler"
+                confirmText="Confirmer l'appel"
+                cancelText="Annuler"
               isLoading={isLoading}
             />
 
             <ConfirmModal
               isOpen={showFinishModal}
-              title="✅ Terminer la consultation"
+                title="Terminer la consultation"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">✅</div>
+                  <div className="modal-icon"><CheckCircle2 className="w-5 h-5" /></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous terminer la consultation du patient n°{currentPatient?.number} ?
                     </p>
                     <p className="modal-subtitle-text">
-                      🩺 La consultation sera marquée comme terminée et le patient quittera la file.
+                        La consultation sera marquée comme terminée et le patient quittera la file.
                     </p>
                   </div>
                 </div>
               }
               onConfirm={confirmFinishConsultation}
               onCancel={() => setShowFinishModal(false)}
-              confirmText="✅ Terminer"
-              cancelText="❌ Annuler"
+                confirmText="Terminer"
+                cancelText="Annuler"
               isLoading={isLoading}
             />
 
             <ConfirmModal
               isOpen={showResetModal}
-              title="🗑️ Réinitialiser la file d'attente"
+                title="Réinitialiser la file d'attente"
               message={
                 <div className="modal-content-horizontal">
-                  <div className="modal-icon">⚠️</div>
+                  <div className="modal-icon"><XIcon className="w-5 h-5" /></div>
                   <div className="modal-text">
                     <p className="modal-title-text">
                       Voulez-vous vraiment supprimer tous les patients en attente ?
                     </p>
                     <p className="modal-subtitle-text">
-                      🚨 Cette action est irréversible et supprimera tous les tickets en attente.
+                        Cette action est irréversible et supprimera tous les tickets en attente.
                     </p>
                   </div>
                 </div>
               }
               onConfirm={confirmResetQueue}
               onCancel={() => setShowResetModal(false)}
-              confirmText="🗑️ Confirmer la suppression"
-              cancelText="❌ Annuler"
+                confirmText="Confirmer la suppression"
+                cancelText="Annuler"
               isLoading={isLoading}
             />
           </div>

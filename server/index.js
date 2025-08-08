@@ -12,7 +12,8 @@ const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
 
 // 🔍 Validation des variables d'environnement critiques
-const requiredEnvVars = ['MONGODB_URI'];
+// Utilisé par connectDB: MONGO_URI (et non MONGODB_URI)
+const requiredEnvVars = ['MONGO_URI'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {

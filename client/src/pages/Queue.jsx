@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import Layout from "../components/Layout";
 import AnimatedPage from "../components/AnimatedPage";
+import { Stethoscope, Clock3, CheckCircle2, Loader2, RefreshCcw, ClipboardList, X as XIcon } from "lucide-react";
 import Toast from "../components/Toast";
 import NetworkError from "../components/NetworkError";
 import DoctorQueueSelector from "../components/DoctorQueueSelector";
 import ImprovedQueueCard from "../components/ImprovedQueueCard";
-import QueueDebugPanel from "../components/QueueDebugPanel";
 import { useToast } from "../hooks/useToast";
 import { useRealTimeQueue } from "../hooks/useRealTimeQueue";
 import Title from "../components/Title";
@@ -20,7 +20,7 @@ const POLL_INTERVAL = 3000;
 // Configuration des statuts épurée
 const STATUS_CONFIG = {
   en_attente: {
-    icon: "⏱️",
+    icon: <Clock3 className="inline w-5 h-5" />,
     label: "En attente",
     color: "blue",
     bgClass: "bg-blue-50 border-blue-200",
@@ -28,7 +28,7 @@ const STATUS_CONFIG = {
     badgeClass: "bg-blue-100 text-blue-800"
   },
   en_consultation: {
-    icon: "🩺",
+    icon: <Stethoscope className="inline w-5 h-5" />,
     label: "En consultation", 
     color: "green",
     bgClass: "bg-green-50 border-green-200",
@@ -36,7 +36,7 @@ const STATUS_CONFIG = {
     badgeClass: "bg-green-100 text-green-800"
   },
   termine: {
-    icon: "✅",
+    icon: <CheckCircle2 className="inline w-5 h-5" />,
     label: "Terminé",
     color: "gray",
     bgClass: "bg-gray-50 border-gray-200", 
@@ -44,7 +44,7 @@ const STATUS_CONFIG = {
     badgeClass: "bg-gray-100 text-gray-600"
   },
   desiste: {
-    icon: "❌",
+    icon: <XIcon className="inline w-5 h-5" />,
     label: "Annulé",
     color: "red",
     bgClass: "bg-red-50 border-red-200", 
@@ -377,14 +377,8 @@ const Queue = () => {
     }
   }, []);
 
-  // Notification de bienvenue avec conseils audio
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      showInfo('💡 Astuce: Cliquez sur "🔊 Test son" pour activer les notifications audio', 6000);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [showInfo]);
+  // Suppression du toast d'astuce audio
+  useEffect(() => {}, []);
 
   // ===== LOGIQUE DE RENDU =====
   // Filtrer les tickets selon le mode de vue
@@ -402,7 +396,7 @@ const Queue = () => {
       <Layout fullscreen>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <div className="animate-spin text-4xl mb-4">⚕️</div>
+            <Loader2 className="w-10 h-10 mb-4 animate-spin text-blue-600 mx-auto" />
             <p className="text-gray-600">Chargement de la file d'attente...</p>
           </div>
         </div>
@@ -433,10 +427,10 @@ const Queue = () => {
             />
             
             {/* Indicateur de transition pour changement de médecin */}
-            {isTransitioning && (
+              {isTransitioning && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="animate-spin text-xl">🔄</div>
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                   <div>
                     <h3 className="text-blue-800 font-medium">Changement de médecin en cours...</h3>
                     <p className="text-blue-600 text-sm">Transition optimisée activée - chargement quasi-instantané</p>
@@ -461,7 +455,7 @@ const Queue = () => {
                       }
                     `}
                   >
-                    <span className="block sm:hidden">📊</span>
+                    <span className="block sm:hidden"><ClipboardList className="w-4 h-4" /></span>
                     <span className="hidden sm:block">Tous ({queue.length})</span>
                   </button>
                   <button
@@ -474,7 +468,7 @@ const Queue = () => {
                       }
                     `}
                   >
-                    <span className="block sm:hidden">⏱️</span>
+                    <span className="block sm:hidden"><Clock3 className="w-4 h-4" /></span>
                     <span className="hidden sm:block">En attente ({stats.waiting})</span>
                   </button>
                   <button
@@ -487,7 +481,7 @@ const Queue = () => {
                       }
                     `}
                   >
-                    <span className="block sm:hidden">🩺</span>
+                    <span className="block sm:hidden"><Stethoscope className="w-4 h-4" /></span>
                     <span className="hidden sm:block">En consultation ({stats.inConsultation})</span>
                   </button>
                   <button
@@ -500,7 +494,7 @@ const Queue = () => {
                       }
                     `}
                   >
-                    <span className="block sm:hidden">✅</span>
+                    <span className="block sm:hidden"><CheckCircle2 className="w-4 h-4" /></span>
                     <span className="hidden sm:block">Terminés ({stats.completed + stats.cancelled})</span>
                   </button>
                 </div>
@@ -508,7 +502,6 @@ const Queue = () => {
               
               {/* Actions - Stack sur mobile */}
               <div className="w-full lg:w-auto space-y-3 lg:space-y-0 lg:flex lg:items-center lg:space-x-3">
-                
                 {/* Indicateur de position personnelle - Pleine largeur sur mobile */}
                 {myId && getPosition(myId) && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2 lg:py-2">
@@ -527,36 +520,20 @@ const Queue = () => {
                 
                 {/* Boutons d'action - Grid sur mobile */}
                 <div className="grid grid-cols-2 lg:flex gap-2 lg:gap-3">
-                  {/* Bouton test audio */}
-                  <button
-                    onClick={() => {
-                      initializeAudio();
-                      testSound('success');
-                      showInfo('🔊 Test audio effectué !');
-                    }}
-                    className="
-                      px-3 sm:px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 
-                      rounded-lg border border-green-300 transition-colors text-xs sm:text-sm
-                      touch-target-large legacy-button
-                    "
-                    title="Tester les notifications audio"
-                  >
-                    <span className="block sm:hidden">🔊</span>
-                    <span className="hidden sm:block">🔊 Test son</span>
-                  </button>
-                  
                   {/* Bouton de mise à jour manuelle */}
                   <button
                     onClick={forceUpdate}
                     className="
-                      px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 
-                      rounded-lg border border-gray-300 transition-colors text-xs sm:text-sm
+                      px-3 sm:px-4 py-2 bg-blue-600 text-white 
+                      rounded-lg border border-blue-600 hover:bg-blue-700 transition-colors text-xs sm:text-sm
                       touch-target-large legacy-button
                     "
                     title="Actualiser manuellement"
                   >
-                    <span className="block sm:hidden">🔄</span>
-                    <span className="hidden sm:block">🔄 Actualiser</span>
+                    <span className="block sm:hidden"><RefreshCcw className="w-4 h-4" /></span>
+                    <span className="hidden sm:inline-flex items-center gap-2">
+                      <RefreshCcw className="w-4 h-4" /> Actualiser
+                    </span>
                   </button>
                 </div>
               </div>
@@ -575,11 +552,11 @@ const Queue = () => {
             <div className="space-y-4 old-device-optimized queue-stable stable-layout">
               {filteredTickets.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4">
-                    {viewMode === 'waiting' && '⏱️'}
-                    {viewMode === 'consultation' && '🩺'}
-                    {viewMode === 'completed' && '✅'}
-                    {viewMode === 'all' && '🏥'}
+                  <div className="text-6xl mb-4 text-gray-400">
+                    {viewMode === 'waiting' && <Clock3 className="w-12 h-12 inline" />}
+                    {viewMode === 'consultation' && <Stethoscope className="w-12 h-12 inline" />}
+                    {viewMode === 'completed' && <CheckCircle2 className="w-12 h-12 inline" />}
+                    {viewMode === 'all' && <ClipboardList className="w-12 h-12 inline" />}
                   </div>
                   <h3 className="text-xl font-medium text-gray-600 mb-2">
                     {viewMode === 'waiting' && 'Aucun patient en attente'}
@@ -628,14 +605,7 @@ const Queue = () => {
         {/* Toasts pour les notifications */}
         <Toast toasts={toasts} removeToast={removeToast} />
 
-        {/* Debug Panel temporaire */}
-        <QueueDebugPanel 
-          queue={queue}
-          selectedDoctor={selectedDoctor}
-          stats={stats}
-          lastUpdate={lastUpdate}
-          error={error}
-        />
+        {/* Debug Panel retiré */}
       </AnimatedPage>
     </Layout>
   );

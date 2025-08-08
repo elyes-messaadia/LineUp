@@ -36,7 +36,7 @@ export default function LoadingOptimizer({ isLoading, hasError, onRetry }) {
       <div className="bg-white rounded-lg p-6 max-w-md mx-4 text-center">
         {isLoading ? (
           <>
-            <div className="animate-spin text-4xl mb-4">⏳</div>
+            <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               Chargement en cours...
             </h3>
@@ -47,7 +47,7 @@ export default function LoadingOptimizer({ isLoading, hasError, onRetry }) {
             {showBackendInfo && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
                 <h4 className="font-semibold text-yellow-800 mb-2">
-                  ℹ️ Information technique
+                  Information technique
                 </h4>
                 <p className="text-yellow-700 text-sm mb-2">
                   Le serveur se réveille automatiquement après une période d&apos;inactivité.
@@ -61,7 +61,7 @@ export default function LoadingOptimizer({ isLoading, hasError, onRetry }) {
           </>
         ) : hasError ? (
           <>
-            <div className="text-4xl mb-4">⚠️</div>
+            <div className="w-10 h-10 text-yellow-600 mx-auto mb-4">!</div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               Connexion échouée
             </h3>
@@ -72,7 +72,7 @@ export default function LoadingOptimizer({ isLoading, hasError, onRetry }) {
               onClick={onRetry}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              🔄 Réessayer
+              Réessayer
             </button>
           </>
         ) : null}
