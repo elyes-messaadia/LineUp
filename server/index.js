@@ -28,31 +28,39 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuration CORS
-const allowedOrigins = [
+// Configuration CORS - restreinte en production
+const allowedOrigins = new Set([
   'https://ligneup.netlify.app',
   'https://lineup.netlify.app',
   'https://lineup-app.netlify.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
-  'https://lineup-backend-xxak.onrender.com'
-];
+]);
 
 app.use(cors({
   origin: function(origin, callback) {
-    // En développement, accepter toutes les origines
+    // Allow requests with no origin (mobile clients, server-to-server) only in non-production
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return callback(new Error('Origin header missing'), false);
+      }
+      return callback(null, true);
+    }
+
+    // In development accept localhost and any origin for convenience
     if (process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
-    
-    // En production, vérifier les origines
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
-      callback(null, true);
-    } else {
-      console.log('❌ Origine refusée:', origin);
-      callback(null, true); // Accepter quand même pour déboguer
+
+    // In production, only allow explicit whitelist
+    if (allowedOrigins.has(origin) || origin.endsWith('.netlify.app')) {
+      return callback(null, true);
     }
+
+    // Deny unknown origins
+    console.warn('CORS: origin denied', origin);
+    return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -65,7 +73,16 @@ app.use(cors({
 // Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
 app.set('trust proxy', true);
 
-app.use(express.json());
+// JSON body parsing with size limit to mitigate large payload attacks
+app.use(express.json({ limit: '10kb' }));
+
+// Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
+try {
+  const { setupSecurity } = require('./middlewares/security');
+  if (typeof setupSecurity === 'function') setupSecurity(app);
+} catch (e) {
+  console.error('Erreur chargement middlewares de sécurité:', e.message);
+}
 
 // 🏥 Route de santé pour Render
 app.get('/', (req, res) => {
@@ -86,7 +103,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 🐛 Route de debug IP (à supprimer en production)
+// 🐛 Route de debug IP (désactivée en production)
 app.get('/debug-ip', (req, res) => {
   const getRealClientIP = (req) => {
     const ip = req.headers['x-nf-client-connection-ip'] ||
@@ -101,42 +118,35 @@ app.get('/debug-ip', (req, res) => {
     return ip;
   };
 
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
   res.json({
     message: '🔍 Debug Information IP',
     detectedIP: getRealClientIP(req),
-    allHeaders: {
-      'x-nf-client-connection-ip': req.headers['x-nf-client-connection-ip'],
-      'cf-connecting-ip': req.headers['cf-connecting-ip'],
-      'x-real-ip': req.headers['x-real-ip'],
-      'x-forwarded-for': req.headers['x-forwarded-for'],
-      'x-client-ip': req.headers['x-client-ip'],
-      'user-agent': req.headers['user-agent'],
-      'origin': req.headers.origin
-    },
     expressIP: req.ip,
-    connectionIP: req.connection?.remoteAddress,
-    socketIP: req.socket?.remoteAddress,
     trustProxy: app.get('trust proxy'),
     timestamp: new Date().toISOString()
   });
 });
 
-// 🐛 Route de debug authentification (à supprimer en production)
+// 🐛 Route de debug authentification (désactivée en production)
 app.get('/debug-auth', authenticateOptional, (req, res) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  const hasToken = !!req.headers.authorization;
   res.json({
     message: '🔍 Debug Information Auth',
-    hasToken: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : null,
+    hasToken,
     isAuthenticated: !!req.user,
     user: req.user ? {
-      id: req.user._id,
-      email: req.user.email,
+      id: String(req.user._id),
       role: req.user.role?.name,
-      isActive: req.user.isActive
     } : null,
-    jwtSecret: process.env.JWT_SECRET ? 'CONFIGURÉ' : 'FALLBACK_UTILISÉ',
+    jwtConfigured: !!process.env.JWT_SECRET,
     timestamp: new Date().toISOString()
   });
 });
@@ -151,13 +161,14 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
     const { docteur, userId, patientName, ticketType, notes } = req.body;
     
-    // Logs détaillés pour debug
-    console.log(`\n🎫 === CRÉATION TICKET ===`);
-    console.log(`- Docteur demandé: ${docteur}`);
-    console.log(`- Utilisateur authentifié: ${req.user ? req.user._id : 'AUCUN'}`);
-    console.log(`- Rôle utilisateur: ${req.user ? req.user.role.name : 'ANONYME'}`);
-    console.log(`- Token présent: ${req.headers.authorization ? 'OUI' : 'NON'}`);
-    console.log(`- IP: ${req.ip}`);
+    // Logs limités pour la production : éviter d'exposer des tokens ou données sensibles
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n🎫 === CRÉATION TICKET ===`);
+      console.log(`- Docteur demandé: ${docteur}`);
+      console.log(`- Utilisateur authentifié: ${req.user ? req.user._id : 'AUCUN'}`);
+      console.log(`- Rôle utilisateur: ${req.user ? req.user.role.name : 'ANONYME'}`);
+      console.log(`- IP: ${req.ip}`);
+    }
     
     // Si l'utilisateur est authentifié, utiliser ses informations
     let finalUserId = null;
@@ -265,9 +276,10 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     }
     */
     if (token && !req.user) {
-      console.log(`⚠️ DEBUG: Token présent mais utilisateur non authentifié - INVESTIGATION EN COURS`);
-      console.log(`Token: ${token.substring(0, 20)}...`);
-      // Continuer pour le moment sans bloquer
+      // Ne pas loguer le token. Indiquer juste la présence d'un token en dev.
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ Token présent mais utilisateur non authentifié');
+      }
     }
 
     // **NOUVELLE LIMITATION** : Vérifier les abus par IP/appareil pour tous les utilisateurs
@@ -980,8 +992,19 @@ app.get("/stats", async (req, res) => {
 // 🟣 Routes API externes
 app.use("/patient", patientRoutes);
 
-// 🆘 Route temporaire pour créer une secrétaire (à supprimer après usage)
+// 🆘 Route temporaire pour créer une secrétaire (DÉVELOPPEMENT SEULEMENT)
 app.post("/create-secretary-temp", async (req, res) => {
+  // Cette route ne doit pas exister en production
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ success: false, message: 'Not found' });
+  }
+
+  // Protection simple: exiger une clé d'administration temporaire
+  const adminKey = req.headers['x-admin-key'] || req.body.adminKey || process.env.ADMIN_CREATION_KEY;
+  if (!adminKey || adminKey !== process.env.ADMIN_CREATION_KEY) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
   try {
     const bcrypt = require('bcrypt');
     const User = require('./models/User');
@@ -1030,7 +1053,7 @@ app.post("/create-secretary-temp", async (req, res) => {
     
     await secretary.save();
     console.log('✅ Secrétaire créée avec succès');
-    
+
     res.json({
       success: true,
       message: 'Secrétaire créée avec succès',
@@ -1038,19 +1061,14 @@ app.post("/create-secretary-temp", async (req, res) => {
         email: secretary.email,
         fullName: secretary.fullName,
         role: 'secretaire'
-      },
-      credentials: {
-        email: 'secretaire@lineup.com',
-        password: 'password123'
       }
     });
     
   } catch (error) {
-    console.error('❌ Erreur création secrétaire:', error);
+    console.error('❌ Erreur création secrétaire:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Erreur création secrétaire',
-      error: error.message
+      message: 'Erreur création secrétaire'
     });
   }
 });

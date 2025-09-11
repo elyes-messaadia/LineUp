@@ -1,12 +1,17 @@
 const errorHandler = (err, req, res, next) => {
-  console.error('❌ Erreur capturée:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    url: req.originalUrl,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
+  // Log minimal error info in production to avoid leaking sensitive data
+  if (process.env.NODE_ENV === 'development') {
+    console.error('❌ Erreur capturée:', {
+      message: err.message,
+      stack: err.stack,
+      url: req.originalUrl,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  } else {
+    console.error('❌ Erreur serveur:', { message: err.message, url: req.originalUrl, method: req.method });
+  }
 
   // Erreur de validation Mongoose
   if (err.name === 'ValidationError') {
@@ -36,10 +41,11 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Erreur par défaut
+  // In production avoid echoing internal error messages
+  const publicMessage = process.env.NODE_ENV === 'development' ? (err.message || 'Erreur serveur interne') : 'Erreur serveur interne';
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Erreur serveur interne',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message: publicMessage
   });
 };
 
