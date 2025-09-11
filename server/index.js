@@ -984,7 +984,11 @@ app.get("/stats", async (req, res) => {
       res.json(statsByDoctor);
     }
   } catch (error) {
-    console.error("Erreur lors de la récupération des statistiques:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Erreur lors de la récupération des statistiques:", error);
+    } else {
+      console.error("Erreur lors de la récupération des statistiques: [ERR_STATS_001]");
+    }
     res.status(500).json({ message: "Erreur de récupération des statistiques" });
   }
 });
