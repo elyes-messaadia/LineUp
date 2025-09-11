@@ -1,17 +1,8 @@
+const logger = require('../utils/logger');
+
 const errorHandler = (err, req, res, next) => {
-  // Log minimal error info in production to avoid leaking sensitive data
-  if (process.env.NODE_ENV === 'development') {
-    console.error('❌ Erreur capturée:', {
-      message: err.message,
-      stack: err.stack,
-      url: req.originalUrl,
-      method: req.method,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
-  } else {
-    console.error('❌ Erreur serveur:', { message: err.message, url: req.originalUrl, method: req.method });
-  }
+  // Log structured error (redaction configured in logger)
+  logger.error({ err, url: req.originalUrl, method: req.method, ip: req.ip }, 'Middleware global d\'erreur');
 
   // Erreur de validation Mongoose
   if (err.name === 'ValidationError') {
@@ -41,12 +32,15 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Erreur par défaut
-  // In production avoid echoing internal error messages
   const publicMessage = process.env.NODE_ENV === 'development' ? (err.message || 'Erreur serveur interne') : 'Erreur serveur interne';
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: publicMessage
-  });
+  const statusCode = err.statusCode || 500;
+
+  const response = { success: false, message: publicMessage };
+  if (process.env.NODE_ENV === 'development') {
+    response.stack = err.stack;
+  }
+
+  res.status(statusCode).json(response);
 };
 
 module.exports = errorHandler;

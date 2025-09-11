@@ -9,20 +9,29 @@ const Ticket = require("./models/Ticket");
 const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
 
+const logger = require('./utils/logger');
+const { hmacFingerprint } = require('./utils/fingerprint');
+
 // 🔍 Validation des variables d'environnement critiques
 const requiredEnvVars = ['MONGO_URI'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
-  console.error('❌ Variables d\'environnement manquantes:', missingEnvVars);
-  console.log('💡 Créez un fichier .env avec:');
-  missingEnvVars.forEach(envVar => {
-    console.log(`   ${envVar}=your_value_here`);
-  });
+  logger.error({ missingEnvVars }, 'Variables d\'environnement manquantes');
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('💡 Créez un fichier .env avec:');
+    missingEnvVars.forEach(envVar => {
+      logger.info(`   ${envVar}=your_value_here`);
+    });
+  }
 }
 
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️ JWT_SECRET non défini - Utilisation d\'un secret temporaire');
+// Enforce presence of JWT_SECRET in production
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  logger.fatal('JWT_SECRET n\'est pas défini en production - arrêt du serveur pour sécurité');
+  process.exit(1);
+} else if (!process.env.JWT_SECRET) {
+  logger.warn('⚠️ JWT_SECRET non défini - utilisation d\'un secret temporaire en développement');
 }
 
 const app = express();
@@ -59,7 +68,7 @@ app.use(cors({
     }
 
     // Deny unknown origins
-    console.warn('CORS: origin denied', origin);
+    logger.warn({ origin }, 'CORS: origin denied');
     return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
