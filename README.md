@@ -2,6 +2,38 @@
 
 LineUp est une application web moderne conçue pour optimiser la gestion des files d'attente dans les cabinets médicaux. Elle offre une expérience fluide tant pour les patients que pour le personnel médical.
 
+## 📚 Documentation
+
+Pour faciliter la navigation et le développement, notre documentation est organisée en plusieurs guides spécialisés :
+
+### 🗺️ Guides Principaux
+
+1. [📖 Documentation Générale](./Docs/DOCUMENTATION.md)
+   - Vue d'ensemble du projet
+   - Architecture technique
+   - Fonctionnalités principales
+
+2. [⚡ Guide d'Installation](./Docs/INSTALLATION.md)
+   - Prérequis
+   - Installation locale
+   - Configuration de l'environnement
+
+3. [🚀 Guide de Déploiement](./Docs/DEPLOYMENT.md)
+   - Processus de déploiement
+   - Configuration des environnements
+   - Variables d'environnement
+
+4. [👨‍💻 Guide de Développement](./Docs/DEVELOPMENT.md)
+   - Conventions de code
+   - Workflow Git
+   - Guide UI/UX
+   - Tests et qualité
+
+5. [🔧 Guide de Dépannage](./Docs/TROUBLESHOOTING.md)
+   - Problèmes courants
+   - Solutions
+   - FAQ
+
 ## ✨ Fonctionnalités
 
 ### 👥 Pour les Patients

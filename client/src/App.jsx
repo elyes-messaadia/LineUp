@@ -1,61 +1,29 @@
-import { useState, useEffect } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { lazy } from "react";
+import { useIsDesktop } from "./hooks/useIsDesktop";
+import { useAuth } from "./contexts/AuthContext";
 
-// Hook pour détecter si on est sur desktop (768px+)
-const useIsDesktop = () => {
-  const [isDesktop, setIsDesktop] = useState(false);
-  
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 768);
-    };
-    
-    // Check initial size
-    checkScreenSize();
-    
-    // Listen for resize events
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  
-  return isDesktop;
-};
-import Home from "./pages/Home";
-import Ticket from "./pages/Ticket";
-import Queue from "./pages/Queue";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import UserDebugPanel from "./components/UserDebugPanel";
-import { getDisplayName } from "./utils/userUtils";
-import { getDoctorDashboardRoute } from "./utils/doctorMapping";
+// Lazy loading des pages
+const Home = lazy(() => import("./pages/Home"));
+const Ticket = lazy(() => import("./pages/Ticket"));
+const Queue = lazy(() => import("./pages/Queue"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+
+// Debug components (only in development)
+const UserDebugPanel = import.meta.env.DEV 
+  ? lazy(() => import("./components/UserDebugPanel"))
+  : () => null;
+
+// Utils
 
 // Dashboards par rôle
-import PatientDashboard from "./pages/dashboards/PatientDashboard";
-import VisiteurDashboard from "./pages/dashboards/VisiteurDashboard";
-import MedecinDashboard from "./pages/dashboards/MedecinDashboard";
-import SecretaireDashboard from "./pages/dashboards/SecretaireDashboard";
 
 // Dashboards spécifiques des médecins
-import DrHusniDashboard from "./pages/dashboards/DrHusniDashboard";
-import DrHeliosDashboard from "./pages/dashboards/DrHeliosDashboard";
-import DrJeanEricDashboard from "./pages/dashboards/DrJeanEricDashboard";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated"));
-  const [user, setUser] = useState(() => {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : null;
-  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Utiliser notre hook pour détecter desktop
   const isDesktop = useIsDesktop();
-
-  // Écouter les changements d'authentification
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setIsAuthenticated(localStorage.getItem("isAuthenticated"));
-      const userData = localStorage.getItem("user");
+  const { isAuthenticated, user } = useAuth();
       setUser(userData ? JSON.parse(userData) : null);
     };
 
