@@ -1,26 +1,71 @@
 import { forwardRef } from 'react';
+import { useTheme } from '../../theme/useTheme';
 
 const ResponsiveText = forwardRef(({ 
   as: Component = 'p',
   variant = 'body',
+  weight = 'normal',
+  color,
   children,
   className = '',
   ...props 
 }, ref) => {
+  const theme = useTheme();
+  const { typography } = theme.tokens;
   
   const variants = {
-    'h1': 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold',
-    'h2': 'text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold',
-    'h3': 'text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold',
-    'h4': 'text-base sm:text-lg md:text-xl lg:text-2xl font-medium',
-    'body': 'text-sm sm:text-base md:text-lg',
-    'body-large': 'text-base sm:text-lg md:text-xl',
-    'caption': 'text-xs sm:text-sm md:text-base',
-    'subtitle': 'text-sm sm:text-base md:text-lg text-gray-600'
+    'h1': `
+      ${typography.fontSize['4xl']}
+      ${typography.fontWeight.bold}
+      ${typography.lineHeight.tight}
+      font-heading
+    `,
+    'h2': `
+      ${typography.fontSize['3xl']}
+      ${typography.fontWeight.semibold}
+      ${typography.lineHeight.tight}
+      font-heading
+    `,
+    'h3': `
+      ${typography.fontSize['2xl']}
+      ${typography.fontWeight.semibold}
+      ${typography.lineHeight.snug}
+      font-heading
+    `,
+    'h4': `
+      ${typography.fontSize.xl}
+      ${typography.fontWeight.medium}
+      ${typography.lineHeight.snug}
+      font-heading
+    `,
+    'body': `
+      ${typography.fontSize.base}
+      ${typography.lineHeight.normal}
+      font-sans
+    `,
+    'body-large': `
+      ${typography.fontSize.lg}
+      ${typography.lineHeight.relaxed}
+      font-sans
+    `,
+    'caption': `
+      ${typography.fontSize.sm}
+      ${typography.lineHeight.normal}
+      font-sans
+    `,
+    'subtitle': `
+      ${typography.fontSize.sm}
+      ${typography.lineHeight.normal}
+      text-secondary-600
+      font-sans
+    `
   };
 
+  const weightClasses = typography.fontWeight[weight];
+  const colorClasses = color ? `text-${color}` : '';
+  
   const baseClasses = variants[variant] || variants.body;
-  const combinedClasses = `${baseClasses} ${className}`.trim();
+  const combinedClasses = `${baseClasses} ${weightClasses} ${colorClasses} ${className}`.trim();
 
   return (
     <Component ref={ref} className={combinedClasses} {...props}>
