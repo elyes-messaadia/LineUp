@@ -7,7 +7,7 @@ const { hmacFingerprint } = require("../utils/fingerprint");
 const httpLogger = (options = {}) => {
   const defaultOptions = {
     // En mode test, désactiver le logger pour éviter les conflits
-    ...(process.env.NODE_ENV === 'test' 
+    ...(process.env.NODE_ENV === "test"
       ? { logger: false }
       : { logger: logger }),
 
