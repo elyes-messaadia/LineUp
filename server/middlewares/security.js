@@ -146,7 +146,9 @@ module.exports = {
         max: 100,
         standardHeaders: true,
         legacyHeaders: false,
-        skip: () => process.env.NODE_ENV === 'test' && process.env.__TEST_CASE__ !== 'rate-limit',
+        skip: () =>
+          process.env.NODE_ENV === "test" &&
+          process.env.__TEST_CASE__ !== "rate-limit",
         message: {
           success: false,
           message: "Trop de requêtes. Veuillez réessayer plus tard.",
@@ -162,7 +164,9 @@ module.exports = {
         max: 5,
         standardHeaders: true,
         legacyHeaders: false,
-        skip: () => process.env.NODE_ENV === 'test' && process.env.__TEST_CASE__ !== 'rate-limit',
+        skip: () =>
+          process.env.NODE_ENV === "test" &&
+          process.env.__TEST_CASE__ !== "rate-limit",
         message: {
           success: false,
           message:
