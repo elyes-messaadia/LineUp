@@ -5,26 +5,7 @@ const express = require("express");
 const logger = require("../utils/logger");
 const { hmacFingerprint } = require("../utils/fingerprint");
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limite à 100 requêtes par fenêtre
-  message: {
-    success: false,
-    message: "Trop de requêtes. Veuillez réessayer plus tard.",
-  },
-});
-
-// Limiter spécifiquement les tentatives de connexion
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 heure
-  max: 5, // limite à 5 tentatives
-  message: {
-    success: false,
-    message:
-      "Trop de tentatives de connexion. Veuillez réessayer dans une heure.",
-  },
-});
+// Les rate limiters seront instanciés dans setupSecurity pour éviter le partage d'état entre instances/tests
 
 // Configuration Helmet (sécurité des headers HTTP)
 // Avec une configuration CSP plus stricte et moderne
@@ -159,10 +140,34 @@ module.exports = {
         next();
       });
 
-      // Rate limiting global pour toutes les requêtes
+      // Rate limiting global pour toutes les requêtes (nouvelle instance par app)
+      const limiter = rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: {
+          success: false,
+          message: "Trop de requêtes. Veuillez réessayer plus tard.",
+        },
+        // En test, isoler par chemin pour limiter les interférences entre cas
+        keyGenerator: (req) => `${req.ip}:${req.path}`,
+      });
       app.use(limiter);
 
-      // Rate limiting plus strict pour les routes d'authentification
+      // Rate limiting plus strict pour les routes d'authentification (nouvelle instance par app)
+      const authLimiter = rateLimit({
+        windowMs: 60 * 60 * 1000, // 1 heure
+        max: 5,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: {
+          success: false,
+          message:
+            "Trop de tentatives de connexion. Veuillez réessayer dans une heure.",
+        },
+        keyGenerator: (req) => `${req.ip}:${req.path}`,
+      });
       app.use("/auth/login", authLimiter);
       app.use("/auth/register", authLimiter);
       app.use("/auth/reset-password", authLimiter);
@@ -211,7 +216,5 @@ module.exports = {
     });
   },
   validateInput,
-  limiter,
-  authLimiter,
   helmetConfig,
 };
