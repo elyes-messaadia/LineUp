@@ -39,8 +39,13 @@ const baseOptions = {
   
   // En mode production, structure les logs pour faciliter l'analyse
   // En développement, formate les logs pour une meilleure lisibilité
+  // En mode test, désactive pino-pretty pour éviter les erreurs
   ...((process.env.NODE_ENV === 'production')
     ? { timestamp: pino.stdTimeFunctions.isoTime }
+    : process.env.NODE_ENV === 'test'
+    ? { 
+        level: 'silent' // Désactive les logs pendant les tests
+      }
     : {
         transport: {
           target: 'pino-pretty',
