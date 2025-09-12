@@ -9,21 +9,21 @@ const Ticket = require("./models/Ticket");
 const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
 
-const logger = require('./utils/logger');
-const { hmacFingerprint } = require('./utils/fingerprint');
+const logger = require("./utils/logger");
+const { hmacFingerprint } = require("./utils/fingerprint");
 
 // Initialiser pino-http pour le logging des requêtes
-const pinoHttp = require('pino-http')({ 
+const pinoHttp = require("pino-http")({
   logger,
   customLogLevel: function (req, res, err) {
     if (res.statusCode >= 400 && res.statusCode < 500) {
-      return 'warn'
+      return "warn";
     } else if (res.statusCode >= 500 || err) {
-      return 'error'
+      return "error";
     } else if (res.statusCode >= 300 && res.statusCode < 400) {
-      return 'silent'
+      return "silent";
     }
-    return 'info'
+    return "info";
   },
   serializers: {
     req: (req) => ({
@@ -31,41 +31,45 @@ const pinoHttp = require('pino-http')({
       url: req.url,
       headers: {
         host: req.headers.host,
-        'user-agent': req.headers['user-agent'],
-        'content-length': req.headers['content-length']
+        "user-agent": req.headers["user-agent"],
+        "content-length": req.headers["content-length"],
         // Pas d'authorization header pour éviter les fuites de tokens
-      }
+      },
     }),
     res: (res) => ({
       statusCode: res.statusCode,
       headers: {
-        'content-length': res.getHeader('content-length'),
-        'content-type': res.getHeader('content-type')
-      }
-    })
-  }
+        "content-length": res.getHeader("content-length"),
+        "content-type": res.getHeader("content-type"),
+      },
+    }),
+  },
 });
 
 // 🔍 Validation des variables d'environnement critiques
-const requiredEnvVars = ['MONGO_URI'];
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const requiredEnvVars = ["MONGO_URI"];
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
-  logger.error({ missingEnvVars }, 'Variables d\'environnement manquantes');
-  if (process.env.NODE_ENV !== 'production') {
-    logger.info('💡 Créez un fichier .env avec:');
-    missingEnvVars.forEach(envVar => {
+  logger.error({ missingEnvVars }, "Variables d'environnement manquantes");
+  if (process.env.NODE_ENV !== "production") {
+    logger.info("💡 Créez un fichier .env avec:");
+    missingEnvVars.forEach((envVar) => {
       logger.info(`   ${envVar}=your_value_here`);
     });
   }
 }
 
 // Enforce presence of JWT_SECRET in production
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  logger.fatal('JWT_SECRET n\'est pas défini en production - arrêt du serveur pour sécurité');
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  logger.fatal(
+    "JWT_SECRET n'est pas défini en production - arrêt du serveur pour sécurité"
+  );
   process.exit(1);
 } else if (!process.env.JWT_SECRET) {
-  logger.warn('⚠️ JWT_SECRET non défini - utilisation d\'un secret temporaire en développement');
+  logger.warn(
+    "⚠️ JWT_SECRET non défini - utilisation d'un secret temporaire en développement"
+  );
 }
 
 const app = express();
@@ -73,135 +77,142 @@ const PORT = process.env.PORT || 5000;
 
 // Configuration CORS - restreinte en production
 const allowedOrigins = new Set([
-  'https://ligneup.netlify.app',
-  'https://lineup.netlify.app',
-  'https://lineup-app.netlify.app',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
+  "https://ligneup.netlify.app",
+  "https://lineup.netlify.app",
+  "https://lineup-app.netlify.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
 ]);
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (mobile clients, server-to-server) only in non-production
-    if (!origin) {
-      if (process.env.NODE_ENV === 'production') {
-        return callback(new Error('Origin header missing'), false);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile clients, server-to-server) only in non-production
+      if (!origin) {
+        if (process.env.NODE_ENV === "production") {
+          return callback(new Error("Origin header missing"), false);
+        }
+        return callback(null, true);
       }
-      return callback(null, true);
-    }
 
-    // In development accept localhost and any origin for convenience
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
+      // In development accept localhost and any origin for convenience
+      if (process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
 
-    // In production, only allow explicit whitelist
-    if (allowedOrigins.has(origin) || origin.endsWith('.netlify.app')) {
-      return callback(null, true);
-    }
+      // In production, only allow explicit whitelist
+      if (allowedOrigins.has(origin) || origin.endsWith(".netlify.app")) {
+        return callback(null, true);
+      }
 
-    // Deny unknown origins
-    logger.warn({ origin }, 'CORS: origin denied');
-    return callback(new Error('Not allowed by CORS'), false);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 600 // Cache les résultats du pre-flight pendant 10 minutes
-}));
+      // Deny unknown origins
+      logger.warn({ origin }, "CORS: origin denied");
+      return callback(new Error("Not allowed by CORS"), false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 600, // Cache les résultats du pre-flight pendant 10 minutes
+  })
+);
 
 // 🔗 Configuration proxy pour détecter les vraies IPs client
 // Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 
 // Middleware de logging des requêtes HTTP
 app.use(pinoHttp);
 
 // JSON body parsing with size limit to mitigate large payload attacks
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: "10kb" }));
 
 // Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
 try {
-  const { setupSecurity } = require('./middlewares/security');
-  if (typeof setupSecurity === 'function') {
+  const { setupSecurity } = require("./middlewares/security");
+  if (typeof setupSecurity === "function") {
     setupSecurity(app);
-    logger.info('✅ Middlewares de sécurité chargés avec succès');
+    logger.info("✅ Middlewares de sécurité chargés avec succès");
   }
 } catch (e) {
-  logger.error({ err: e }, 'Erreur chargement middlewares de sécurité');
+  logger.error({ err: e }, "Erreur chargement middlewares de sécurité");
   // En production, arrêter le serveur si les middlewares de sécurité ne se chargent pas
-  if (process.env.NODE_ENV === 'production') {
-    logger.fatal('Impossible de charger les middlewares de sécurité en production - arrêt du serveur');
+  if (process.env.NODE_ENV === "production") {
+    logger.fatal(
+      "Impossible de charger les middlewares de sécurité en production - arrêt du serveur"
+    );
     process.exit(1);
   }
 }
 
 // 🏥 Route de santé pour Render
-app.get('/', (req, res) => {
-  res.json({ 
-    message: '✅ API LineUp opérationnelle',
-    status: 'healthy',
+app.get("/", (req, res) => {
+  res.json({
+    message: "✅ API LineUp opérationnelle",
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    version: '2.0.0'
+    version: "2.0.0",
   });
 });
 
 // 🔍 Route de test CORS
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK',
-    cors: 'enabled',
-    origin: req.headers.origin || 'no-origin'
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    cors: "enabled",
+    origin: req.headers.origin || "no-origin",
   });
 });
 
 // 🐛 Route de debug IP (désactivée en production)
-app.get('/debug-ip', (req, res) => {
+app.get("/debug-ip", (req, res) => {
   const getRealClientIP = (req) => {
-    const ip = req.headers['x-nf-client-connection-ip'] ||
-               req.headers['cf-connecting-ip'] ||
-               req.headers['x-real-ip'] ||
-               req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-               req.headers['x-client-ip'] ||
-               req.connection?.remoteAddress ||
-               req.socket?.remoteAddress ||
-               req.ip ||
-               'unknown';
+    const ip =
+      req.headers["x-nf-client-connection-ip"] ||
+      req.headers["cf-connecting-ip"] ||
+      req.headers["x-real-ip"] ||
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.headers["x-client-ip"] ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      req.ip ||
+      "unknown";
     return ip;
   };
 
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(404).json({ message: 'Not found' });
+  if (process.env.NODE_ENV === "production") {
+    return res.status(404).json({ message: "Not found" });
   }
 
   res.json({
-    message: '🔍 Debug Information IP',
+    message: "🔍 Debug Information IP",
     detectedIP: getRealClientIP(req),
     expressIP: req.ip,
-    trustProxy: app.get('trust proxy'),
-    timestamp: new Date().toISOString()
+    trustProxy: app.get("trust proxy"),
+    timestamp: new Date().toISOString(),
   });
 });
 
 // 🐛 Route de debug authentification (désactivée en production)
-app.get('/debug-auth', authenticateOptional, (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(404).json({ message: 'Not found' });
+app.get("/debug-auth", authenticateOptional, (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(404).json({ message: "Not found" });
   }
 
   const hasToken = !!req.headers.authorization;
   res.json({
-    message: '🔍 Debug Information Auth',
+    message: "🔍 Debug Information Auth",
     hasToken,
     isAuthenticated: !!req.user,
-    user: req.user ? {
-      id: String(req.user._id),
-      role: req.user.role?.name,
-    } : null,
+    user: req.user
+      ? {
+          id: String(req.user._id),
+          role: req.user.role?.name,
+        }
+      : null,
     jwtConfigured: !!process.env.JWT_SECRET,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -214,84 +225,113 @@ app.use("/auth", authRoutes);
 app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
     const { docteur, userId, patientName, ticketType, notes } = req.body;
-    
+
     // Logs structured (redaction configured). Avoid printing PII in production.
-    if (process.env.NODE_ENV !== 'production') {
-      logger.debug({ docteur, userId: req.user ? String(req.user._id) : null, role: req.user ? req.user.role.name : null, ip: req.ip }, 'Création ticket - debug');
+    if (process.env.NODE_ENV !== "production") {
+      logger.debug(
+        {
+          docteur,
+          userId: req.user ? String(req.user._id) : null,
+          role: req.user ? req.user.role.name : null,
+          ip: req.ip,
+        },
+        "Création ticket - debug"
+      );
     } else {
-      logger.info({ docteur, role: req.user ? req.user.role.name : 'ANONYME' }, 'Création ticket');
+      logger.info(
+        { docteur, role: req.user ? req.user.role.name : "ANONYME" },
+        "Création ticket"
+      );
     }
-    
+
     // Si l'utilisateur est authentifié, utiliser ses informations
     let finalUserId = null;
     let finalDocteur = docteur;
-    
+
     if (req.user) {
       // Utilisateur authentifié : utiliser son ID
       finalUserId = req.user._id;
-      
+
       // Pour les patients authentifiés, le docteur n'est pas obligatoire (sera assigné par défaut)
-      if (req.user.role.name === 'patient' && !docteur) {
-        finalDocteur = 'dr-husni-said-habibi'; // Docteur par défaut
+      if (req.user.role.name === "patient" && !docteur) {
+        finalDocteur = "dr-husni-said-habibi"; // Docteur par défaut
       }
     } else {
       // Mode anonyme : vérifier que le docteur est spécifié
       if (!docteur) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Le champ 'docteur' est requis pour les tickets anonymes"
+          message: "Le champ 'docteur' est requis pour les tickets anonymes",
         });
       }
       finalUserId = userId || null;
     }
 
     // Validation du docteur
-    if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(finalDocteur)) {
-      return res.status(400).json({ 
+    if (
+      ![
+        "dr-husni-said-habibi",
+        "dr-helios-blasco",
+        "dr-jean-eric-panacciulli",
+      ].includes(finalDocteur)
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Le docteur doit être l'un des suivants : Dr. Husni SAID HABIBI, Dr. Helios BLASCO, Dr. Jean-Eric PANACCIULLI"
+        message:
+          "Le docteur doit être l'un des suivants : Dr. Husni SAID HABIBI, Dr. Helios BLASCO, Dr. Jean-Eric PANACCIULLI",
       });
     }
 
     // Capturer les métadonnées d'abord pour les vérifications - AMÉLIORATION IP
     const getRealClientIP = (req) => {
       // Priority order pour détecter la vraie IP du client
-      const ip = req.headers['x-nf-client-connection-ip'] ||  // Netlify header
-                 req.headers['cf-connecting-ip'] ||           // Cloudflare header  
-                 req.headers['x-real-ip'] ||                  // Nginx proxy
-                 req.headers['x-forwarded-for']?.split(',')[0]?.trim() || // Premier IP dans la chaîne
-                 req.headers['x-client-ip'] ||                // Alternative header
-                 req.connection?.remoteAddress ||             // Connection directe
-                 req.socket?.remoteAddress ||                 // Socket alternatif
-                 req.ip ||                                    // Express default
-                 'unknown';
-      
+      const ip =
+        req.headers["x-nf-client-connection-ip"] || // Netlify header
+        req.headers["cf-connecting-ip"] || // Cloudflare header
+        req.headers["x-real-ip"] || // Nginx proxy
+        req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || // Premier IP dans la chaîne
+        req.headers["x-client-ip"] || // Alternative header
+        req.connection?.remoteAddress || // Connection directe
+        req.socket?.remoteAddress || // Socket alternatif
+        req.ip || // Express default
+        "unknown";
+
       // Log IP detection info at debug level only
-      logger.debug({
-        'x-nf-client-connection-ip': req.headers['x-nf-client-connection-ip'],
-        'x-forwarded-for': req.headers['x-forwarded-for'],
-        'x-real-ip': req.headers['x-real-ip'],
-        'req.ip': req.ip,
-        final: ip
-      }, 'IP Detection');
-      
+      logger.debug(
+        {
+          "x-nf-client-connection-ip": req.headers["x-nf-client-connection-ip"],
+          "x-forwarded-for": req.headers["x-forwarded-for"],
+          "x-real-ip": req.headers["x-real-ip"],
+          "req.ip": req.ip,
+          final: ip,
+        },
+        "IP Detection"
+      );
+
       return ip;
     };
-    
-  const ipAddress = getRealClientIP(req);
-    const userAgent = req.headers['user-agent'];
-    const device = req.headers['sec-ch-ua-platform'] || 'unknown';
-    
+
+    const ipAddress = getRealClientIP(req);
+    const userAgent = req.headers["user-agent"];
+    const device = req.headers["sec-ch-ua-platform"] || "unknown";
+
     // Vérifier si l'utilisateur authentifié a déjà un ticket en cours
     // (sauf pour les secrétaires qui peuvent créer sans limite)
-    if (req.user && req.user.role.name !== 'secretaire') {
+    if (req.user && req.user.role.name !== "secretaire") {
       const existingTicket = await Ticket.findOne({
         userId: req.user._id,
-        status: { $in: ['en_attente', 'en_consultation'] }
+        status: { $in: ["en_attente", "en_consultation"] },
       });
-      
+
       if (existingTicket) {
-        logger.warn({ userId: String(req.user._id), existingTicket: existingTicket.number, docteur: existingTicket.docteur }, 'LIMITATION: utilisateur a déjà un ticket');
+        logger.warn(
+          {
+            userId: String(req.user._id),
+            existingTicket: existingTicket.number,
+            docteur: existingTicket.docteur,
+          },
+          "LIMITATION: utilisateur a déjà un ticket"
+        );
         return res.status(400).json({
           success: false,
           message: "Vous avez déjà un ticket en cours",
@@ -301,23 +341,30 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
             number: existingTicket.number,
             status: existingTicket.status,
             docteur: existingTicket.docteur,
-            createdAt: existingTicket.createdAt
-          }
+            createdAt: existingTicket.createdAt,
+          },
         });
       }
     }
 
     // Si un utilisateur est connecté mais n'est pas secrétaire, il DOIT être patient
-    if (req.user && req.user.role.name !== 'secretaire' && req.user.role.name !== 'patient') {
-      logger.warn({ userId: String(req.user._id), role: req.user.role.name }, 'LIMITATION: rôle non autorisé pour création de ticket');
+    if (
+      req.user &&
+      req.user.role.name !== "secretaire" &&
+      req.user.role.name !== "patient"
+    ) {
+      logger.warn(
+        { userId: String(req.user._id), role: req.user.role.name },
+        "LIMITATION: rôle non autorisé pour création de ticket"
+      );
       return res.status(403).json({
         success: false,
-        message: "Seuls les patients et secrétaires peuvent créer des tickets"
+        message: "Seuls les patients et secrétaires peuvent créer des tickets",
       });
     }
 
     // NOUVELLE VÉRIFICATION : Si un token est envoyé, l'utilisateur DOIT être authentifié
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const token = req.headers.authorization?.replace("Bearer ", "");
     // TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG
     /*
     if (token && !req.user) {
@@ -330,66 +377,89 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     */
     if (token && !req.user) {
       // Ne pas loguer le token. Indiquer juste la présence d'un token en dev.
-      if (process.env.NODE_ENV !== 'production') {
-        logger.warn('⚠️ Token présent mais utilisateur non authentifié');
+      if (process.env.NODE_ENV !== "production") {
+        logger.warn("⚠️ Token présent mais utilisateur non authentifié");
       }
     }
 
     // **NOUVELLE LIMITATION** : Vérifier les abus par IP/appareil pour tous les utilisateurs
     // (sauf pour les secrétaires qui peuvent créer sans limite)
-    if (!req.user || req.user.role.name !== 'secretaire') {
-  logger.debug({ context: req.user ? 'utilisateur connecté' : 'ANONYME' }, 'VÉRIFICATION LIMITATIONS IP');
-      
+    if (!req.user || req.user.role.name !== "secretaire") {
+      logger.debug(
+        { context: req.user ? "utilisateur connecté" : "ANONYME" },
+        "VÉRIFICATION LIMITATIONS IP"
+      );
+
       // Créer une empreinte unique de l'appareil/navigateur comme fallback
-  const deviceFingerprint = `${ipAddress}_${userAgent}_${device}`;
-      const isIPUnknown = ipAddress === 'unknown';
-      
+      const deviceFingerprint = `${ipAddress}_${userAgent}_${device}`;
+      const isIPUnknown = ipAddress === "unknown";
+
       if (isIPUnknown) {
-        logger.warn({ deviceFingerprint: hmacFingerprint(deviceFingerprint) }, 'IP inconnue, utilisation d\'empreinte appareil');
+        logger.warn(
+          { deviceFingerprint: hmacFingerprint(deviceFingerprint) },
+          "IP inconnue, utilisation d'empreinte appareil"
+        );
       }
-      
+
       // Limite par adresse IP : maximum 1 ticket actif par IP (un seul ticket par appareil)
-      const query = isIPUnknown ? 
-        { 'metadata.deviceFingerprint': deviceFingerprint, status: { $in: ['en_attente', 'en_consultation'] } } :
-        { 'metadata.ipAddress': ipAddress, status: { $in: ['en_attente', 'en_consultation'] } };
-        
+      const query = isIPUnknown
+        ? {
+            "metadata.deviceFingerprint": deviceFingerprint,
+            status: { $in: ["en_attente", "en_consultation"] },
+          }
+        : {
+            "metadata.ipAddress": ipAddress,
+            status: { $in: ["en_attente", "en_consultation"] },
+          };
+
       const ticketsByIP = await Ticket.countDocuments(query);
 
-      logger.debug({ ticketsByIP, by: isIPUnknown ? 'deviceFingerprint' : 'ipAddress' }, 'Tickets actifs');
+      logger.debug(
+        { ticketsByIP, by: isIPUnknown ? "deviceFingerprint" : "ipAddress" },
+        "Tickets actifs"
+      );
       if (ticketsByIP >= 1) {
-        logger.warn({ ticketsByIP, limit: 1 }, `LIMITATION ${isIPUnknown ? 'EMPREINTE' : 'IP'}`);
+        logger.warn(
+          { ticketsByIP, limit: 1 },
+          `LIMITATION ${isIPUnknown ? "EMPREINTE" : "IP"}`
+        );
         return res.status(429).json({
           success: false,
           message: "Limite atteinte : maximum 1 ticket actif par appareil",
-          limitation: "ip_limit"
+          limitation: "ip_limit",
         });
       }
 
       // Limite temporelle : maximum 3 tickets par heure par IP
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const timeQuery = isIPUnknown ?
-        { 'metadata.deviceFingerprint': deviceFingerprint, createdAt: { $gte: oneHourAgo } } :
-        { 'metadata.ipAddress': ipAddress, createdAt: { $gte: oneHourAgo } };
-        
+      const timeQuery = isIPUnknown
+        ? {
+            "metadata.deviceFingerprint": deviceFingerprint,
+            createdAt: { $gte: oneHourAgo },
+          }
+        : { "metadata.ipAddress": ipAddress, createdAt: { $gte: oneHourAgo } };
+
       const recentTicketsByIP = await Ticket.countDocuments(timeQuery);
 
-      logger.debug({ recentTicketsByIP }, 'Tickets dernière heure');
+      logger.debug({ recentTicketsByIP }, "Tickets dernière heure");
       if (recentTicketsByIP >= 3) {
-        logger.warn({ recentTicketsByIP, limit: 3 }, 'LIMITATION TEMPORELLE');
+        logger.warn({ recentTicketsByIP, limit: 3 }, "LIMITATION TEMPORELLE");
         return res.status(429).json({
           success: false,
           message: "Limite atteinte : maximum 3 tickets par heure par appareil",
           limitation: "time_limit",
-          retryAfter: "1 heure"
+          retryAfter: "1 heure",
         });
       }
 
-      logger.info('LIMITATIONS OK - Création autorisée');
+      logger.info("LIMITATIONS OK - Création autorisée");
     }
 
     // Générer un sessionId unique
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+    const sessionId = `session_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
     // Capturer les métadonnées (déjà définies plus haut)
     const metadata = {
       ipAddress,
@@ -397,7 +467,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       device,
       deviceFingerprint: `${ipAddress}_${userAgent}_${device}`, // Fallback pour la détection d'appareil
       timestamp: new Date(),
-      sessionId
+      sessionId,
     };
 
     // Obtenir le dernier numéro de ticket
@@ -407,23 +477,23 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     // Déterminer le type de ticket et qui l'a créé
     let finalTicketType = ticketType || "numerique";
     let finalCreatedBy = "patient";
-    
+
     // Si c'est une secrétaire authentifiée qui crée le ticket
-    if (req.user && req.user.role.name === 'secretaire') {
+    if (req.user && req.user.role.name === "secretaire") {
       finalCreatedBy = "secretary";
       // Pas de limite pour les secrétaires
     }
-    
+
     // Validation du nom patient pour tickets physiques
     if (finalTicketType === "physique" && !patientName) {
       return res.status(400).json({
         success: false,
-        message: "Le nom du patient est requis pour les tickets physiques"
+        message: "Le nom du patient est requis pour les tickets physiques",
       });
     }
 
     // Créer le nouveau ticket
-    const ticket = new Ticket({ 
+    const ticket = new Ticket({
       number: nextNumber,
       docteur: finalDocteur,
       sessionId,
@@ -432,7 +502,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       ticketType: finalTicketType,
       createdBy: finalCreatedBy,
       notes: notes || null,
-      metadata
+      metadata,
     });
 
     // Sauvegarder le ticket
@@ -442,9 +512,12 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     if (req.user && req.user._id) {
       try {
         await notifyNewTicket(ticket._id);
-        logger.info({ ticketNumber: ticket.number }, 'Notification push envoyée');
+        logger.info(
+          { ticketNumber: ticket.number },
+          "Notification push envoyée"
+        );
       } catch (notificationError) {
-        logger.error({ err: notificationError }, 'Erreur notification push');
+        logger.error({ err: notificationError }, "Erreur notification push");
         // Ne pas faire échouer la création du ticket pour une erreur de notification
       }
     }
@@ -453,34 +526,33 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     res.status(201).json({
       success: true,
       ticket,
-      message: "Ticket créé avec succès"
+      message: "Ticket créé avec succès",
     });
-    
   } catch (err) {
-  logger.error({ err }, 'Erreur création ticket');
-    
+    logger.error({ err }, "Erreur création ticket");
+
     // Gestion spécifique des erreurs de validation Mongoose
-      if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
       return res.status(400).json({
         success: false,
         message: "Erreur de validation",
-        errors: Object.values(err.errors).map(e => e.message)
+        errors: Object.values(err.errors).map((e) => e.message),
       });
     }
-    
+
     // Gestion des erreurs de duplication
     if (err.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: "Un ticket avec ce numéro existe déjà"
+        message: "Un ticket avec ce numéro existe déjà",
       });
     }
-    
+
     // Erreur générique
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Erreur lors de la création du ticket",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 });
@@ -492,21 +564,18 @@ app.get("/ticket/:id", async (req, res) => {
     // Si un sessionId est fourni, chercher aussi par sessionId
     if (req.query.sessionId) {
       ticket = await Ticket.findOne({
-        $or: [
-          { _id: req.params.id },
-          { sessionId: req.query.sessionId }
-        ]
+        $or: [{ _id: req.params.id }, { sessionId: req.query.sessionId }],
       });
     } else {
       ticket = await Ticket.findById(req.params.id);
     }
-    
+
     if (!ticket) {
       return res.status(404).json({ message: "Ticket non trouvé" });
     }
     res.json(ticket);
   } catch (err) {
-    logger.error({ err }, 'Erreur vérification ticket');
+    logger.error({ err }, "Erreur vérification ticket");
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -516,22 +585,28 @@ app.get("/queue", async (req, res) => {
   try {
     const { docteur } = req.query;
     let query = {};
-    
+
     // Si un docteur est spécifié, filtrer par docteur
     if (docteur) {
-      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
-        return res.status(400).json({ 
+      if (
+        ![
+          "dr-husni-said-habibi",
+          "dr-helios-blasco",
+          "dr-jean-eric-panacciulli",
+        ].includes(docteur)
+      ) {
+        return res.status(400).json({
           success: false,
-          message: "Docteur non valide" 
+          message: "Docteur non valide",
         });
       }
       query.docteur = docteur;
     }
-    
+
     const queue = await Ticket.find(query).sort({ createdAt: 1 });
     res.json(queue);
   } catch (error) {
-    logger.error({ err: error }, 'Erreur lors de la récupération de la file');
+    logger.error({ err: error }, "Erreur lors de la récupération de la file");
     res.status(500).json({ message: "Erreur de récupération" });
   }
 });
@@ -540,10 +615,10 @@ app.get("/queue", async (req, res) => {
 app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
   try {
     // Vérifier les permissions (médecins et secrétaires seulement)
-    if (!req.user || !['medecin', 'secretaire'].includes(req.user.role.name)) {
-      return res.status(403).json({ 
+    if (!req.user || !["medecin", "secretaire"].includes(req.user.role.name)) {
+      return res.status(403).json({
         success: false,
-        message: "Accès non autorisé" 
+        message: "Accès non autorisé",
       });
     }
 
@@ -555,57 +630,53 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
       {
         $match: {
           createdAt: { $gte: oneDayAgo },
-          'metadata.ipAddress': { $exists: true }
-        }
+          "metadata.ipAddress": { $exists: true },
+        },
       },
       {
         $group: {
-          _id: '$metadata.ipAddress',
+          _id: "$metadata.ipAddress",
           totalTickets: { $sum: 1 },
           activeTickets: {
             $sum: {
               $cond: [
-                { $in: ['$status', ['en_attente', 'en_consultation']] },
+                { $in: ["$status", ["en_attente", "en_consultation"]] },
                 1,
-                0
-              ]
-            }
+                0,
+              ],
+            },
           },
           recentTickets: {
             $sum: {
-              $cond: [
-                { $gte: ['$createdAt', oneHourAgo] },
-                1,
-                0
-              ]
-            }
+              $cond: [{ $gte: ["$createdAt", oneHourAgo] }, 1, 0],
+            },
           },
-          doctors: { $addToSet: '$docteur' }
-        }
+          doctors: { $addToSet: "$docteur" },
+        },
       },
       {
         $project: {
-          ipAddress: '$_id',
+          ipAddress: "$_id",
           totalTickets: 1,
           activeTickets: 1,
           recentTickets: 1,
-          doctorCount: { $size: '$doctors' },
+          doctorCount: { $size: "$doctors" },
           flagged: {
             $or: [
-              { $gte: ['$activeTickets', 2] },
-              { $gte: ['$recentTickets', 3] }
-            ]
-          }
-        }
+              { $gte: ["$activeTickets", 2] },
+              { $gte: ["$recentTickets", 3] },
+            ],
+          },
+        },
       },
       { $sort: { totalTickets: -1 } },
-      { $limit: 50 }
+      { $limit: 50 },
     ]);
 
     // Tickets potentiellement abusifs
     const suspiciousTickets = await Ticket.find({
       createdAt: { $gte: oneHourAgo },
-      'metadata.ipAddress': { $exists: true }
+      "metadata.ipAddress": { $exists: true },
     }).sort({ createdAt: -1 });
 
     // Grouper par IP pour détecter les patterns
@@ -622,7 +693,7 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
       .map(([ip, tickets]) => ({
         ip,
         ticketCount: tickets.length,
-        tickets: tickets.slice(0, 5) // Limiter à 5 tickets récents
+        tickets: tickets.slice(0, 5), // Limiter à 5 tickets récents
       }));
 
     res.json({
@@ -630,20 +701,19 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
       data: {
         overview: {
           totalIPs: ipStats.length,
-          flaggedIPs: ipStats.filter(stat => stat.flagged).length,
-          suspiciousActivity: flaggedIPs.length
+          flaggedIPs: ipStats.filter((stat) => stat.flagged).length,
+          suspiciousActivity: flaggedIPs.length,
         },
         ipStatistics: ipStats,
         flaggedActivity: flaggedIPs,
-        generatedAt: new Date()
-      }
+        generatedAt: new Date(),
+      },
     });
-
   } catch (error) {
-    logger.error({ err: error }, 'Erreur stats abus');
-    res.status(500).json({ 
+    logger.error({ err: error }, "Erreur stats abus");
+    res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération des statistiques" 
+      message: "Erreur lors de la récupération des statistiques",
     });
   }
 });
@@ -652,14 +722,14 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
 app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
   try {
     let ticket;
-    
+
     // Si un sessionId est fourni (ticket anonyme), vérifier qu'il correspond
     if (req.query.sessionId) {
       ticket = await Ticket.findOne({
         $or: [
           { _id: req.params.id, sessionId: req.query.sessionId },
-          { sessionId: req.query.sessionId }
-        ]
+          { sessionId: req.query.sessionId },
+        ],
       });
     } else {
       // Ticket authentifié : chercher par ID
@@ -667,71 +737,91 @@ app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
     }
 
     if (!ticket) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Ticket non trouvé" 
+        message: "Ticket non trouvé",
       });
     }
 
     // SÉCURITÉ : Vérifier que l'utilisateur peut annuler ce ticket
     if (req.user) {
       // Utilisateur authentifié : doit être propriétaire du ticket OU secrétaire
-      if (req.user.role.name === 'secretaire') {
+      if (req.user.role.name === "secretaire") {
         // Les secrétaires peuvent annuler n'importe quel ticket
-        logger.info({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Secrétaire annule ticket');
-      } else if (ticket.userId && ticket.userId.toString() === req.user._id.toString()) {
+        logger.info(
+          { userId: String(req.user._id), ticketNumber: ticket.number },
+          "Secrétaire annule ticket"
+        );
+      } else if (
+        ticket.userId &&
+        ticket.userId.toString() === req.user._id.toString()
+      ) {
         // Le patient propriétaire peut annuler son ticket
-        logger.info({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Patient annule son ticket');
+        logger.info(
+          { userId: String(req.user._id), ticketNumber: ticket.number },
+          "Patient annule son ticket"
+        );
       } else {
         // Utilisateur connecté mais pas propriétaire
-        logger.warn({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Tentative annulation non autorisée');
-        return res.status(403).json({ 
+        logger.warn(
+          { userId: String(req.user._id), ticketNumber: ticket.number },
+          "Tentative annulation non autorisée"
+        );
+        return res.status(403).json({
           success: false,
-          message: "Vous ne pouvez annuler que vos propres tickets" 
+          message: "Vous ne pouvez annuler que vos propres tickets",
         });
       }
     } else {
       // Ticket anonyme : vérification par sessionId déjà faite plus haut
       if (!req.query.sessionId) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: "Authentification requise pour annuler ce ticket" 
+          message: "Authentification requise pour annuler ce ticket",
         });
       }
-      logger.info({ ticketNumber: ticket.number, sessionId: req.query.sessionId ? String(req.query.sessionId) : undefined }, 'Annulation ticket anonyme');
+      logger.info(
+        {
+          ticketNumber: ticket.number,
+          sessionId: req.query.sessionId
+            ? String(req.query.sessionId)
+            : undefined,
+        },
+        "Annulation ticket anonyme"
+      );
     }
 
     // Vérifier que le ticket peut être annulé
     if (ticket.status === "termine") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Impossible d'annuler un ticket déjà terminé" 
+        message: "Impossible d'annuler un ticket déjà terminé",
       });
     }
 
     if (ticket.status === "desiste") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Ce ticket est déjà annulé" 
+        message: "Ce ticket est déjà annulé",
       });
     }
 
     // Annuler le ticket
     ticket.status = "desiste";
     await ticket.save();
-    
-  logger.info({ ticketNumber: ticket.number }, 'Ticket annulé avec succès');
-    
-    res.json({ 
+
+    logger.info({ ticketNumber: ticket.number }, "Ticket annulé avec succès");
+
+    res.json({
       success: true,
       updated: ticket,
-      message: "Ticket annulé avec succès"
+      message: "Ticket annulé avec succès",
     });
   } catch (error) {
-    logger.error({ err: error }, 'Erreur lors de l\'annulation');
-    res.status(500).json({ 
+    logger.error({ err: error }, "Erreur lors de l'annulation");
+    res.status(500).json({
       success: false,
-      message: "Erreur lors de l'annulation" 
+      message: "Erreur lors de l'annulation",
     });
   }
 });
@@ -745,8 +835,8 @@ app.patch("/ticket/:id/resume", async (req, res) => {
       ticket = await Ticket.findOne({
         $or: [
           { _id: req.params.id, sessionId: req.query.sessionId },
-          { sessionId: req.query.sessionId }
-        ]
+          { sessionId: req.query.sessionId },
+        ],
       });
     } else {
       ticket = await Ticket.findById(req.params.id);
@@ -771,34 +861,40 @@ app.patch("/ticket/:id/resume", async (req, res) => {
 app.delete("/next", async (req, res) => {
   try {
     const { docteur } = req.query;
-    
+
     // Validation du docteur requis
     if (!docteur) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Le paramètre 'docteur' est requis" 
+        message: "Le paramètre 'docteur' est requis",
       });
     }
-    
-    if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
-      return res.status(400).json({ 
+
+    if (
+      ![
+        "dr-husni-said-habibi",
+        "dr-helios-blasco",
+        "dr-jean-eric-panacciulli",
+      ].includes(docteur)
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Docteur non valide" 
+        message: "Docteur non valide",
       });
     }
 
     let terminatedNotification = null;
 
     // 1. Trouver le ticket en consultation actuel pour ce docteur
-    const currentTicket = await Ticket.findOne({ 
-      status: "en_consultation", 
-      docteur: docteur 
+    const currentTicket = await Ticket.findOne({
+      status: "en_consultation",
+      docteur: docteur,
     });
-    
+
     if (currentTicket) {
       // Sauvegarder l'ancien statut pour la notification
       const previousStatus = currentTicket.status;
-      
+
       // Marquer le ticket actuel comme terminé
       currentTicket.status = "termine";
       await currentTicket.save();
@@ -807,51 +903,55 @@ app.delete("/next", async (req, res) => {
       terminatedNotification = {
         previousStatus,
         type: "consultation_terminee",
-        message: "✅ Votre consultation est terminée"
+        message: "✅ Votre consultation est terminée",
       };
     }
 
     // 2. Trouver et appeler le prochain patient pour ce docteur
-    const nextTicket = await Ticket.findOne({ 
-      status: "en_attente", 
-      docteur: docteur 
+    const nextTicket = await Ticket.findOne({
+      status: "en_attente",
+      docteur: docteur,
     }).sort({ createdAt: 1 });
-    
+
     if (nextTicket) {
       // Sauvegarder l'ancien statut pour la notification
       const previousStatus = nextTicket.status;
-      
+
       nextTicket.status = "en_consultation";
       await nextTicket.save();
-      
+
       // Préparer la notification pour le patient appelé
       const calledNotification = {
         previousStatus,
         type: "patient_appele",
-        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet"
+        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet",
       };
-      
+
       // Envoyer les deux tickets mis à jour avec leurs notifications
-      res.json({ 
-        previous: currentTicket ? {
-          ticket: currentTicket,
-          notification: terminatedNotification
-        } : null,
+      res.json({
+        previous: currentTicket
+          ? {
+              ticket: currentTicket,
+              notification: terminatedNotification,
+            }
+          : null,
         called: {
           ticket: nextTicket,
-          notification: calledNotification
+          notification: calledNotification,
         },
         message: `Patient suivant appelé avec succès pour ${docteur}`,
-        docteur: docteur
+        docteur: docteur,
       });
     } else {
-      res.status(404).json({ 
-        previous: currentTicket ? {
-          ticket: currentTicket,
-          notification: terminatedNotification
-        } : null,
+      res.status(404).json({
+        previous: currentTicket
+          ? {
+              ticket: currentTicket,
+              notification: terminatedNotification,
+            }
+          : null,
         message: `Aucun patient en attente pour ${docteur}`,
-        docteur: docteur
+        docteur: docteur,
       });
     }
   } catch (error) {
@@ -866,25 +966,31 @@ app.delete("/reset", async (req, res) => {
     const { docteur } = req.query;
     let query = {};
     let message = "File globale réinitialisée";
-    
+
     // Si un docteur est spécifié, ne réinitialiser que sa file
     if (docteur) {
-      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
-        return res.status(400).json({ 
+      if (
+        ![
+          "dr-husni-said-habibi",
+          "dr-helios-blasco",
+          "dr-jean-eric-panacciulli",
+        ].includes(docteur)
+      ) {
+        return res.status(400).json({
           success: false,
-          message: "Docteur non valide" 
+          message: "Docteur non valide",
         });
       }
       query.docteur = docteur;
       message = `File de ${docteur} réinitialisée`;
     }
-    
+
     const result = await Ticket.deleteMany(query);
-    res.json({ 
+    res.json({
       success: true,
       message: message,
       deletedCount: result.deletedCount,
-      docteur: docteur || "tous"
+      docteur: docteur || "tous",
     });
   } catch (error) {
     console.error("Erreur lors de la réinitialisation:", error);
@@ -899,38 +1005,40 @@ app.patch("/ticket/:id/call", async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: "Ticket non trouvé" });
     }
-    
+
     if (ticket.status !== "en_attente") {
-      return res.status(400).json({ message: "Le ticket n'est pas en attente" });
+      return res
+        .status(400)
+        .json({ message: "Le ticket n'est pas en attente" });
     }
 
     // Vérifier qu'aucun autre patient n'est déjà en consultation avec ce docteur
-    const currentConsultation = await Ticket.findOne({ 
-      status: "en_consultation", 
-      docteur: ticket.docteur 
+    const currentConsultation = await Ticket.findOne({
+      status: "en_consultation",
+      docteur: ticket.docteur,
     });
-    
+
     if (currentConsultation) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: `Un patient est déjà en consultation avec ${ticket.docteur}`,
-        currentPatient: currentConsultation
+        currentPatient: currentConsultation,
       });
     }
 
     // Sauvegarder l'ancien statut pour la notification
     const previousStatus = ticket.status;
-    
+
     // Mettre le ticket en consultation
     ticket.status = "en_consultation";
     await ticket.save();
 
-    res.json({ 
+    res.json({
       updated: ticket,
       notification: {
         previousStatus,
         type: "patient_appele",
-        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet"
-      }
+        message: "🏥 C'est votre tour ! Veuillez vous présenter au cabinet",
+      },
     });
   } catch (error) {
     console.error("Erreur lors de l'appel du ticket:", error);
@@ -945,19 +1053,19 @@ app.patch("/ticket/:id/finish", async (req, res) => {
     if (ticket && ticket.status === "en_consultation") {
       // Sauvegarder l'ancien statut pour la notification
       const previousStatus = ticket.status;
-      
+
       // Mettre à jour le statut
       ticket.status = "termine";
       await ticket.save();
 
       // Envoyer les informations nécessaires pour la notification
-      res.json({ 
+      res.json({
         updated: ticket,
         notification: {
           previousStatus,
           type: "consultation_terminee",
-          message: "✅ Votre consultation est terminée"
-        }
+          message: "✅ Votre consultation est terminée",
+        },
       });
     } else {
       res.status(404).json({ message: "Ticket non trouvé ou statut invalide" });
@@ -972,26 +1080,32 @@ app.patch("/ticket/:id/finish", async (req, res) => {
 app.get("/stats", async (req, res) => {
   try {
     const { docteur } = req.query;
-    
+
     if (docteur) {
       // Statistiques pour un docteur spécifique
-      if (!['dr-husni-said-habibi', 'dr-helios-blasco', 'dr-jean-eric-panacciulli'].includes(docteur)) {
-        return res.status(400).json({ 
+      if (
+        ![
+          "dr-husni-said-habibi",
+          "dr-helios-blasco",
+          "dr-jean-eric-panacciulli",
+        ].includes(docteur)
+      ) {
+        return res.status(400).json({
           success: false,
-          message: "Docteur non valide" 
+          message: "Docteur non valide",
         });
       }
-      
+
       const stats = await Ticket.aggregate([
         { $match: { docteur: docteur } },
         {
           $group: {
             _id: "$status",
-            count: { $sum: 1 }
-          }
-        }
+            count: { $sum: 1 },
+          },
+        },
       ]);
-      
+
       // Formatage des statistiques
       const formattedStats = {
         docteur: docteur,
@@ -999,14 +1113,14 @@ app.get("/stats", async (req, res) => {
         en_consultation: 0,
         termine: 0,
         desiste: 0,
-        total: 0
+        total: 0,
       };
-      
-      stats.forEach(stat => {
+
+      stats.forEach((stat) => {
         formattedStats[stat._id] = stat.count;
         formattedStats.total += stat.count;
       });
-      
+
       res.json(formattedStats);
     } else {
       // Statistiques globales par docteur
@@ -1015,10 +1129,10 @@ app.get("/stats", async (req, res) => {
           $group: {
             _id: {
               docteur: "$docteur",
-              status: "$status"
+              status: "$status",
             },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         },
         {
           $group: {
@@ -1026,23 +1140,27 @@ app.get("/stats", async (req, res) => {
             stats: {
               $push: {
                 status: "$_id.status",
-                count: "$count"
-              }
+                count: "$count",
+              },
             },
-            total: { $sum: "$count" }
-          }
-        }
+            total: { $sum: "$count" },
+          },
+        },
       ]);
-      
+
       res.json(statsByDoctor);
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("Erreur lors de la récupération des statistiques:", error);
     } else {
-      console.error("Erreur lors de la récupération des statistiques: [ERR_STATS_001]");
+      console.error(
+        "Erreur lors de la récupération des statistiques: [ERR_STATS_001]"
+      );
     }
-    res.status(500).json({ message: "Erreur de récupération des statistiques" });
+    res
+      .status(500)
+      .json({ message: "Erreur de récupération des statistiques" });
   }
 });
 
@@ -1052,80 +1170,92 @@ app.use("/patient", patientRoutes);
 // 🆘 Route temporaire pour créer une secrétaire (DÉVELOPPEMENT SEULEMENT)
 app.post("/create-secretary-temp", async (req, res) => {
   // Cette route ne doit pas exister en production
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(404).json({ success: false, message: 'Not found' });
+  if (process.env.NODE_ENV === "production") {
+    return res.status(404).json({ success: false, message: "Not found" });
   }
 
   // Protection simple: exiger une clé d'administration temporaire
-  const adminKey = req.headers['x-admin-key'] || req.body.adminKey || process.env.ADMIN_CREATION_KEY;
+  const adminKey =
+    req.headers["x-admin-key"] ||
+    req.body.adminKey ||
+    process.env.ADMIN_CREATION_KEY;
   if (!adminKey || adminKey !== process.env.ADMIN_CREATION_KEY) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 
   try {
-    const bcrypt = require('bcrypt');
-    const User = require('./models/User');
-    const Role = require('./models/Role');
-    
-  logger.warn('CRÉATION SECRÉTAIRE TEMPORAIRE (développement seulement)');
-    
+    const bcrypt = require("bcrypt");
+    const User = require("./models/User");
+    const Role = require("./models/Role");
+
+    logger.warn("CRÉATION SECRÉTAIRE TEMPORAIRE (développement seulement)");
+
     // Vérifier si la secrétaire existe déjà
-    const existingSecretary = await User.findOne({ email: 'secretaire@lineup.com' });
+    const existingSecretary = await User.findOne({
+      email: "secretaire@lineup.com",
+    });
     if (existingSecretary) {
       return res.json({
         success: true,
-        message: 'Secrétaire existe déjà',
+        message: "Secrétaire existe déjà",
         user: {
           email: existingSecretary.email,
           fullName: existingSecretary.fullName,
-          role: existingSecretary.role
-        }
+          role: existingSecretary.role,
+        },
       });
     }
-    
+
     // Trouver le rôle secrétaire
-    let secretaryRole = await Role.findOne({ name: 'secretaire' });
+    let secretaryRole = await Role.findOne({ name: "secretaire" });
     if (!secretaryRole) {
       // Créer le rôle s'il n'existe pas
       secretaryRole = new Role({
-        name: 'secretaire',
-        permissions: ['create_ticket', 'view_queue', 'call_patient', 'manage_queue']
+        name: "secretaire",
+        permissions: [
+          "create_ticket",
+          "view_queue",
+          "call_patient",
+          "manage_queue",
+        ],
       });
       await secretaryRole.save();
-      console.log('✅ Rôle secrétaire créé');
+      console.log("✅ Rôle secrétaire créé");
     }
-    
+
     // Créer la secrétaire
-    const hashedPassword = await bcrypt.hash('password123', 12);
+    const hashedPassword = await bcrypt.hash("password123", 12);
     const secretary = new User({
-      email: 'secretaire@lineup.com',
+      email: "secretaire@lineup.com",
       password: hashedPassword,
       role: secretaryRole._id,
       profile: {
-        firstName: 'Marie',
-        lastName: 'Martin'
+        firstName: "Marie",
+        lastName: "Martin",
       },
-      isActive: true
+      isActive: true,
     });
-    
+
     await secretary.save();
-    logger.info({ email: secretary.email, role: 'secretaire' }, 'Secrétaire créée (dev-only)');
+    logger.info(
+      { email: secretary.email, role: "secretaire" },
+      "Secrétaire créée (dev-only)"
+    );
 
     res.json({
       success: true,
-      message: 'Secrétaire créée avec succès',
+      message: "Secrétaire créée avec succès",
       user: {
         email: secretary.email,
         fullName: secretary.fullName,
-        role: 'secretaire'
-      }
+        role: "secretaire",
+      },
     });
-    
   } catch (error) {
-    console.error('❌ Erreur création secrétaire:', error.message);
+    console.error("❌ Erreur création secrétaire:", error.message);
     res.status(500).json({
       success: false,
-      message: 'Erreur création secrétaire'
+      message: "Erreur création secrétaire",
     });
   }
 });
@@ -1134,8 +1264,10 @@ app.post("/create-secretary-temp", async (req, res) => {
 app.use(errorHandler);
 
 // 🚀 Démarrage du serveur
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ API LineUp en ligne sur port ${PORT}`);
-  console.log(`🌐 Environnement: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 MongoDB: ${process.env.MONGO_URI ? 'Configuré' : 'Non configuré'}`);
+  console.log(`🌐 Environnement: ${process.env.NODE_ENV || "development"}`);
+  console.log(
+    `📊 MongoDB: ${process.env.MONGO_URI ? "Configuré" : "Non configuré"}`
+  );
 });
