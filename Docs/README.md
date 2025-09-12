@@ -45,6 +45,7 @@ LineUp utilise une architecture client-serveur classique :
 ## Stack Technologique
 
 ### Frontend
+
 - **Framework** : React 18
 - **Build Tool** : Vite
 - **Styling** : TailwindCSS
@@ -54,6 +55,7 @@ LineUp utilise une architecture client-serveur classique :
 - **Notifications** : web-push
 
 ### Backend
+
 - **Runtime** : Node.js
 - **Framework** : Express 5
 - **Database** : MongoDB avec Mongoose
@@ -64,6 +66,7 @@ LineUp utilise une architecture client-serveur classique :
 - **Testing** : Jest, Supertest
 
 ### DevOps
+
 - **CI/CD** : GitHub Actions
 - **Hosting** : Netlify (frontend), Render (backend)
 - **Monitoring** : À implémenter (recommendation: Sentry)

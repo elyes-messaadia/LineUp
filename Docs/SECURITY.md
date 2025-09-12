@@ -18,18 +18,21 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 ### 1. Exposition de données sensibles dans les logs
 
 **Problème** : Les logs exposaient des données sensibles, incluant:
+
 - Tokens d'authentification
 - Adresses IP complètes des utilisateurs
 - Données personnelles identifiables (PII)
 - Informations de debugging en production
 
 **Solution** :
+
 - Implémentation d'un logger structuré avec pino
 - Redaction automatique des champs sensibles (authorization, cookies, passwords)
 - Fingerprinting HMAC des adresses IP pour l'anonymisation
 - Niveaux de logging différenciés entre développement et production
 
 **Code impacté** :
+
 - `server/utils/logger.js` - Configuration de pino avec redaction
 - `server/utils/fingerprint.js` - Fonction HMAC pour anonymiser les identifiants
 - `server/index.js` et autres fichiers - Remplacement de console.log par logger
@@ -39,11 +42,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Le serveur démarrait en production même si JWT_SECRET n'était pas configuré, utilisant un fallback non sécurisé.
 
 **Solution** :
+
 - Arrêt du serveur si JWT_SECRET n'est pas défini en production
 - Message d'erreur explicite indiquant la raison de l'arrêt
 - Vérification au démarrage pour éviter les risques de sécurité
 
 **Code impacté** :
+
 - `server/index.js` - Ajout d'une vérification de présence de JWT_SECRET
 - `server/middlewares/auth.js` - Refus d'utiliser un secret par défaut en production
 
@@ -52,12 +57,14 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Configuration CORS permettant toutes les origines, même en production.
 
 **Solution** :
+
 - Création d'une liste blanche d'origines autorisées
 - Refus des requêtes sans origine en production
 - Acceptation conditionnelle des sous-domaines *.netlify.app
 - Log des tentatives d'accès refusées
 
 **Code impacté** :
+
 - `server/index.js` - Configuration CORS avec whitelist et validation stricte en production
 
 ### 4. Routes de débogage accessibles en production
@@ -65,11 +72,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Endpoints de débogage exposant des informations système accessibles en production.
 
 **Solution** :
+
 - Désactivation complète des routes de débogage en production
 - Réponse 404 pour masquer leur existence
 - Accès limité aux environnements de développement uniquement
 
 **Code impacté** :
+
 - `server/index.js` - Conditions pour désactiver `/debug-ip` et `/debug-auth` en production
 
 ### 5. Absence de protection contre les injections
@@ -77,11 +86,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Vulnérabilité aux attaques par injection (NoSQL, XSS).
 
 **Solution** :
+
 - Implémentation de express-mongo-sanitize pour prévenir les injections NoSQL
 - Ajout de xss-clean pour échapper automatiquement le contenu HTML dangereux
 - Configuration helmet avec CSP stricte
 
 **Code impacté** :
+
 - `server/middlewares/security.js` - Mise en place de sanitizers et CSP
 
 ### 6. Absence de limitation de taux
@@ -89,11 +100,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Pas de protection contre les attaques par force brute ou DDoS.
 
 **Solution** :
+
 - Implémentation de express-rate-limit
 - Limites différenciées pour les routes d'authentification
 - IP fingerprinting pour le tracking des abus
 
 **Code impacté** :
+
 - `server/middlewares/security.js` - Configuration du rate limiting
 - `server/routes/auth.js` - Limites spécifiques pour login/register
 
@@ -102,11 +115,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Aucune directive forçant l'utilisation de HTTPS.
 
 **Solution** :
+
 - Configuration HSTS via helmet
 - MaxAge de 1 an, includeSubdomains, preload
 - Refus des connexions non-HTTPS en production
 
 **Code impacté** :
+
 - `server/middlewares/security.js` - Configuration HSTS
 
 ### 8. Route temporaire de création d'administrateur non sécurisée
@@ -114,11 +129,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Endpoint `/create-secretary-temp` accessible sans protection adéquate.
 
 **Solution** :
+
 - Désactivation complète en production
 - Exigence d'une clé d'administration via header ou corps de requête
 - Suppression de l'exposition du mot de passe en texte clair
 
 **Code impacté** :
+
 - `server/index.js` - Protection et désactivation conditionnelle de la route
 
 ### 9. Dépendances obsolètes ou vulnérables
@@ -126,11 +143,13 @@ Ce document détaille les aspects de sécurité du projet LineUp, les vulnérabi
 **Problème** : Certaines dépendances étaient obsolètes ou contenaient des vulnérabilités connues.
 
 **Solution** :
+
 - Audit et mise à jour de toutes les dépendances
 - Configuration Dependabot pour les mises à jour automatiques
 - Script npm pour vérification régulière des vulnérabilités
 
 **Code impacté** :
+
 - `server/package.json` - Mise à jour des versions
 - `client/package.json` - Mise à jour des versions
 
