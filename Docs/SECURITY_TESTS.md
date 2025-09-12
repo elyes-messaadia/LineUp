@@ -7,6 +7,7 @@ Cette suite de tests de sécurité couvre tous les aspects critiques de la sécu
 ## Structure des Tests
 
 ### 1. Tests Middleware de Sécurité (`security.test.js`)
+
 - **Rate Limiting** : Validation des limites de requêtes
 - **Headers Helmet** : Vérification des headers de sécurité (CSP, HSTS, XSS Protection)
 - **Protection XSS** : Nettoyage des scripts malveillants
@@ -15,6 +16,7 @@ Cette suite de tests de sécurité couvre tous les aspects critiques de la sécu
 - **Logging sécurisé** : Anonymisation des données sensibles
 
 ### 2. Tests d'Authentification (`auth.test.js`)
+
 - **Validation JWT** : Tokens valides/invalides/expirés
 - **Protection timing attacks** : Temps de réponse constants
 - **Sécurité JWT Secret** : Validation de la configuration
@@ -22,6 +24,7 @@ Cette suite de tests de sécurité couvre tous les aspects critiques de la sécu
 - **Authentication optionnelle** : Gestion des cas sans token
 
 ### 3. Tests Logging Sécurisé (`logging.test.js`)
+
 - **Configuration logger** : Paramètres de sécurité
 - **Redaction données** : Masquage automatique des informations sensibles
 - **Anonymisation IPs** : Empreintes HMAC des adresses
@@ -29,6 +32,7 @@ Cette suite de tests de sécurité couvre tous les aspects critiques de la sécu
 - **Sécurité production** : Validation des logs en environnement production
 
 ### 4. Tests Validation Données (`validation.test.js`)
+
 - **Protection MongoDB** : Injection NoSQL avancée
 - **Protection XSS** : Scripts malveillants et encodage
 - **Validation inputs** : Emails, mots de passe, longueurs
@@ -36,6 +40,7 @@ Cette suite de tests de sécurité couvre tous les aspects critiques de la sécu
 - **Détection injections** : Patterns SQL/NoSQL suspects
 
 ### 5. Tests Scénarios d'Attaque (`security-integration.test.js`)
+
 - **Force brute** : Attaques sur authentification
 - **XSS complexes** : Encodages multiples et événements
 - **Injections avancées** : NoSQL, headers HTTP
@@ -53,11 +58,13 @@ npm install --save-dev jest supertest
 ## Exécution des Tests
 
 ### Tous les tests de sécurité
+
 ```bash
 npm test -- --testPathPattern=security
 ```
 
 ### Tests spécifiques
+
 ```bash
 # Tests middleware
 npm test security.test.js
@@ -76,6 +83,7 @@ npm test security-integration.test.js
 ```
 
 ### Avec couverture de code
+
 ```bash
 npm test -- --coverage --testPathPattern=security
 ```
@@ -83,6 +91,7 @@ npm test -- --coverage --testPathPattern=security
 ## Configuration des Tests
 
 ### Variables d'environnement
+
 ```bash
 # Fichier .env.test
 NODE_ENV=test
@@ -92,6 +101,7 @@ LOG_LEVEL=error
 ```
 
 ### Configuration Jest (package.json)
+
 ```json
 {
   "scripts": {
@@ -113,18 +123,21 @@ LOG_LEVEL=error
 ## Métriques de Sécurité Couvertes
 
 ### ✅ Authentification & Autorisation
+
 - Validation des tokens JWT
 - Gestion de l'expiration
 - Protection contre les attaques par timing
 - Nettoyage des données utilisateur
 
 ### ✅ Protection des Données
+
 - Redaction automatique des logs
 - Anonymisation des IPs
 - Chiffrement des identifiants sensibles
 - Validation stricte des entrées
 
 ### ✅ Prévention des Attaques
+
 - **XSS** : Cross-Site Scripting
 - **Injection NoSQL** : MongoDB operators
 - **CSRF** : Cross-Site Request Forgery
@@ -133,6 +146,7 @@ LOG_LEVEL=error
 - **Upload malveillants** : Fichiers dangereux
 
 ### ✅ Headers de Sécurité
+
 - **CSP** : Content Security Policy
 - **HSTS** : HTTP Strict Transport Security
 - **X-Frame-Options** : Protection clickjacking
@@ -140,6 +154,7 @@ LOG_LEVEL=error
 - **Referrer-Policy** : Contrôle des référents
 
 ### ✅ Rate Limiting
+
 - Limites globales (100 req/15min)
 - Limites authentification (5 req/h)
 - Protection contre le spam
@@ -148,16 +163,19 @@ LOG_LEVEL=error
 ## Interprétation des Résultats
 
 ### Succès Attendus ✅
+
 - Tous les tests passent sans erreur
 - Couverture de code > 90% sur les middlewares de sécurité
 - Temps d'exécution < 30 secondes pour la suite complète
 
 ### Alertes à Surveiller ⚠️
+
 - Tests échoués = vulnérabilité potentielle
 - Couverture < 80% = zones non testées
 - Temps d'exécution > 1 minute = problèmes de performance
 
 ### Actions en Cas d'Échec ❌
+
 1. **Vérifier la configuration** des middlewares de sécurité
 2. **Contrôler les variables d'environnement** (JWT_SECRET, etc.)
 3. **Examiner les logs** pour identifier la cause
@@ -166,6 +184,7 @@ LOG_LEVEL=error
 ## Automatisation CI/CD
 
 ### GitHub Actions Example
+
 ```yaml
 name: Security Tests
 on: [push, pull_request]
@@ -184,12 +203,14 @@ jobs:
 ## Maintenance des Tests
 
 ### Fréquence Recommandée
+
 - **Quotidienne** : Exécution automatique sur commits
 - **Hebdomadaire** : Révision des métriques de sécurité
 - **Mensuelle** : Mise à jour des patterns d'attaque
 - **Trimestrielle** : Audit complet de sécurité
 
 ### Évolution des Tests
+
 - Ajouter de nouveaux vecteurs d'attaque découverts
 - Mettre à jour selon les nouvelles vulnérabilités CVE
 - Adapter aux changements d'architecture
@@ -198,11 +219,13 @@ jobs:
 ## Support et Documentation
 
 ### En cas de Questions
+
 - Consulter la documentation `SECURITY.md`
 - Vérifier les logs du serveur
 - Contacter l'équipe sécurité si tests critiques échouent
 
 ### Ressources Utiles
+
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Node.js Security Checklist](https://nodejs.org/en/docs/guides/security/)
 - [Express.js Security Best Practices](https://expressjs.com/en/advanced/best-practice-security.html)
