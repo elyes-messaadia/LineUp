@@ -7,16 +7,19 @@ Le système de chat intelligent permet aux patients d'évaluer leur urgence méd
 ## 📋 Prérequis
 
 ### Backend
-- Node.js v18+ 
+
+- Node.js v18+
 - MongoDB v6+
 - Packages npm installés (`npm install`)
 
 ### Frontend  
+
 - React v18+
 - Tailwind CSS v4+
 - Vite v7+ pour le build
 
 ### Variables d'Environnement
+
 ```bash
 # Server (.env)
 JWT_SECRET=votre-clé-jwt-sécurisée
@@ -40,6 +43,7 @@ npm run test  # Exécuter les tests de sécurité
 ```
 
 **Fichiers Backend Critiques:**
+
 - `controllers/notificationController.js` - API conversations
 - `services/ChatbotAI.js` - Intelligence artificielle  
 - `services/PrioritizationService.js` - Algorithme de priorisation
@@ -54,6 +58,7 @@ npm run build  # Build de production
 ```
 
 **Composants Frontend Critiques:**
+
 - `components/ChatInterface.jsx` - Interface principale
 - `components/ChatWidget.jsx` - Widget flottant
 - `components/UrgencyIndicator.jsx` - Indicateur visuel
@@ -139,6 +144,7 @@ const weights = {
 ## 📡 API Endpoints Ajoutées
 
 ### Conversations
+
 ```
 POST /conversations                    # Créer conversation
 POST /conversations/:id/message        # Envoyer message
@@ -147,6 +153,7 @@ GET /conversations/patient/:patientId  # Conversations patient
 ```
 
 ### Priorisation  
+
 ```
 POST /tickets/priority-update          # Mise à jour priorités
 GET /tickets/queue-status             # Statut file d'attente
@@ -155,11 +162,13 @@ GET /tickets/queue-status             # Statut file d'attente
 ## 🔒 Sécurité
 
 ### Authentification
+
 - JWT requis pour toutes les routes chat
 - Validation des permissions patient/ticket
 - Rate limiting sur les messages (10/minute)
 
 ### Sanitisation
+
 - Nettoyage automatique des messages
 - Protection XSS sur le contenu chat
 - Validation des entrées utilisateur
@@ -167,6 +176,7 @@ GET /tickets/queue-status             # Statut file d'attente
 ## 🚨 Surveillance et Alertes
 
 ### Logs Automatiques
+
 ```javascript
 // Logs générés automatiquement
 logger.info('Chat message sent', { patientId, urgencyLevel });
@@ -175,6 +185,7 @@ logger.error('Chat service error', { error });
 ```
 
 ### Métriques à Surveiller
+
 - Temps de réponse de l'IA (< 2s)
 - Score d'urgence moyen par jour
 - Nombre de conversations actives
@@ -183,6 +194,7 @@ logger.error('Chat service error', { error });
 ## 🧪 Tests de Production
 
 ### Test Manuel Rapide
+
 1. Ouvrir le dashboard patient
 2. Cliquer sur l'icône de chat
 3. Envoyer : "J'ai mal à la tête niveau 8"
@@ -190,12 +202,14 @@ logger.error('Chat service error', { error });
 5. Confirmer la mise à jour de priorité
 
 ### Test Automatisé
+
 ```bash
 # Dans client/
 node test-chat-system.js
 ```
 
 ### Indicateurs de Succès
+
 - ✅ Conversation créée sans erreur
 - ✅ Messages envoyés/reçus correctement  
 - ✅ Score d'urgence calculé (1-10)
@@ -205,6 +219,7 @@ node test-chat-system.js
 ## 🔄 Mise à Jour de Production
 
 ### Rolling Update
+
 ```bash
 # 1. Backup base de données
 mongodump --db lineup --out backup/
@@ -221,6 +236,7 @@ curl http://localhost:5000/health
 ```
 
 ### Rollback Rapide
+
 ```bash
 # Si problème détecté
 pm2 restart lineup-api --update-env
@@ -231,6 +247,7 @@ cp -r dist-backup/* /var/www/html/
 ## 🎛️ Configuration Avancée
 
 ### Optimisation Performance
+
 ```javascript
 // Cache des réponses IA (optionnel)
 const responseCache = new Map();
@@ -241,6 +258,7 @@ const MAX_CONCURRENT_CHATS = 50;
 ```
 
 ### Intégration Notifications Push
+
 ```javascript
 // Dans onUrgencyChange callback
 if (urgencyLevel >= 8) {
@@ -257,21 +275,25 @@ if (urgencyLevel >= 8) {
 ### Problèmes Courants
 
 **Chat ne s'affiche pas:**
+
 - Vérifier VITE_CHAT_ENABLED=true
 - Contrôler les permissions utilisateur
 - Examiner la console développeur
 
 **IA ne répond pas:**  
+
 - Vérifier la connexion MongoDB
 - Contrôler les logs serveur  
 - Tester l'endpoint /conversations
 
 **Scores d'urgence incorrects:**
+
 - Vérifier la logique dans ChatbotAI.js
 - Contrôler les seuils d'évaluation
 - Examiner les données de conversation
 
 ### Debug Mode
+
 ```bash
 # Activer logs détaillés
 DEBUG=chat:* node server/index.js
@@ -280,6 +302,7 @@ DEBUG=chat:* node server/index.js
 ## 📞 Support
 
 En cas de problème critique :
+
 1. Vérifier les logs : `pm2 logs lineup-api`
 2. Status santé : `curl /health`
 3. Rollback si nécessaire

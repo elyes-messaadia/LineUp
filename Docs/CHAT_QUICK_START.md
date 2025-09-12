@@ -35,7 +35,9 @@ npm run dev
 ## 🎨 Composants Principaux
 
 ### ChatWidget.jsx
+
 Widget flottant qui s'affiche sur toutes les pages patient
+
 ```jsx
 <ChatWidget
   patientId={patient._id}
@@ -47,9 +49,11 @@ Widget flottant qui s'affiche sur toutes les pages patient
 ```
 
 ### ChatInterface.jsx  
+
 Interface principale de conversation avec l'IA
 
 ### UrgencyIndicator.jsx
+
 Indicateur visuel du niveau d'urgence avec couleurs
 
 ## 🔧 Configuration
@@ -105,12 +109,14 @@ POST /tickets/priority-update          # Mettre à jour priorités
 ## 🧪 Tests
 
 ### Test Automatisé
+
 ```bash
 cd client
 node test-chat-system.js
 ```
 
 ### Test Manuel Rapide
+
 1. Envoyer: *"J'ai très mal à la poitrine"*
 2. Répondre: *"Douleur niveau 9"*  
 3. Vérifier: Score d'urgence ≥ 8
@@ -147,11 +153,13 @@ Priorité Finale =
 ## 💡 Conseils d'Utilisation
 
 ### Pour les Développeurs
+
 - Surveiller les logs : `pm2 logs lineup-api`
 - Tester régulièrement avec `test-chat-system.js`
 - Ajuster les seuils selon les retours médecins
 
 ### Pour l'Équipe Médicale  
+
 - Scores 8+ = priorité immédiate
 - Vérifier dashboard pour les alertes
 - Historique chat disponible par ticket
@@ -159,6 +167,7 @@ Priorité Finale =
 ## 📱 Interface Mobile
 
 Le chat est entièrement responsive :
+
 - Widget adaptatif sur mobile
 - Interface tactile optimisée
 - Notifications push (si configurées)
@@ -166,6 +175,7 @@ Le chat est entièrement responsive :
 ## 🆘 Résolution de Problèmes
 
 ### Le chat ne s'affiche pas
+
 ```bash
 # Vérifier les variables d'env
 echo $VITE_CHAT_ENABLED  # doit être 'true'
@@ -175,6 +185,7 @@ F12 > Console > Erreurs ?
 ```
 
 ### L'IA ne répond pas
+
 ```bash
 # Vérifier le serveur
 curl http://localhost:5000/health
@@ -184,6 +195,7 @@ mongosh lineup --eval "db.conversations.countDocuments()"
 ```
 
 ### Scores d'urgence incorrects
+
 - Vérifier la logique dans `ChatbotAI.js`
 - Tester avec des cas connus
 - Ajuster les seuils si nécessaire
@@ -191,6 +203,7 @@ mongosh lineup --eval "db.conversations.countDocuments()"
 ## 📞 Support Rapide
 
 **Logs utiles :**
+
 ```bash
 # Backend
 pm2 logs lineup-api
@@ -200,6 +213,7 @@ npm run dev # Mode développement avec logs détaillés
 ```
 
 **API de santé :**
+
 ```bash
 curl http://localhost:5000/health
 # Réponse attendue: { "status": "ok", "chatbot": "active" }
