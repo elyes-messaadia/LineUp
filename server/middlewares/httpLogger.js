@@ -6,7 +6,10 @@ const { hmacFingerprint } = require("../utils/fingerprint");
 // Configuration du middleware pino-http avec des options personnalisées
 const httpLogger = (options = {}) => {
   const defaultOptions = {
-    logger: logger,
+    // En mode test, désactiver le logger pour éviter les conflits
+    ...(process.env.NODE_ENV === 'test' 
+      ? { logger: false }
+      : { logger: logger }),
 
     // Masquer les informations sensibles des headers
     redact: {
