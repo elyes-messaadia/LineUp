@@ -1,22 +1,22 @@
-const Ticket = require('../models/Ticket');
-const Conversation = require('../models/Conversation');
-const logger = require('../utils/logger');
+const Ticket = require("../models/Ticket");
+const Conversation = require("../models/Conversation");
+const logger = require("../utils/logger");
 
 class PrioritizationService {
   constructor() {
     this.priorityWeights = {
-      urgencyScore: 0.4,        // Score d'urgence IA (40%)
-      waitingTime: 0.25,        // Temps d'attente (25%)
-      patientType: 0.15,        // Type de patient (15%)
-      conversationActivity: 0.10, // Activité de conversation (10%)
-      medicalHistory: 0.10      // Historique médical (10%)
+      urgencyScore: 0.4, // Score d'urgence IA (40%)
+      waitingTime: 0.25, // Temps d'attente (25%)
+      patientType: 0.15, // Type de patient (15%)
+      conversationActivity: 0.1, // Activité de conversation (10%)
+      medicalHistory: 0.1, // Historique médical (10%)
     };
 
     this.patientTypeMultipliers = {
-      'emergency': 2.0,         // Urgences
-      'priority': 1.5,          // Prioritaires (personnes âgées, handicapés)
-      'regular': 1.0,           // Patients réguliers
-      'followup': 0.8           // Suivi médical
+      emergency: 2.0, // Urgences
+      priority: 1.5, // Prioritaires (personnes âgées, handicapés)
+      regular: 1.0, // Patients réguliers
+      followup: 0.8, // Suivi médical
     };
   }
 
@@ -25,9 +25,9 @@ class PrioritizationService {
    */
   async calculatePriorityScore(ticketId) {
     try {
-      const ticket = await Ticket.findById(ticketId).populate('userId');
+      const ticket = await Ticket.findById(ticketId).populate("userId");
       if (!ticket) {
-        throw new Error('Ticket non trouvé');
+        throw new Error("Ticket non trouvé");
       }
 
       let priorityScore = 0;
@@ -49,39 +49,45 @@ class PrioritizationService {
       priorityScore += patientTypeFactor * this.priorityWeights.patientType;
 
       // 4. Activité de conversation (messages récents, stress exprimé)
-      const conversationFactor = await this.getConversationActivityFactor(ticket);
+      const conversationFactor = await this.getConversationActivityFactor(
+        ticket
+      );
       factors.conversation = conversationFactor;
-      priorityScore += conversationFactor * this.priorityWeights.conversationActivity;
+      priorityScore +=
+        conversationFactor * this.priorityWeights.conversationActivity;
 
       // 5. Historique médical (antécédents, traitements)
       const medicalHistoryFactor = await this.getMedicalHistoryFactor(ticket);
       factors.medicalHistory = medicalHistoryFactor;
-      priorityScore += medicalHistoryFactor * this.priorityWeights.medicalHistory;
+      priorityScore +=
+        medicalHistoryFactor * this.priorityWeights.medicalHistory;
 
       // Normaliser le score final (0-10)
       const finalScore = Math.min(Math.max(priorityScore, 0), 10);
 
-      logger.info({
-        ticketId,
-        finalScore,
-        factors
-      }, 'Score de priorité calculé');
+      logger.info(
+        {
+          ticketId,
+          finalScore,
+          factors,
+        },
+        "Score de priorité calculé"
+      );
 
       return {
         ticketId,
         priorityScore: Math.round(finalScore * 100) / 100,
         factors,
-        calculatedAt: new Date()
+        calculatedAt: new Date(),
       };
-
     } catch (error) {
-      logger.error({ error, ticketId }, 'Erreur lors du calcul de priorité');
+      logger.error({ error, ticketId }, "Erreur lors du calcul de priorité");
       return {
         ticketId,
         priorityScore: 5.0, // Score neutre par défaut
         factors: {},
         calculatedAt: new Date(),
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -92,10 +98,7 @@ class PrioritizationService {
   async getUrgencyFactor(ticket) {
     try {
       const conversation = await Conversation.findOne({
-        $or: [
-          { patientId: ticket.userId },
-          { ticketId: ticket._id }
-        ]
+        $or: [{ patientId: ticket.userId }, { ticketId: ticket._id }],
       }).sort({ createdAt: -1 });
 
       if (!conversation || !conversation.aiAssessment) {
@@ -103,31 +106,33 @@ class PrioritizationService {
       }
 
       const assessment = conversation.aiAssessment;
-      
+
       // Convertir le score d'urgence IA (1-10) en facteur de priorité
       let urgencyFactor = assessment.urgencyScore || 5.0;
 
       // Bonus basé sur la recommandation
       switch (assessment.recommendedAction) {
-        case 'consultation_immediate':
+        case "consultation_immediate":
           urgencyFactor = Math.min(urgencyFactor * 1.3, 10);
           break;
-        case 'teleconsultation':
+        case "teleconsultation":
           urgencyFactor = Math.min(urgencyFactor * 1.1, 10);
           break;
-        case 'attendre':
+        case "attendre":
           urgencyFactor = Math.max(urgencyFactor * 0.9, 1);
           break;
       }
 
       // Ajustement basé sur la confiance de l'IA
-      const confidenceMultiplier = 0.7 + (assessment.confidenceScore * 0.3);
+      const confidenceMultiplier = 0.7 + assessment.confidenceScore * 0.3;
       urgencyFactor *= confidenceMultiplier;
 
       return Math.min(Math.max(urgencyFactor, 1), 10);
-
     } catch (error) {
-      logger.error({ error, ticketId: ticket._id }, 'Erreur lors du calcul du facteur d\'urgence');
+      logger.error(
+        { error, ticketId: ticket._id },
+        "Erreur lors du calcul du facteur d'urgence"
+      );
       return 5.0;
     }
   }
@@ -144,7 +149,7 @@ class PrioritizationService {
     // 0-30 min: facteur 3-5
     // 30-60 min: facteur 5-7
     // 60+ min: facteur 7-10
-    
+
     if (waitingMinutes <= 30) {
       return 3 + (waitingMinutes / 30) * 2; // 3-5
     } else if (waitingMinutes <= 60) {
@@ -160,24 +165,33 @@ class PrioritizationService {
   getPatientTypeFactor(ticket) {
     // Analyser les informations du patient pour déterminer le type
     const patient = ticket.userId;
-    
+
     if (!patient) {
       return 5.0; // Score neutre pour tickets sans utilisateur
     }
 
-    let patientType = 'regular';
+    let patientType = "regular";
     let baseFactor = 5.0;
 
     // Déterminer le type basé sur les informations disponibles
     if (ticket.notes) {
       const notesLower = ticket.notes.toLowerCase();
-      
-      if (notesLower.includes('urgence') || notesLower.includes('douleur intense')) {
-        patientType = 'emergency';
-      } else if (notesLower.includes('prioritaire') || notesLower.includes('âgé')) {
-        patientType = 'priority';
-      } else if (notesLower.includes('suivi') || notesLower.includes('contrôle')) {
-        patientType = 'followup';
+
+      if (
+        notesLower.includes("urgence") ||
+        notesLower.includes("douleur intense")
+      ) {
+        patientType = "emergency";
+      } else if (
+        notesLower.includes("prioritaire") ||
+        notesLower.includes("âgé")
+      ) {
+        patientType = "priority";
+      } else if (
+        notesLower.includes("suivi") ||
+        notesLower.includes("contrôle")
+      ) {
+        patientType = "followup";
       }
     }
 
@@ -192,10 +206,7 @@ class PrioritizationService {
   async getConversationActivityFactor(ticket) {
     try {
       const conversation = await Conversation.findOne({
-        $or: [
-          { patientId: ticket.userId },
-          { ticketId: ticket._id }
-        ]
+        $or: [{ patientId: ticket.userId }, { ticketId: ticket._id }],
       }).sort({ createdAt: -1 });
 
       if (!conversation) {
@@ -207,7 +218,7 @@ class PrioritizationService {
       // Analyser l'activité récente (dernières 30 minutes)
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
       const recentMessages = conversation.messages.filter(
-        msg => msg.timestamp > thirtyMinutesAgo && msg.sender === 'patient'
+        (msg) => msg.timestamp > thirtyMinutesAgo && msg.sender === "patient"
       );
 
       // Plus de messages récents = plus d'urgence perçue
@@ -218,11 +229,18 @@ class PrioritizationService {
       }
 
       // Analyser le contenu pour des mots d'urgence
-      const urgencyKeywords = ['urgent', 'douleur', 'mal', 'inquiet', 'peur', 'aide'];
+      const urgencyKeywords = [
+        "urgent",
+        "douleur",
+        "mal",
+        "inquiet",
+        "peur",
+        "aide",
+      ];
       const hasUrgencyKeywords = conversation.messages
-        .filter(msg => msg.sender === 'patient')
-        .some(msg => 
-          urgencyKeywords.some(keyword => 
+        .filter((msg) => msg.sender === "patient")
+        .some((msg) =>
+          urgencyKeywords.some((keyword) =>
             msg.content.toLowerCase().includes(keyword)
           )
         );
@@ -232,15 +250,18 @@ class PrioritizationService {
       }
 
       // Bonus si la conversation est récente
-      const conversationAge = (Date.now() - conversation.createdAt) / (1000 * 60);
+      const conversationAge =
+        (Date.now() - conversation.createdAt) / (1000 * 60);
       if (conversationAge < 15) {
         activityFactor += 1;
       }
 
       return Math.min(Math.max(activityFactor, 1), 10);
-
     } catch (error) {
-      logger.error({ error, ticketId: ticket._id }, 'Erreur lors du calcul du facteur d\'activité');
+      logger.error(
+        { error, ticketId: ticket._id },
+        "Erreur lors du calcul du facteur d'activité"
+      );
       return 5.0;
     }
   }
@@ -256,13 +277,18 @@ class PrioritizationService {
     // Analyser les notes du ticket pour des indices d'historique
     if (ticket.notes) {
       const notesLower = ticket.notes.toLowerCase();
-      
+
       const riskKeywords = [
-        'diabète', 'cardiaque', 'hypertension', 'allergie', 
-        'chronique', 'traitement', 'médicament'
+        "diabète",
+        "cardiaque",
+        "hypertension",
+        "allergie",
+        "chronique",
+        "traitement",
+        "médicament",
       ];
 
-      const hasRiskFactors = riskKeywords.some(keyword => 
+      const hasRiskFactors = riskKeywords.some((keyword) =>
         notesLower.includes(keyword)
       );
 
@@ -279,10 +305,10 @@ class PrioritizationService {
    */
   async updateAllPriorities(doctorId = null) {
     try {
-      const filter = { 
-        statut: { $in: ['en-attente', 'en-cours'] }
+      const filter = {
+        statut: { $in: ["en-attente", "en-cours"] },
       };
-      
+
       if (doctorId) {
         filter.docteur = doctorId;
       }
@@ -292,26 +318,31 @@ class PrioritizationService {
 
       for (const ticket of tickets) {
         const priorityData = await this.calculatePriorityScore(ticket._id);
-        
+
         // Mettre à jour le ticket avec le nouveau score
         await Ticket.findByIdAndUpdate(ticket._id, {
           priorityScore: priorityData.priorityScore,
           priorityFactors: priorityData.factors,
-          lastPriorityUpdate: new Date()
+          lastPriorityUpdate: new Date(),
         });
 
         priorityUpdates.push(priorityData);
       }
 
-      logger.info({ 
-        ticketsUpdated: priorityUpdates.length,
-        doctorId 
-      }, 'Priorités mises à jour');
+      logger.info(
+        {
+          ticketsUpdated: priorityUpdates.length,
+          doctorId,
+        },
+        "Priorités mises à jour"
+      );
 
       return priorityUpdates;
-
     } catch (error) {
-      logger.error({ error, doctorId }, 'Erreur lors de la mise à jour des priorités');
+      logger.error(
+        { error, doctorId },
+        "Erreur lors de la mise à jour des priorités"
+      );
       throw error;
     }
   }
@@ -323,19 +354,21 @@ class PrioritizationService {
     try {
       const tickets = await Ticket.find({
         docteur: doctorId,
-        statut: { $in: ['en-attente', 'en-cours'] }
+        statut: { $in: ["en-attente", "en-cours"] },
       })
-      .populate('userId', 'name email')
-      .sort({ 
-        priorityScore: -1,  // Score le plus élevé en premier
-        createdAt: 1        // Puis par ancienneté
-      })
-      .limit(limit);
+        .populate("userId", "name email")
+        .sort({
+          priorityScore: -1, // Score le plus élevé en premier
+          createdAt: 1, // Puis par ancienneté
+        })
+        .limit(limit);
 
       return tickets;
-
     } catch (error) {
-      logger.error({ error, doctorId }, 'Erreur lors de la récupération des tickets priorisés');
+      logger.error(
+        { error, doctorId },
+        "Erreur lors de la récupération des tickets priorisés"
+      );
       throw error;
     }
   }
@@ -349,11 +382,14 @@ class PrioritizationService {
       try {
         await this.updateAllPriorities();
       } catch (error) {
-        logger.error({ error }, 'Erreur lors de la mise à jour automatique des priorités');
+        logger.error(
+          { error },
+          "Erreur lors de la mise à jour automatique des priorités"
+        );
       }
     }, 5 * 60 * 1000); // 5 minutes
 
-    logger.info('Planificateur de mise à jour des priorités démarré');
+    logger.info("Planificateur de mise à jour des priorités démarré");
   }
 }
 
