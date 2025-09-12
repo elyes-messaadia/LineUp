@@ -89,5 +89,32 @@ const authenticateRequired = async (req, res, next) => {
 
 module.exports = {
   authenticateOptional,
-  authenticateRequired
+  authenticateRequired,
+  // Middleware attendu par certaines routes/tests: alias explicite
+  authenticateToken: async (req, res, next) => {
+    try {
+      const token = extractTokenFromHeaders(req.headers);
+      if (!token) {
+        return res.status(401).json({ success: false, message: 'Token manquant' });
+      }
+      const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_change_in_production';
+      let decoded;
+      try {
+        decoded = verifyToken(token, jwtSecret);
+      } catch (e) {
+        return res.status(401).json({ success: false, message: 'Token invalide' });
+      }
+      const user = await User.findById(decoded.userId).select('-password -__v').populate('role');
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Utilisateur non trouvé' });
+      }
+      req.user = user;
+      req.token = token;
+      req.tokenPayload = decoded;
+      next();
+    } catch (error) {
+      console.error('❌ authenticateToken error:', error);
+      return res.status(401).json({ success: false, message: 'Token invalide' });
+    }
+  }
 };

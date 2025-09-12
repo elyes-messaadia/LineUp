@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Conversation = require("../models/Conversation");
 const ChatbotAI = require("../services/ChatbotAI");
-const { authenticateToken } = require("../middlewares/auth");
+const { authenticateRequired, authenticateToken } = require("../middlewares/auth");
 const logger = require("../utils/logger");
 
 const chatbot = new ChatbotAI();
@@ -11,7 +11,7 @@ const chatbot = new ChatbotAI();
  * POST /api/conversations/start
  * Démarre une nouvelle conversation avec le chatbot IA
  */
-router.post("/start", authenticateToken, async (req, res) => {
+router.post("/start", authenticateRequired, async (req, res) => {
   try {
     const { ticketId } = req.body;
     const patientId = req.user._id;
@@ -87,7 +87,7 @@ router.post("/start", authenticateToken, async (req, res) => {
  * GET /api/conversations/:id
  * Récupère une conversation spécifique
  */
-router.get("/:id", authenticateToken, async (req, res) => {
+router.get("/:id", authenticateRequired, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -124,7 +124,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
  * POST /api/conversations/:id/messages
  * Envoie un message dans une conversation
  */
-router.post("/:id/messages", authenticateToken, async (req, res) => {
+router.post("/:id/messages", authenticateRequired, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -248,7 +248,7 @@ router.post("/:id/messages", authenticateToken, async (req, res) => {
  * GET /api/conversations/:id/messages
  * Récupère l'historique des messages d'une conversation
  */
-router.get("/:id/messages", authenticateToken, async (req, res) => {
+router.get("/:id/messages", authenticateRequired, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -300,7 +300,7 @@ router.get("/:id/messages", authenticateToken, async (req, res) => {
  * PUT /api/conversations/:id/status
  * Met à jour le statut d'une conversation
  */
-router.put("/:id/status", authenticateToken, async (req, res) => {
+router.put("/:id/status", authenticateRequired, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -357,7 +357,7 @@ router.put("/:id/status", authenticateToken, async (req, res) => {
  * GET /api/conversations
  * Liste les conversations du patient connecté
  */
-router.get("/", authenticateToken, async (req, res) => {
+router.get("/", authenticateRequired, async (req, res) => {
   try {
     const patientId = req.user._id;
     const { status, limit = 10, offset = 0 } = req.query;
@@ -403,7 +403,7 @@ router.get("/", authenticateToken, async (req, res) => {
  * POST /api/conversations/:id/assess
  * Force une nouvelle évaluation d'urgence par l'IA
  */
-router.post("/:id/assess", authenticateToken, async (req, res) => {
+router.post("/:id/assess", authenticateRequired, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
