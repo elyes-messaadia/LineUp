@@ -2,11 +2,11 @@
 // Ce fichier est exécuté avant chaque suite de tests
 
 // Définir les variables d'environnement pour les tests
-process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only';
-process.env.MONGODB_URI = 'mongodb://localhost:27017/lineup-test';
-process.env.PORT = '5001';
-process.env.LOG_LEVEL = 'silent';
+process.env.NODE_ENV = "test";
+process.env.JWT_SECRET = "test-jwt-secret-key-for-testing-purposes-only";
+process.env.MONGODB_URI = "mongodb://localhost:27017/lineup-test";
+process.env.PORT = "5001";
+process.env.LOG_LEVEL = "silent";
 
 // Augmenter le timeout pour les tests async
 jest.setTimeout(30000);
@@ -23,7 +23,7 @@ global.console = {
 };
 
 // Mock des modules externes si nécessaire
-jest.mock('web-push', () => ({
+jest.mock("web-push", () => ({
   setVapidDetails: jest.fn(),
   sendNotification: jest.fn().mockResolvedValue({ success: true }),
 }));
@@ -31,7 +31,7 @@ jest.mock('web-push', () => ({
 // Helper pour nettoyer la base de données entre les tests
 global.cleanupTestData = async () => {
   // Cette fonction peut être utilisée dans les tests pour nettoyer les données
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === "test") {
     // Logique de nettoyage ici si nécessaire
   }
 };
