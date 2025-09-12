@@ -2,67 +2,94 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const xss = require("xss-clean");
 const mongoSanitize = require("express-mongo-sanitize");
+const express = require('express');
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limite à 100 requêtes par fenêtre
+  message: {
+    success: false,
+    message: "Trop de requêtes. Veuillez réessayer plus tard."
+  }
 });
 
 // Limiter spécifiquement les tentatives de connexion
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
   max: 5, // limite à 5 tentatives
-  message:
-    "Trop de tentatives de connexion. Veuillez réessayer dans une heure.",
+  message: {
+    success: false,
+    message: "Trop de tentatives de connexion. Veuillez réessayer dans une heure."
+  }
 });
 
 // Configuration Helmet (sécurité des headers HTTP)
+// Avec une configuration CSP plus stricte et moderne
 const helmetConfig = {
   contentSecurityPolicy: {
+    useDefaults: true,
     directives: {
+      // Configuration moderne et stricte pour la sécurité
       defaultSrc: ["'self'"],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https:",
-        "https://fonts.googleapis.com",
-      ],
+      // Scripts uniquement depuis le site lui-même et les CDN approuvés
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'",
-        "'unsafe-eval'",
-        "https://cdn.jsdelivr.net",
+        "'unsafe-inline'", // Requis pour certaines fonctionnalités React
+        "https://cdn.jsdelivr.net", // Pour les bibliothèques CDN
       ],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      // Styles depuis le site et les sources approuvées
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // Requis pour certains frameworks CSS
+        "https://fonts.googleapis.com",
+      ],
+      // Images uniquement depuis sources approuvées
+      imgSrc: [
+        "'self'",
+        "data:", // Pour les images encodées en base64
+        "blob:", // Pour les images générées dynamiquement
+        "https:", // Sources HTTPS approuvées
+      ],
+      // Connexions API et WebSocket
       connectSrc: [
         "'self'",
-        process.env.BACKEND_URL || "'self'",
-        "https:",
-        "wss:",
-        "ws:",
+        process.env.BACKEND_URL || "http://localhost:5000",
+        "https:", // Pour les API externes
+        "wss:", // WebSocket sécurisé
+        "ws:", // WebSocket
       ],
-      fontSrc: ["'self'", "https:", "data:", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'", "blob:", "data:"],
-      frameSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      upgradeInsecureRequests:
-        process.env.NODE_ENV === "production" ? [] : null,
+      // Polices depuis sources approuvées
+      fontSrc: [
+        "'self'", 
+        "https://fonts.gstatic.com",
+        "data:", // Pour les icônes encodées
+      ],
+      objectSrc: ["'none'"], // Interdire les objets embarqués
+      mediaSrc: ["'self'", "blob:", "data:"], // Media (son, vidéo)
+      frameSrc: ["'none'"], // Interdire les iframes
+      baseUri: ["'self'"], // Limiter les URI de base
+      formAction: ["'self'"], // Limiter les actions de formulaires
+      // Force HTTPS en production
+      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
     },
   },
+  // Politique d'intégration entre origines
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" },
+  // HSTS (HTTP Strict Transport Security)
   hsts: {
     maxAge: 31536000, // 1 an
     includeSubDomains: true,
     preload: true,
   },
+  // Autres protections
   noSniff: true,
   frameguard: { action: "deny" },
   xssFilter: true,
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  // Protection contre le clickjacking
+  frameguard: { action: "deny" }, // X-Frame-Options: DENY
 };
 
 // Validation des entrées
