@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Conversation = require('../models/Conversation');
-const ChatbotAI = require('../services/ChatbotAI');
-const { authenticateToken } = require('../middlewares/auth');
-const logger = require('../utils/logger');
+const Conversation = require("../models/Conversation");
+const ChatbotAI = require("../services/ChatbotAI");
+const { authenticateToken } = require("../middlewares/auth");
+const logger = require("../utils/logger");
 
 const chatbot = new ChatbotAI();
 
@@ -11,18 +11,20 @@ const chatbot = new ChatbotAI();
  * POST /api/conversations/start
  * Démarre une nouvelle conversation avec le chatbot IA
  */
-router.post('/start', authenticateToken, async (req, res) => {
+router.post("/start", authenticateToken, async (req, res) => {
   try {
     const { ticketId } = req.body;
     const patientId = req.user._id;
 
     // Vérifier s'il existe déjà une conversation active
-    const existingConversation = await Conversation.findActiveByPatient(patientId);
+    const existingConversation = await Conversation.findActiveByPatient(
+      patientId
+    );
     if (existingConversation) {
       return res.json({
         success: true,
         conversation: existingConversation,
-        message: "Vous avez déjà une conversation en cours."
+        message: "Vous avez déjà une conversation en cours.",
       });
     }
 
@@ -33,27 +35,30 @@ router.post('/start', authenticateToken, async (req, res) => {
     const conversation = new Conversation({
       patientId,
       ticketId,
-      status: 'en_attente',
+      status: "en_attente",
       urgencyLevel: 5, // Score initial neutre
       messages: [
         {
-          sender: 'ia',
+          sender: "ia",
           content: chatbotResponse.message,
           metadata: {
             type: chatbotResponse.type,
             options: chatbotResponse.options,
-            conversationState: chatbotResponse.conversationState
-          }
-        }
-      ]
+            conversationState: chatbotResponse.conversationState,
+          },
+        },
+      ],
     });
 
     await conversation.save();
 
-    logger.info({ 
-      patientId, 
-      conversationId: conversation._id 
-    }, 'Nouvelle conversation démarrée');
+    logger.info(
+      {
+        patientId,
+        conversationId: conversation._id,
+      },
+      "Nouvelle conversation démarrée"
+    );
 
     res.status(201).json({
       success: true,
@@ -62,16 +67,18 @@ router.post('/start', authenticateToken, async (req, res) => {
         status: conversation.status,
         urgencyLevel: conversation.urgencyLevel,
         messages: conversation.messages,
-        createdAt: conversation.createdAt
+        createdAt: conversation.createdAt,
       },
-      chatbotResponse
+      chatbotResponse,
     });
-
   } catch (error) {
-    logger.error({ error, patientId: req.user._id }, 'Erreur lors du démarrage de conversation');
+    logger.error(
+      { error, patientId: req.user._id },
+      "Erreur lors du démarrage de conversation"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors du démarrage de la conversation'
+      message: "Erreur lors du démarrage de la conversation",
     });
   }
 });
@@ -80,33 +87,35 @@ router.post('/start', authenticateToken, async (req, res) => {
  * GET /api/conversations/:id
  * Récupère une conversation spécifique
  */
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
 
     const conversation = await Conversation.findOne({
       _id: conversationId,
-      patientId
-    }).populate('patientId', 'name email');
+      patientId,
+    }).populate("patientId", "name email");
 
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Conversation non trouvée'
+        message: "Conversation non trouvée",
       });
     }
 
     res.json({
       success: true,
-      conversation
+      conversation,
     });
-
   } catch (error) {
-    logger.error({ error, conversationId: req.params.id }, 'Erreur lors de la récupération de conversation');
+    logger.error(
+      { error, conversationId: req.params.id },
+      "Erreur lors de la récupération de conversation"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la récupération de la conversation'
+      message: "Erreur lors de la récupération de la conversation",
     });
   }
 });
@@ -115,7 +124,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
  * POST /api/conversations/:id/messages
  * Envoie un message dans une conversation
  */
-router.post('/:id/messages', authenticateToken, async (req, res) => {
+router.post("/:id/messages", authenticateToken, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -125,49 +134,50 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
     if (!content || content.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Le contenu du message est requis'
+        message: "Le contenu du message est requis",
       });
     }
 
     // Récupérer la conversation
     const conversation = await Conversation.findOne({
       _id: conversationId,
-      patientId
+      patientId,
     });
 
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Conversation non trouvée'
+        message: "Conversation non trouvée",
       });
     }
 
-    if (conversation.status === 'termine') {
+    if (conversation.status === "termine") {
       return res.status(400).json({
         success: false,
-        message: 'Cette conversation est terminée'
+        message: "Cette conversation est terminée",
       });
     }
 
     // Ajouter le message du patient
-    await conversation.addMessage('patient', content, metadata);
+    await conversation.addMessage("patient", content, metadata);
 
     // Traiter la réponse avec le chatbot si la conversation est avec l'IA
     let chatbotResponse = null;
-    if (conversation.status === 'en_attente') {
+    if (conversation.status === "en_attente") {
       const lastIAMessage = conversation.messages
-        .filter(m => m.sender === 'ia')
+        .filter((m) => m.sender === "ia")
         .pop();
 
-      const conversationState = lastIAMessage?.metadata?.conversationState || 'unknown';
-      
+      const conversationState =
+        lastIAMessage?.metadata?.conversationState || "unknown";
+
       // Construire l'historique de conversation pour l'IA
       const conversationHistory = conversation.messages
-        .filter(m => m.sender === 'patient')
-        .map(m => ({
+        .filter((m) => m.sender === "patient")
+        .map((m) => ({
           content: m.content,
           metadata: m.metadata,
-          timestamp: m.timestamp
+          timestamp: m.timestamp,
         }));
 
       chatbotResponse = await chatbot.processResponse(
@@ -178,22 +188,23 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
 
       // Ajouter la réponse du chatbot
       if (chatbotResponse) {
-        await conversation.addMessage('ia', chatbotResponse.message, {
+        await conversation.addMessage("ia", chatbotResponse.message, {
           type: chatbotResponse.type,
           options: chatbotResponse.options,
-          conversationState: chatbotResponse.conversationState
+          conversationState: chatbotResponse.conversationState,
         });
 
         // Mettre à jour l'évaluation d'urgence si disponible
         if (chatbotResponse.urgencyAssessment) {
-          conversation.urgencyLevel = chatbotResponse.urgencyAssessment.urgencyScore;
+          conversation.urgencyLevel =
+            chatbotResponse.urgencyAssessment.urgencyScore;
           conversation.aiAssessment = chatbotResponse.urgencyAssessment;
-          
+
           // Marquer comme terminé si l'évaluation est complète
-          if (chatbotResponse.conversationState === 'completed') {
-            conversation.status = 'termine';
+          if (chatbotResponse.conversationState === "completed") {
+            conversation.status = "termine";
           }
-          
+
           await conversation.save();
         }
       }
@@ -202,28 +213,33 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
     // Recharger la conversation pour avoir les derniers messages
     const updatedConversation = await Conversation.findById(conversationId);
 
-    logger.info({ 
-      conversationId, 
-      patientId, 
-      messageLength: content.length 
-    }, 'Message ajouté à la conversation');
+    logger.info(
+      {
+        conversationId,
+        patientId,
+        messageLength: content.length,
+      },
+      "Message ajouté à la conversation"
+    );
 
     res.json({
       success: true,
       conversation: updatedConversation,
-      chatbotResponse
+      chatbotResponse,
     });
-
   } catch (error) {
-    logger.error({ 
-      error, 
-      conversationId: req.params.id, 
-      patientId: req.user._id 
-    }, 'Erreur lors de l\'envoi de message');
-    
+    logger.error(
+      {
+        error,
+        conversationId: req.params.id,
+        patientId: req.user._id,
+      },
+      "Erreur lors de l'envoi de message"
+    );
+
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de l\'envoi du message'
+      message: "Erreur lors de l'envoi du message",
     });
   }
 });
@@ -232,7 +248,7 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
  * GET /api/conversations/:id/messages
  * Récupère l'historique des messages d'une conversation
  */
-router.get('/:id/messages', authenticateToken, async (req, res) => {
+router.get("/:id/messages", authenticateToken, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
@@ -240,39 +256,42 @@ router.get('/:id/messages', authenticateToken, async (req, res) => {
 
     const conversation = await Conversation.findOne({
       _id: conversationId,
-      patientId
+      patientId,
     });
 
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Conversation non trouvée'
+        message: "Conversation non trouvée",
       });
     }
 
     // Pagination des messages
     const messages = conversation.messages
       .slice(parseInt(offset), parseInt(offset) + parseInt(limit))
-      .map(message => ({
+      .map((message) => ({
         _id: message._id,
         sender: message.sender,
         content: message.content,
         timestamp: message.timestamp,
-        metadata: message.metadata
+        metadata: message.metadata,
       }));
 
     res.json({
       success: true,
       messages,
       total: conversation.messages.length,
-      hasMore: (parseInt(offset) + parseInt(limit)) < conversation.messages.length
+      hasMore:
+        parseInt(offset) + parseInt(limit) < conversation.messages.length,
     });
-
   } catch (error) {
-    logger.error({ error, conversationId: req.params.id }, 'Erreur lors de la récupération des messages');
+    logger.error(
+      { error, conversationId: req.params.id },
+      "Erreur lors de la récupération des messages"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la récupération des messages'
+      message: "Erreur lors de la récupération des messages",
     });
   }
 });
@@ -281,18 +300,18 @@ router.get('/:id/messages', authenticateToken, async (req, res) => {
  * PUT /api/conversations/:id/status
  * Met à jour le statut d'une conversation
  */
-router.put('/:id/status', authenticateToken, async (req, res) => {
+router.put("/:id/status", authenticateToken, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
     const { status } = req.body;
 
     // Validation du statut
-    const validStatuses = ['en_attente', 'en_cours', 'termine'];
+    const validStatuses = ["en_attente", "en_cours", "termine"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Statut invalide'
+        message: "Statut invalide",
       });
     }
 
@@ -305,26 +324,31 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Conversation non trouvée'
+        message: "Conversation non trouvée",
       });
     }
 
-    logger.info({ 
-      conversationId, 
-      patientId, 
-      newStatus: status 
-    }, 'Statut de conversation mis à jour');
+    logger.info(
+      {
+        conversationId,
+        patientId,
+        newStatus: status,
+      },
+      "Statut de conversation mis à jour"
+    );
 
     res.json({
       success: true,
-      conversation
+      conversation,
     });
-
   } catch (error) {
-    logger.error({ error, conversationId: req.params.id }, 'Erreur lors de la mise à jour du statut');
+    logger.error(
+      { error, conversationId: req.params.id },
+      "Erreur lors de la mise à jour du statut"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la mise à jour du statut'
+      message: "Erreur lors de la mise à jour du statut",
     });
   }
 });
@@ -333,14 +357,14 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
  * GET /api/conversations
  * Liste les conversations du patient connecté
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const patientId = req.user._id;
     const { status, limit = 10, offset = 0 } = req.query;
 
-    const filter = { 
+    const filter = {
       patientId,
-      isArchived: false 
+      isArchived: false,
     };
 
     if (status) {
@@ -351,7 +375,9 @@ router.get('/', authenticateToken, async (req, res) => {
       .sort({ lastMessageAt: -1 })
       .limit(parseInt(limit))
       .skip(parseInt(offset))
-      .select('status urgencyLevel createdAt lastMessageAt messageCount aiAssessment');
+      .select(
+        "status urgencyLevel createdAt lastMessageAt messageCount aiAssessment"
+      );
 
     const total = await Conversation.countDocuments(filter);
 
@@ -359,14 +385,16 @@ router.get('/', authenticateToken, async (req, res) => {
       success: true,
       conversations,
       total,
-      hasMore: (parseInt(offset) + parseInt(limit)) < total
+      hasMore: parseInt(offset) + parseInt(limit) < total,
     });
-
   } catch (error) {
-    logger.error({ error, patientId: req.user._id }, 'Erreur lors de la récupération des conversations');
+    logger.error(
+      { error, patientId: req.user._id },
+      "Erreur lors de la récupération des conversations"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la récupération des conversations'
+      message: "Erreur lors de la récupération des conversations",
     });
   }
 });
@@ -375,45 +403,48 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/conversations/:id/assess
  * Force une nouvelle évaluation d'urgence par l'IA
  */
-router.post('/:id/assess', authenticateToken, async (req, res) => {
+router.post("/:id/assess", authenticateToken, async (req, res) => {
   try {
     const conversationId = req.params.id;
     const patientId = req.user._id;
 
     const conversation = await Conversation.findOne({
       _id: conversationId,
-      patientId
+      patientId,
     });
 
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Conversation non trouvée'
+        message: "Conversation non trouvée",
       });
     }
 
     // Extraire l'historique des messages du patient
     const conversationHistory = conversation.messages
-      .filter(m => m.sender === 'patient')
-      .map(m => ({
+      .filter((m) => m.sender === "patient")
+      .map((m) => ({
         content: m.content,
         metadata: m.metadata,
-        timestamp: m.timestamp
+        timestamp: m.timestamp,
       }));
 
     // Calculer une nouvelle évaluation
     const assessment = await chatbot.calculateUrgency(conversationHistory);
-    
+
     // Mettre à jour la conversation
     conversation.urgencyLevel = assessment.urgencyScore;
     conversation.aiAssessment = assessment;
     await conversation.save();
 
-    logger.info({ 
-      conversationId, 
-      patientId, 
-      newUrgencyLevel: assessment.urgencyScore 
-    }, 'Évaluation d\'urgence recalculée');
+    logger.info(
+      {
+        conversationId,
+        patientId,
+        newUrgencyLevel: assessment.urgencyScore,
+      },
+      "Évaluation d'urgence recalculée"
+    );
 
     res.json({
       success: true,
@@ -421,15 +452,17 @@ router.post('/:id/assess', authenticateToken, async (req, res) => {
       conversation: {
         _id: conversation._id,
         urgencyLevel: conversation.urgencyLevel,
-        aiAssessment: conversation.aiAssessment
-      }
+        aiAssessment: conversation.aiAssessment,
+      },
     });
-
   } catch (error) {
-    logger.error({ error, conversationId: req.params.id }, 'Erreur lors de la réévaluation');
+    logger.error(
+      { error, conversationId: req.params.id },
+      "Erreur lors de la réévaluation"
+    );
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la réévaluation d\'urgence'
+      message: "Erreur lors de la réévaluation d'urgence",
     });
   }
 });
