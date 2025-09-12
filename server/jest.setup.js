@@ -1,6 +1,9 @@
 // Configuration Jest pour les tests
 // Ce fichier est exécuté avant chaque suite de tests
 
+// Importer les fonctions de Jest nécessaires
+const { afterAll } = require('@jest/globals');
+
 // Définir les variables d'environnement pour les tests
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = "test-jwt-secret-key-for-testing-purposes-only";
@@ -35,3 +38,5 @@ global.cleanupTestData = async () => {
     // Logique de nettoyage ici si nécessaire
   }
 };
+
+// La fermeture de la connexion MongoDB est gérée dans jest.teardown.js

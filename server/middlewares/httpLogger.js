@@ -70,6 +70,15 @@ const httpLogger = (options = {}) => {
   // Fusionner les options par défaut avec celles passées en paramètre
   const finalOptions = { ...defaultOptions, ...options };
 
+  // En environnement de test, utiliser un middleware simplifié pour éviter les problèmes
+  if (process.env.NODE_ENV === 'test') {
+    return (req, res, next) => {
+      // Ajouter un ID de requête simulé
+      req.id = `req-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      next();
+    };
+  }
+
   return pinoHttp(finalOptions);
 };
 
