@@ -1,26 +1,28 @@
-const pino = require('pino');
+const pino = require("pino");
 
 // Configuration des options de base du logger
 const baseOptions = {
   // Niveau de log configuré via variable d'environnement ou par défaut
-  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
-  
+  level:
+    process.env.LOG_LEVEL ||
+    (process.env.NODE_ENV === "production" ? "info" : "debug"),
+
   // Masquer automatiquement certaines informations sensibles si elles sont accidentellement loguées
   redact: {
     paths: [
-      'req.headers.authorization', 
-      'req.headers.cookie', 
+      "req.headers.authorization",
+      "req.headers.cookie",
       'req.headers["set-cookie"]',
-      '*.password', 
-      '*.token',
-      '*.jwt',
-      '*.refreshToken',
-      'req.body.password',
-      'req.body.token',
+      "*.password",
+      "*.token",
+      "*.jwt",
+      "*.refreshToken",
+      "req.body.password",
+      "req.body.token",
     ],
-    censor: '[DONNÉES SENSIBLES]'
+    censor: "[DONNÉES SENSIBLES]",
   },
-  
+
   // Formatage amélioré des logs
   formatters: {
     level: (label) => {
@@ -31,31 +33,31 @@ const baseOptions = {
       return {
         pid: bindings.pid,
         hostname: bindings.hostname,
-        env: process.env.NODE_ENV || 'development',
-        app: 'lineup-server'
+        env: process.env.NODE_ENV || "development",
+        app: "lineup-server",
       };
-    }
+    },
   },
-  
+
   // En mode production, structure les logs pour faciliter l'analyse
   // En développement, formate les logs pour une meilleure lisibilité
   // En mode test, désactive pino-pretty pour éviter les erreurs
-  ...((process.env.NODE_ENV === 'production')
+  ...(process.env.NODE_ENV === "production"
     ? { timestamp: pino.stdTimeFunctions.isoTime }
-    : process.env.NODE_ENV === 'test'
-    ? { 
-        level: 'silent' // Désactive les logs pendant les tests
+    : process.env.NODE_ENV === "test"
+    ? {
+        level: "silent", // Désactive les logs pendant les tests
       }
     : {
         transport: {
-          target: 'pino-pretty',
+          target: "pino-pretty",
           options: {
             colorize: true,
-            ignore: 'pid,hostname',
-            translateTime: 'SYS:dd-mm-yyyy HH:MM:ss'
-          }
-        }
-      })
+            ignore: "pid,hostname",
+            translateTime: "SYS:dd-mm-yyyy HH:MM:ss",
+          },
+        },
+      }),
 };
 
 // Créer l'instance du logger avec les options définies
@@ -67,8 +69,8 @@ logger.getSubLogger = (context) => {
 };
 
 // Log d'initialisation
-if (process.env.NODE_ENV !== 'test') {
-  logger.info('Logger initialized');
+if (process.env.NODE_ENV !== "test") {
+  logger.info("Logger initialized");
 }
 
 module.exports = logger;
