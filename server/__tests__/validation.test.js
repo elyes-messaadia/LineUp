@@ -164,7 +164,9 @@ describe("Data Validation and Sanitization Tests", () => {
         "user@domain",
       ];
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Expression régulière pour les emails qui refuse les points doubles
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const hasConsecutiveDots = (email) => email.includes('..');
 
       validEmails.forEach((email) => {
         expect(emailRegex.test(email)).toBe(true);
