@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import ChatWidget from '../components/ChatWidget';
-import UrgencyIndicator from '../components/UrgencyIndicator';
-import { User, MapPin, Clock, Phone } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import ChatWidget from "../components/ChatWidget";
+import UrgencyIndicator from "../components/UrgencyIndicator";
+import { User, MapPin, Clock, Phone } from "lucide-react";
 
 const PatientDashboard = () => {
   const [patient, setPatient] = useState(null);
@@ -13,36 +13,36 @@ const PatientDashboard = () => {
     // Simuler le chargement des données patient
     const loadPatientData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        
+        const token = localStorage.getItem("token");
+
         // Récupérer les informations du patient
-        const patientResponse = await fetch('/auth/verify', {
+        const patientResponse = await fetch("/auth/verify", {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
         const patientData = await patientResponse.json();
-        
+
         if (patientData.success) {
           setPatient(patientData.user);
         }
 
         // Récupérer le ticket actuel si il existe
-        const ticketsResponse = await fetch('/tickets/my-tickets', {
+        const ticketsResponse = await fetch("/tickets/my-tickets", {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
         const ticketsData = await ticketsResponse.json();
-        
+
         if (ticketsData.success && ticketsData.tickets.length > 0) {
-          const activeTicket = ticketsData.tickets.find(
-            ticket => ['en-attente', 'en-cours'].includes(ticket.statut)
+          const activeTicket = ticketsData.tickets.find((ticket) =>
+            ["en-attente", "en-cours"].includes(ticket.statut)
           );
           setCurrentTicket(activeTicket);
         }
       } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
+        console.error("Erreur lors du chargement des données:", error);
       }
     };
 
@@ -52,29 +52,30 @@ const PatientDashboard = () => {
   const handleUrgencyChange = (level, assessment) => {
     setUrgencyLevel(level);
     setUrgencyAssessment(assessment);
-    
+
     // Ici vous pourriez déclencher des notifications ou d'autres actions
     // basées sur le niveau d'urgence
     if (level >= 8) {
       // Déclencher une alerte pour l'équipe médicale
-      console.log('🚨 Urgence élevée détectée!');
+      console.log("🚨 Urgence élevée détectée!");
     }
   };
 
   const getEstimatedWaitTime = () => {
     if (!currentTicket) return null;
-    
+
     // Calcul basé sur la position et le niveau d'urgence
     const baseWaitMinutes = currentTicket.position * 15; // 15 min par patient en moyenne
-    const urgencyMultiplier = urgencyLevel ? Math.max(0.3, (10 - urgencyLevel) / 10) : 1;
-    
+    const urgencyMultiplier = urgencyLevel
+      ? Math.max(0.3, (10 - urgencyLevel) / 10)
+      : 1;
+
     return Math.round(baseWaitMinutes * urgencyMultiplier);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header avec informations patient */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-start justify-between">
@@ -84,17 +85,15 @@ const PatientDashboard = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Bonjour {patient?.name || 'Patient'}
+                  Bonjour {patient?.name || "Patient"}
                 </h1>
-                <p className="text-gray-600">
-                  Tableau de bord patient
-                </p>
+                <p className="text-gray-600">Tableau de bord patient</p>
               </div>
             </div>
-            
+
             {urgencyLevel && (
               <div className="w-72">
-                <UrgencyIndicator 
+                <UrgencyIndicator
                   urgencyLevel={urgencyLevel}
                   urgencyAssessment={urgencyAssessment}
                   size="small"
@@ -112,7 +111,7 @@ const PatientDashboard = () => {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Votre Ticket
               </h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Numéro:</span>
@@ -120,18 +119,22 @@ const PatientDashboard = () => {
                     #{currentTicket.numero}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Statut:</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    currentTicket.statut === 'en-cours' 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {currentTicket.statut === 'en-cours' ? 'En consultation' : 'En attente'}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      currentTicket.statut === "en-cours"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {currentTicket.statut === "en-cours"
+                      ? "En consultation"
+                      : "En attente"}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Position:</span>
                   <span className="text-lg font-semibold text-gray-900">
@@ -141,7 +144,9 @@ const PatientDashboard = () => {
 
                 {getEstimatedWaitTime() && (
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Temps d'attente estimé:</span>
+                    <span className="text-gray-600">
+                      Temps d'attente estimé:
+                    </span>
                     <span className="text-lg font-semibold text-orange-600">
                       ~{getEstimatedWaitTime()} min
                     </span>
@@ -155,7 +160,7 @@ const PatientDashboard = () => {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Médecin Assigné
               </h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="bg-green-100 rounded-full p-2">
@@ -163,25 +168,25 @@ const PatientDashboard = () => {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">
-                      Dr. {currentTicket.docteur?.nom || 'Non assigné'}
+                      Dr. {currentTicket.docteur?.nom || "Non assigné"}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {currentTicket.docteur?.specialite || 'Médecine générale'}
+                      {currentTicket.docteur?.specialite || "Médecine générale"}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <MapPin className="h-5 w-5 text-gray-400" />
                   <span className="text-gray-600">
-                    Cabinet {currentTicket.docteur?.cabinet || '1'}
+                    Cabinet {currentTicket.docteur?.cabinet || "1"}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Phone className="h-5 w-5 text-gray-400" />
                   <span className="text-gray-600">
-                    {currentTicket.docteur?.telephone || 'Non disponible'}
+                    {currentTicket.docteur?.telephone || "Non disponible"}
                   </span>
                 </div>
               </div>
@@ -210,8 +215,8 @@ const PatientDashboard = () => {
           </h3>
           <div className="text-blue-800 space-y-2">
             <p>
-              Notre assistant intelligent peut vous aider à évaluer votre situation médicale 
-              et optimiser votre prise en charge.
+              Notre assistant intelligent peut vous aider à évaluer votre
+              situation médicale et optimiser votre prise en charge.
             </p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Décrivez vos symptômes et votre niveau de douleur</li>
