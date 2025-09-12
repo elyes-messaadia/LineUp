@@ -4,7 +4,7 @@ module.exports = {
 
   // Définir les variables d'environnement pour les tests
   setupFiles: ["<rootDir>/jest.setup.js"],
-  
+
   // Fichier à exécuter après tous les tests
   globalTeardown: "<rootDir>/jest.teardown.js",
 

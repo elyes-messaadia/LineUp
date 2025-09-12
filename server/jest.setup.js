@@ -2,7 +2,7 @@
 // Ce fichier est exécuté avant chaque suite de tests
 
 // Importer les fonctions de Jest nécessaires
-const { afterAll } = require('@jest/globals');
+const { afterAll } = require("@jest/globals");
 
 // Définir les variables d'environnement pour les tests
 process.env.NODE_ENV = "test";
