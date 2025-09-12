@@ -1,6 +1,6 @@
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
-const xss = require("xss-clean");
+const sanitizeHtml = require("sanitize-html");
 const mongoSanitize = require("express-mongo-sanitize");
 const express = require("express");
 const logger = require("../utils/logger");
@@ -117,8 +117,20 @@ module.exports = {
       // Protection contre les attaques communes avec Helmet
       app.use(helmet(helmetConfig));
       
-      // Protection contre les injections XSS
-      app.use(xss());
+      // Protection contre les injections XSS (remplacement de xss-clean)
+      app.use((req, res, next) => {
+        if (req.body && typeof req.body === 'object') {
+          for (const key in req.body) {
+            if (typeof req.body[key] === 'string') {
+              req.body[key] = sanitizeHtml(req.body[key], {
+                allowedTags: [],
+                allowedAttributes: {},
+              });
+            }
+          }
+        }
+        next();
+      });
       
       // Protection contre les injections NoSQL
       app.use(mongoSanitize({
