@@ -12,39 +12,8 @@ require("dotenv").config();
 const logger = require("./utils/logger");
 const { hmacFingerprint } = require("./utils/fingerprint");
 
-// Initialiser pino-http pour le logging des requêtes
-const pinoHttp = require("pino-http")({
-  logger,
-  customLogLevel: function (req, res, err) {
-    if (res.statusCode >= 400 && res.statusCode < 500) {
-      return "warn";
-    } else if (res.statusCode >= 500 || err) {
-      return "error";
-    } else if (res.statusCode >= 300 && res.statusCode < 400) {
-      return "silent";
-    }
-    return "info";
-  },
-  serializers: {
-    req: (req) => ({
-      method: req.method,
-      url: req.url,
-      headers: {
-        host: req.headers.host,
-        "user-agent": req.headers["user-agent"],
-        "content-length": req.headers["content-length"],
-        // Pas d'authorization header pour éviter les fuites de tokens
-      },
-    }),
-    res: (res) => ({
-      statusCode: res.statusCode,
-      headers: {
-        "content-length": res.getHeader("content-length"),
-        "content-type": res.getHeader("content-type"),
-      },
-    }),
-  },
-});
+// Utiliser le middleware de logging HTTP configuré
+const httpLogger = require("./middlewares/httpLogger");
 
 // 🔍 Validation des variables d'environnement critiques
 const requiredEnvVars = ["MONGO_URI"];
@@ -123,7 +92,7 @@ app.use(
 app.set("trust proxy", true);
 
 // Middleware de logging des requêtes HTTP
-app.use(pinoHttp);
+app.use(httpLogger());
 
 // JSON body parsing with size limit to mitigate large payload attacks
 app.use(express.json({ limit: "10kb" }));

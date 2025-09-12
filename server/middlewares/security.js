@@ -3,6 +3,8 @@ const helmet = require("helmet");
 const xss = require("xss-clean");
 const mongoSanitize = require("express-mongo-sanitize");
 const express = require("express");
+const logger = require("../utils/logger");
+const { hmacFingerprint } = require("../utils/fingerprint");
 
 // Rate limiting
 const limiter = rateLimit({
@@ -111,50 +113,66 @@ const validateInput = (schema) => {
 
 module.exports = {
   setupSecurity: (app) => {
-    // Protection contre les attaques communes
-    app.use(helmet(helmetConfig));
-    app.use(xss());
-    app.use(mongoSanitize());
+    try {
+      // Protection contre les attaques communes avec Helmet
+      app.use(helmet(helmetConfig));
+      
+      // Protection contre les injections XSS
+      app.use(xss());
+      
+      // Protection contre les injections NoSQL
+      app.use(mongoSanitize({
+        allowDots: true, // Permet les points dans les noms de champs
+        replaceWith: '_', // Remplace les caractères interdits par un underscore
+      }));
+      
+      // Limiter la taille des payloads JSON
+      app.use(express.json({ limit: '10kb' }));
+      
+      // Rate limiting global pour toutes les requêtes
+      app.use(limiter);
+      
+      // Rate limiting plus strict pour les routes d'authentification
+      app.use("/auth/login", authLimiter);
+      app.use("/auth/register", authLimiter);
+      app.use("/auth/reset-password", authLimiter);
 
-    // Rate limiting global
-    app.use(limiter);
+      // Importer et utiliser le middleware de logging HTTP
+      const httpLogger = require('./httpLogger');
+      app.use(httpLogger());
+      
+      // Log de démarrage du middleware de sécurité
+      logger.info("Middleware de sécurité configuré avec succès");
+    } catch (error) {
+      logger.error({ err: error }, "Erreur lors de la configuration du middleware de sécurité");
+    }
 
-    // Rate limiting spécifique pour l'auth
-    app.use("/auth/login", authLimiter);
-    app.use("/auth/register", authLimiter);
-
-    // Middleware de logging sécurisé
+    // Middleware pour loguer les requêtes de modification (POST, PUT, DELETE)
     app.use((req, res, next) => {
-      const logger = req.log || console;
+      // Utiliser le logger déjà attaché à la requête par httpLogger si disponible
       if (
         req.method === "POST" ||
         req.method === "PUT" ||
         req.method === "DELETE"
       ) {
+        const securityLogger = logger.getSubLogger('security');
+        
         const logData = {
           method: req.method,
           path: req.path,
           userAgent: req.get("User-Agent"),
-          timestamp: new Date().toISOString(),
+          userId: req.user?.id || 'anonymous',
+          action: `${req.method} ${req.path}`
         };
 
-        // En production, ne pas logger l'IP directement
+        // En production, anonymiser l'IP avec l'empreinte HMAC
         if (process.env.NODE_ENV === "production") {
-          const crypto = require("crypto");
-          const hmacKey =
-            process.env.LOG_HMAC_KEY || process.env.JWT_SECRET || "dev_key";
-          logData.ipHash = crypto
-            .createHmac("sha256", hmacKey)
-            .update(req.ip)
-            .digest("hex")
-            .slice(0, 8);
+          logData.ipFingerprint = hmacFingerprint(req.ip);
         } else {
           logData.ip = req.ip;
         }
 
-        logger.info
-          ? logger.info(logData, "🔒 Security Log")
-          : logger.log("🔒", logData);
+        securityLogger.info(logData, "Action sensible");
       }
       next();
     });
