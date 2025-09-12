@@ -159,7 +159,7 @@ module.exports = {
         next();
       });
 
-  // Rate limiting global pour toutes les requêtes
+      // Rate limiting global pour toutes les requêtes
       app.use(limiter);
 
       // Rate limiting plus strict pour les routes d'authentification
