@@ -1,9 +1,18 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const app = require('../index');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const { generateToken } = require('../utils/jwtUtils');
+const { authenticateToken, authenticateOptional } = require('../middlewares/auth');
+
+// Mock logger pour les tests
+jest.mock('../utils/logger', () => ({
+  warn: jest.fn(),
+  error: jest.fn(),
+  info: jest.fn()
+}));
 
 describe('Auth API Tests', () => {
   beforeAll(async () => {
@@ -159,6 +168,148 @@ describe('Auth API Tests', () => {
         .get('/auth/verify');
 
       expect(response.status).toBe(401);
+    });
+  });
+
+  describe('Security-focused Authentication Tests', () => {
+    let req, res, next;
+
+    beforeEach(() => {
+      req = {
+        headers: {},
+        user: null
+      };
+      res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis()
+      };
+      next = jest.fn();
+      
+      process.env.JWT_SECRET = 'test-secret-key-for-security-tests';
+    });
+
+    describe('JWT Token Validation Security', () => {
+      it('devrait accepter un token JWT valide', async () => {
+        const user = await User.create({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'hashedpassword',
+          role: 'patient'
+        });
+        
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        req.headers.authorization = `Bearer ${token}`;
+
+        await authenticateToken(req, res, next);
+
+        expect(req.user).toBeTruthy();
+        expect(req.user._id.toString()).toBe(user._id.toString());
+        expect(next).toHaveBeenCalled();
+        expect(res.status).not.toHaveBeenCalled();
+      });
+
+      it('devrait rejeter un token manquant', async () => {
+        await authenticateToken(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({
+          success: false,
+          message: 'Token manquant'
+        });
+        expect(next).not.toHaveBeenCalled();
+      });
+
+      it('devrait rejeter un token expiré', async () => {
+        const user = await User.create({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'hashedpassword',
+          role: 'patient'
+        });
+
+        const expiredToken = jwt.sign(
+          { userId: user._id, exp: Math.floor(Date.now() / 1000) - 60 },
+          process.env.JWT_SECRET
+        );
+        
+        req.headers.authorization = `Bearer ${expiredToken}`;
+
+        await authenticateToken(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({
+          success: false,
+          message: 'Token invalide'
+        });
+      });
+
+      it('devrait rejeter un token avec signature invalide', async () => {
+        const fakeToken = jwt.sign({ userId: 'user123' }, 'wrong-secret');
+        req.headers.authorization = `Bearer ${fakeToken}`;
+
+        await authenticateToken(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({
+          success: false,
+          message: 'Token invalide'
+        });
+      });
+
+      it('devrait rejeter si utilisateur supprimé', async () => {
+        const deletedUserId = new mongoose.Types.ObjectId();
+        const token = jwt.sign({ userId: deletedUserId }, process.env.JWT_SECRET);
+        
+        req.headers.authorization = `Bearer ${token}`;
+
+        await authenticateToken(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      });
+    });
+
+    describe('Protection contre les données sensibles', () => {
+      it('ne devrait pas exposer le mot de passe dans req.user', async () => {
+        const user = await User.create({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'hashed-password-should-not-be-exposed',
+          role: 'patient'
+        });
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        req.headers.authorization = `Bearer ${token}`;
+
+        await authenticateToken(req, res, next);
+
+        expect(req.user).toBeTruthy();
+        expect(req.user.password).toBeUndefined();
+        expect(req.user.__v).toBeUndefined();
+      });
+    });
+
+    describe('Authentication optionnelle sécurisée', () => {
+      it('devrait continuer sans erreur si pas de token', async () => {
+        await authenticateOptional(req, res, next);
+
+        expect(req.user).toBeNull();
+        expect(next).toHaveBeenCalled();
+        expect(res.status).not.toHaveBeenCalled();
+      });
+
+      it('devrait continuer même avec token invalide', async () => {
+        req.headers.authorization = 'Bearer invalid-token';
+
+        await authenticateOptional(req, res, next);
+
+        expect(req.user).toBeNull();
+        expect(next).toHaveBeenCalled();
+        expect(res.status).not.toHaveBeenCalled();
+      });
     });
   });
 });
