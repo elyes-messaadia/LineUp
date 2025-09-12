@@ -1,69 +1,101 @@
-const logger = require('../utils/logger');
+const logger = require("../utils/logger");
 
 class ChatbotAI {
   constructor() {
     this.questions = {
       welcome: {
         text: "Bonjour ! Je suis l'assistant virtuel de LineUp. Pour mieux vous aider et évaluer votre situation, j'aimerais vous poser quelques questions. Sur une échelle de 1 à 10, comment évalueriez-vous votre niveau de douleur actuel ?",
-        type: 'pain_level',
-        options: Array.from({length: 10}, (_, i) => ({
+        type: "pain_level",
+        options: Array.from({ length: 10 }, (_, i) => ({
           value: i + 1,
-          label: `${i + 1}${i === 0 ? ' (aucune douleur)' : i === 9 ? ' (douleur extrême)' : ''}`
-        }))
+          label: `${i + 1}${
+            i === 0 ? " (aucune douleur)" : i === 9 ? " (douleur extrême)" : ""
+          }`,
+        })),
       },
-      
+
       symptoms_urgent: {
         text: "Je comprends que vous ressentez une douleur importante. Pouvez-vous me dire quels symptômes vous ressentez actuellement ?",
-        type: 'symptoms',
+        type: "symptoms",
         options: [
-          { value: 'chest_pain', label: 'Douleur thoracique', severity: 'urgent' },
-          { value: 'breathing_difficulty', label: 'Difficulté à respirer', severity: 'urgent' },
-          { value: 'severe_headache', label: 'Maux de tête sévères', severity: 'urgent' },
-          { value: 'abdominal_pain', label: 'Douleur abdominale intense', severity: 'high' },
-          { value: 'fever_high', label: 'Fièvre élevée (>39°C)', severity: 'high' },
-          { value: 'other', label: 'Autre symptôme', severity: 'medium' }
-        ]
+          {
+            value: "chest_pain",
+            label: "Douleur thoracique",
+            severity: "urgent",
+          },
+          {
+            value: "breathing_difficulty",
+            label: "Difficulté à respirer",
+            severity: "urgent",
+          },
+          {
+            value: "severe_headache",
+            label: "Maux de tête sévères",
+            severity: "urgent",
+          },
+          {
+            value: "abdominal_pain",
+            label: "Douleur abdominale intense",
+            severity: "high",
+          },
+          {
+            value: "fever_high",
+            label: "Fièvre élevée (>39°C)",
+            severity: "high",
+          },
+          { value: "other", label: "Autre symptôme", severity: "medium" },
+        ],
       },
 
       symptoms_moderate: {
         text: "Merci pour cette information. Depuis combien de temps ressentez-vous ces symptômes ?",
-        type: 'duration',
+        type: "duration",
         options: [
-          { value: 'less_1h', label: 'Moins d\'1 heure', multiplier: 1.5 },
-          { value: '1_6h', label: '1 à 6 heures', multiplier: 1.3 },
-          { value: '6_24h', label: '6 à 24 heures', multiplier: 1.1 },
-          { value: '1_3days', label: '1 à 3 jours', multiplier: 1.0 },
-          { value: 'more_3days', label: 'Plus de 3 jours', multiplier: 0.8 }
-        ]
+          { value: "less_1h", label: "Moins d'1 heure", multiplier: 1.5 },
+          { value: "1_6h", label: "1 à 6 heures", multiplier: 1.3 },
+          { value: "6_24h", label: "6 à 24 heures", multiplier: 1.1 },
+          { value: "1_3days", label: "1 à 3 jours", multiplier: 1.0 },
+          { value: "more_3days", label: "Plus de 3 jours", multiplier: 0.8 },
+        ],
       },
 
       stress_assessment: {
         text: "Je comprends que cela puisse être préoccupant. Sur une échelle de 1 à 10, comment évalueriez-vous votre niveau de stress ou d'anxiété concernant votre état ?",
-        type: 'stress_level',
-        options: Array.from({length: 10}, (_, i) => ({
+        type: "stress_level",
+        options: Array.from({ length: 10 }, (_, i) => ({
           value: i + 1,
-          label: `${i + 1}${i === 0 ? ' (très calme)' : i === 9 ? ' (très anxieux)' : ''}`
-        }))
+          label: `${i + 1}${
+            i === 0 ? " (très calme)" : i === 9 ? " (très anxieux)" : ""
+          }`,
+        })),
       },
 
       context_questions: {
         text: "Avez-vous des antécédents médicaux ou prenez-vous des médicaments que je devrais connaître ?",
-        type: 'medical_context',
+        type: "medical_context",
         options: [
-          { value: 'chronic_condition', label: 'Maladie chronique connue', factor: 1.2 },
-          { value: 'medications', label: 'Prise de médicaments réguliers', factor: 1.1 },
-          { value: 'allergies', label: 'Allergies importantes', factor: 1.1 },
-          { value: 'recent_surgery', label: 'Chirurgie récente', factor: 1.3 },
-          { value: 'none', label: 'Aucun antécédent particulier', factor: 1.0 }
-        ]
-      }
+          {
+            value: "chronic_condition",
+            label: "Maladie chronique connue",
+            factor: 1.2,
+          },
+          {
+            value: "medications",
+            label: "Prise de médicaments réguliers",
+            factor: 1.1,
+          },
+          { value: "allergies", label: "Allergies importantes", factor: 1.1 },
+          { value: "recent_surgery", label: "Chirurgie récente", factor: 1.3 },
+          { value: "none", label: "Aucun antécédent particulier", factor: 1.0 },
+        ],
+      },
     };
 
     this.urgencyThresholds = {
-      immediate: 8.5,    // Consultation immédiate nécessaire
-      high: 6.5,         // Priorité élevée
-      medium: 4.0,       // Priorité normale
-      low: 2.0           // Peut attendre
+      immediate: 8.5, // Consultation immédiate nécessaire
+      high: 6.5, // Priorité élevée
+      medium: 4.0, // Priorité normale
+      low: 2.0, // Peut attendre
     };
   }
 
@@ -73,17 +105,20 @@ class ChatbotAI {
   async startConversation(patientId) {
     try {
       const welcomeMessage = this.questions.welcome;
-      
-      logger.info({ patientId }, 'Nouvelle conversation IA démarrée');
-      
+
+      logger.info({ patientId }, "Nouvelle conversation IA démarrée");
+
       return {
         message: welcomeMessage.text,
         type: welcomeMessage.type,
         options: welcomeMessage.options,
-        conversationState: 'pain_assessment'
+        conversationState: "pain_assessment",
       };
     } catch (error) {
-      logger.error({ error, patientId }, 'Erreur lors du démarrage de conversation');
+      logger.error(
+        { error, patientId },
+        "Erreur lors du démarrage de conversation"
+      );
       return this.getErrorResponse();
     }
   }
@@ -91,40 +126,53 @@ class ChatbotAI {
   /**
    * Traite la réponse du patient et détermine la prochaine question
    */
-  async processResponse(conversationState, userResponse, conversationHistory = []) {
+  async processResponse(
+    conversationState,
+    userResponse,
+    conversationHistory = []
+  ) {
     try {
       const response = {
-        message: '',
-        type: '',
+        message: "",
+        type: "",
         options: [],
-        conversationState: '',
-        urgencyAssessment: null
+        conversationState: "",
+        urgencyAssessment: null,
       };
 
       switch (conversationState) {
-        case 'pain_assessment':
+        case "pain_assessment":
           return this.handlePainAssessment(userResponse, conversationHistory);
-          
-        case 'symptoms_urgent':
+
+        case "symptoms_urgent":
           return this.handleSymptomsUrgent(userResponse, conversationHistory);
-          
-        case 'symptoms_moderate':
+
+        case "symptoms_moderate":
           return this.handleSymptomsModerate(userResponse, conversationHistory);
-          
-        case 'duration_assessment':
-          return this.handleDurationAssessment(userResponse, conversationHistory);
-          
-        case 'stress_assessment':
+
+        case "duration_assessment":
+          return this.handleDurationAssessment(
+            userResponse,
+            conversationHistory
+          );
+
+        case "stress_assessment":
           return this.handleStressAssessment(userResponse, conversationHistory);
-          
-        case 'context_assessment':
-          return this.handleContextAssessment(userResponse, conversationHistory);
-          
+
+        case "context_assessment":
+          return this.handleContextAssessment(
+            userResponse,
+            conversationHistory
+          );
+
         default:
           return this.getFinalAssessment(conversationHistory);
       }
     } catch (error) {
-      logger.error({ error, conversationState }, 'Erreur lors du traitement de réponse');
+      logger.error(
+        { error, conversationState },
+        "Erreur lors du traitement de réponse"
+      );
       return this.getErrorResponse();
     }
   }
@@ -134,7 +182,7 @@ class ChatbotAI {
    */
   handlePainAssessment(painLevel, history) {
     const level = parseInt(painLevel);
-    
+
     if (level >= 8) {
       // Douleur sévère - questions urgentes
       const response = this.questions.symptoms_urgent;
@@ -142,8 +190,8 @@ class ChatbotAI {
         message: response.text,
         type: response.type,
         options: response.options,
-        conversationState: 'symptoms_urgent',
-        urgencyAssessment: null
+        conversationState: "symptoms_urgent",
+        urgencyAssessment: null,
       };
     } else if (level >= 5) {
       // Douleur modérée - questions sur la durée
@@ -152,8 +200,8 @@ class ChatbotAI {
         message: response.text,
         type: response.type,
         options: response.options,
-        conversationState: 'duration_assessment',
-        urgencyAssessment: null
+        conversationState: "duration_assessment",
+        urgencyAssessment: null,
       };
     } else {
       // Douleur faible - évaluation du stress
@@ -162,8 +210,8 @@ class ChatbotAI {
         message: response.text,
         type: response.type,
         options: response.options,
-        conversationState: 'stress_assessment',
-        urgencyAssessment: null
+        conversationState: "stress_assessment",
+        urgencyAssessment: null,
       };
     }
   }
@@ -172,22 +220,28 @@ class ChatbotAI {
    * Gère les symptômes urgents (douleur élevée)
    */
   handleSymptomsUrgent(symptoms, history) {
-    const urgentSymptoms = ['chest_pain', 'breathing_difficulty', 'severe_headache'];
-    const hasUrgentSymptom = symptoms.some(s => urgentSymptoms.includes(s));
-    
+    const urgentSymptoms = [
+      "chest_pain",
+      "breathing_difficulty",
+      "severe_headache",
+    ];
+    const hasUrgentSymptom = symptoms.some((s) => urgentSymptoms.includes(s));
+
     if (hasUrgentSymptom) {
       // Évaluation immédiate requise
       const assessment = this.calculateUrgency(history.concat([{ symptoms }]));
       return {
-        message: "Basé sur vos symptômes, je recommande fortement une consultation médicale immédiate. Votre situation nécessite une attention urgente.",
-        type: 'final_assessment',
+        message:
+          "Basé sur vos symptômes, je recommande fortement une consultation médicale immédiate. Votre situation nécessite une attention urgente.",
+        type: "final_assessment",
         options: [],
-        conversationState: 'completed',
+        conversationState: "completed",
         urgencyAssessment: {
           ...assessment,
-          recommendedAction: 'consultation_immediate',
-          reasoning: 'Symptômes critiques détectés nécessitant une évaluation médicale urgente'
-        }
+          recommendedAction: "consultation_immediate",
+          reasoning:
+            "Symptômes critiques détectés nécessitant une évaluation médicale urgente",
+        },
       };
     } else {
       // Continuer avec l'évaluation du contexte
@@ -196,8 +250,8 @@ class ChatbotAI {
         message: response.text,
         type: response.type,
         options: response.options,
-        conversationState: 'context_assessment',
-        urgencyAssessment: null
+        conversationState: "context_assessment",
+        urgencyAssessment: null,
       };
     }
   }
@@ -211,8 +265,8 @@ class ChatbotAI {
       message: response.text,
       type: response.type,
       options: response.options,
-      conversationState: 'context_assessment',
-      urgencyAssessment: null
+      conversationState: "context_assessment",
+      urgencyAssessment: null,
     };
   }
 
@@ -221,14 +275,15 @@ class ChatbotAI {
    */
   handleStressAssessment(stressLevel, history) {
     const level = parseInt(stressLevel);
-    
+
     if (level >= 7) {
       return {
-        message: "Je comprends que vous êtes anxieux concernant votre état. Même si vos symptômes semblent moins urgents, votre niveau d'inquiétude est important. Une consultation peut vous rassurer.",
-        type: 'stress_response',
+        message:
+          "Je comprends que vous êtes anxieux concernant votre état. Même si vos symptômes semblent moins urgents, votre niveau d'inquiétude est important. Une consultation peut vous rassurer.",
+        type: "stress_response",
         options: [],
-        conversationState: 'context_assessment',
-        urgencyAssessment: null
+        conversationState: "context_assessment",
+        urgencyAssessment: null,
       };
     } else {
       const response = this.questions.context_questions;
@@ -236,8 +291,8 @@ class ChatbotAI {
         message: response.text,
         type: response.type,
         options: response.options,
-        conversationState: 'context_assessment',
-        urgencyAssessment: null
+        conversationState: "context_assessment",
+        urgencyAssessment: null,
       };
     }
   }
@@ -260,42 +315,44 @@ class ChatbotAI {
       symptoms: 1.0,
       duration: 1.0,
       stress: 1.0,
-      context: 1.0
+      context: 1.0,
     };
 
     // Analyser l'historique pour extraire les facteurs
-    conversationHistory.forEach(entry => {
+    conversationHistory.forEach((entry) => {
       if (entry.painLevel) {
         const pain = parseInt(entry.painLevel);
         baseScore = pain;
         factors.pain = pain / 10;
       }
-      
+
       if (entry.symptoms) {
-        const urgentSymptoms = entry.symptoms.filter(s => 
-          ['chest_pain', 'breathing_difficulty', 'severe_headache'].includes(s)
+        const urgentSymptoms = entry.symptoms.filter((s) =>
+          ["chest_pain", "breathing_difficulty", "severe_headache"].includes(s)
         );
         if (urgentSymptoms.length > 0) {
           factors.symptoms = 1.5;
         }
       }
-      
+
       if (entry.duration) {
-        const durationOption = this.questions.symptoms_moderate.options
-          .find(opt => opt.value === entry.duration);
+        const durationOption = this.questions.symptoms_moderate.options.find(
+          (opt) => opt.value === entry.duration
+        );
         if (durationOption) {
           factors.duration = durationOption.multiplier;
         }
       }
-      
+
       if (entry.stressLevel) {
         const stress = parseInt(entry.stressLevel);
-        factors.stress = 1 + (stress / 20); // Ajustement léger basé sur le stress
+        factors.stress = 1 + stress / 20; // Ajustement léger basé sur le stress
       }
-      
+
       if (entry.context) {
-        const contextOption = this.questions.context_questions.options
-          .find(opt => opt.value === entry.context);
+        const contextOption = this.questions.context_questions.options.find(
+          (opt) => opt.value === entry.context
+        );
         if (contextOption) {
           factors.context = contextOption.factor;
         }
@@ -303,21 +360,26 @@ class ChatbotAI {
     });
 
     // Calcul du score final
-    const finalScore = baseScore * factors.symptoms * factors.duration * factors.context * factors.stress;
-    
+    const finalScore =
+      baseScore *
+      factors.symptoms *
+      factors.duration *
+      factors.context *
+      factors.stress;
+
     // Déterminer le niveau d'urgence
-    let urgencyLevel = 'low';
-    let recommendedAction = 'attendre';
-    
+    let urgencyLevel = "low";
+    let recommendedAction = "attendre";
+
     if (finalScore >= this.urgencyThresholds.immediate) {
-      urgencyLevel = 'immediate';
-      recommendedAction = 'consultation_immediate';
+      urgencyLevel = "immediate";
+      recommendedAction = "consultation_immediate";
     } else if (finalScore >= this.urgencyThresholds.high) {
-      urgencyLevel = 'high';
-      recommendedAction = 'consultation_immediate';
+      urgencyLevel = "high";
+      recommendedAction = "consultation_immediate";
     } else if (finalScore >= this.urgencyThresholds.medium) {
-      urgencyLevel = 'medium';
-      recommendedAction = 'teleconsultation';
+      urgencyLevel = "medium";
+      recommendedAction = "teleconsultation";
     }
 
     return {
@@ -325,7 +387,7 @@ class ChatbotAI {
       urgencyLevel,
       recommendedAction,
       confidenceScore: this.calculateConfidence(conversationHistory),
-      factors
+      factors,
     };
   }
 
@@ -334,11 +396,11 @@ class ChatbotAI {
    */
   calculateConfidence(conversationHistory) {
     let confidence = 0.7; // Confiance de base
-    
+
     // Plus il y a d'informations, plus la confiance augmente
     if (conversationHistory.length >= 3) confidence += 0.2;
     if (conversationHistory.length >= 4) confidence += 0.1;
-    
+
     return Math.min(confidence, 0.95); // Maximum 95% de confiance
   }
 
@@ -346,16 +408,18 @@ class ChatbotAI {
    * Génère la réponse finale avec recommandations
    */
   generateFinalResponse(assessment, history) {
-    let message = '';
-    
+    let message = "";
+
     switch (assessment.recommendedAction) {
-      case 'consultation_immediate':
-        message = `Basé sur votre évaluation, je recommande une consultation médicale ${assessment.urgencyLevel === 'immediate' ? 'immédiate' : 'prioritaire'}. Votre score d'urgence est de ${assessment.urgencyScore}/10.`;
+      case "consultation_immediate":
+        message = `Basé sur votre évaluation, je recommande une consultation médicale ${
+          assessment.urgencyLevel === "immediate" ? "immédiate" : "prioritaire"
+        }. Votre score d'urgence est de ${assessment.urgencyScore}/10.`;
         break;
-      case 'teleconsultation':
+      case "teleconsultation":
         message = `Votre situation mérite attention. Je recommande une téléconsultation ou une consultation dans les prochaines heures. Score d'urgence: ${assessment.urgencyScore}/10.`;
         break;
-      case 'attendre':
+      case "attendre":
         message = `Votre situation semble stable pour le moment. Vous pouvez attendre votre tour normalement, mais n'hésitez pas à me recontacter si vos symptômes s'aggravent. Score: ${assessment.urgencyScore}/10.`;
         break;
     }
@@ -364,10 +428,10 @@ class ChatbotAI {
 
     return {
       message,
-      type: 'final_assessment',
+      type: "final_assessment",
       options: [],
-      conversationState: 'completed',
-      urgencyAssessment: assessment
+      conversationState: "completed",
+      urgencyAssessment: assessment,
     };
   }
 
@@ -376,17 +440,18 @@ class ChatbotAI {
    */
   getErrorResponse() {
     return {
-      message: "Je rencontre des difficultés techniques. Un membre de notre équipe va prendre le relais pour vous aider.",
-      type: 'error',
+      message:
+        "Je rencontre des difficultés techniques. Un membre de notre équipe va prendre le relais pour vous aider.",
+      type: "error",
       options: [],
-      conversationState: 'error',
+      conversationState: "error",
       urgencyAssessment: {
         urgencyScore: 5.0,
-        urgencyLevel: 'medium',
-        recommendedAction: 'teleconsultation',
+        urgencyLevel: "medium",
+        recommendedAction: "teleconsultation",
         confidenceScore: 0.3,
-        reasoning: 'Évaluation impossible due à une erreur technique'
-      }
+        reasoning: "Évaluation impossible due à une erreur technique",
+      },
     };
   }
 }
