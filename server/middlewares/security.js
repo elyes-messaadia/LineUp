@@ -136,11 +136,30 @@ module.exports = {
       app.use(
         mongoSanitize({
           allowDots: true, // Permet les points dans les noms de champs
-          replaceWith: "_", // Remplace les caractères interdits par un underscore
-        })
-      );
+        // Protection contre les injections NoSQL (sanitisation maison)
+        const sanitizeNoSQL = (obj) => {
+          if (!obj || typeof obj !== 'object') return obj;
+          if (Array.isArray(obj)) return obj.map(sanitizeNoSQL);
+          const clean = {};
+          for (const [key, value] of Object.entries(obj)) {
+            // Supprimer uniquement les clés qui commencent par '$' (conserve les points)
+            if (key.startsWith('$')) continue;
+            // Nettoyer récursivement
+            clean[key] = typeof value === 'object' ? sanitizeNoSQL(value) : value;
+          }
+          return clean;
+        };
 
-      // Limiter la taille des payloads JSON
+        app.use((req, res, next) => {
+          if (req.body && typeof req.body === 'object') {
+            req.body = sanitizeNoSQL(req.body);
+          }
+          if (req.params && typeof req.params === 'object') {
+            req.params = sanitizeNoSQL(req.params);
+          }
+          // Ne pas réassigner req.query (getter en Express 5). On évite toute mutation risquée ici.
+          next();
+        });
       app.use(express.json({ limit: "10kb" }));
 
       // Rate limiting global pour toutes les requêtes
