@@ -12,6 +12,40 @@ require("dotenv").config();
 const logger = require('./utils/logger');
 const { hmacFingerprint } = require('./utils/fingerprint');
 
+// Initialiser pino-http pour le logging des requêtes
+const pinoHttp = require('pino-http')({ 
+  logger,
+  customLogLevel: function (req, res, err) {
+    if (res.statusCode >= 400 && res.statusCode < 500) {
+      return 'warn'
+    } else if (res.statusCode >= 500 || err) {
+      return 'error'
+    } else if (res.statusCode >= 300 && res.statusCode < 400) {
+      return 'silent'
+    }
+    return 'info'
+  },
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      headers: {
+        host: req.headers.host,
+        'user-agent': req.headers['user-agent'],
+        'content-length': req.headers['content-length']
+        // Pas d'authorization header pour éviter les fuites de tokens
+      }
+    }),
+    res: (res) => ({
+      statusCode: res.statusCode,
+      headers: {
+        'content-length': res.getHeader('content-length'),
+        'content-type': res.getHeader('content-type')
+      }
+    })
+  }
+});
+
 // 🔍 Validation des variables d'environnement critiques
 const requiredEnvVars = ['MONGO_URI'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
@@ -82,15 +116,26 @@ app.use(cors({
 // Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
 app.set('trust proxy', true);
 
+// Middleware de logging des requêtes HTTP
+app.use(pinoHttp);
+
 // JSON body parsing with size limit to mitigate large payload attacks
 app.use(express.json({ limit: '10kb' }));
 
 // Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
 try {
   const { setupSecurity } = require('./middlewares/security');
-  if (typeof setupSecurity === 'function') setupSecurity(app);
+  if (typeof setupSecurity === 'function') {
+    setupSecurity(app);
+    logger.info('✅ Middlewares de sécurité chargés avec succès');
+  }
 } catch (e) {
-  console.error('Erreur chargement middlewares de sécurité:', e.message);
+  logger.error({ err: e }, 'Erreur chargement middlewares de sécurité');
+  // En production, arrêter le serveur si les middlewares de sécurité ne se chargent pas
+  if (process.env.NODE_ENV === 'production') {
+    logger.fatal('Impossible de charger les middlewares de sécurité en production - arrêt du serveur');
+    process.exit(1);
+  }
 }
 
 // 🏥 Route de santé pour Render
