@@ -21,7 +21,7 @@ describe("Auth API Tests", () => {
   beforeAll(async () => {
     // Connexion à la base de données de test
     await mongoose.connect(
-      process.env.MONGO_URI_TEST || "mongodb://localhost:27017/lineup_test"
+      process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test"
     );
   });
 

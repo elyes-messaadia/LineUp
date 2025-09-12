@@ -2,6 +2,19 @@ const request = require("supertest");
 const express = require("express");
 const { setupSecurity } = require("../middlewares/security");
 
+// Mock du logger pour ce test spécifiquement
+jest.mock("../utils/logger", () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  child: jest.fn().mockReturnValue({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  }),
+}));
+
 describe("Security Middleware Tests", () => {
   let app;
 

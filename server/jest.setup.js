@@ -31,6 +31,10 @@ jest.mock("web-push", () => ({
   sendNotification: jest.fn().mockResolvedValue({ success: true }),
 }));
 
+// Mock des loggers et autres dépendances pour les tests
+jest.mock("pino");
+jest.mock("pino-http");
+
 // Helper pour nettoyer la base de données entre les tests
 global.cleanupTestData = async () => {
   // Cette fonction peut être utilisée dans les tests pour nettoyer les données
