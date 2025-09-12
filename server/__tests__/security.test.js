@@ -11,8 +11,8 @@ jest.mock("../utils/logger", () => ({
   child: jest.fn().mockReturnValue({
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn(),
-  }),
+    error: jest.fn()
+  })
 }));
 
 describe("Security Middleware Tests", () => {
