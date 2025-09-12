@@ -116,12 +116,12 @@ module.exports = {
     try {
       // Protection contre les attaques communes avec Helmet
       app.use(helmet(helmetConfig));
-      
+
       // Protection contre les injections XSS (remplacement de xss-clean)
       app.use((req, res, next) => {
-        if (req.body && typeof req.body === 'object') {
+        if (req.body && typeof req.body === "object") {
           for (const key in req.body) {
-            if (typeof req.body[key] === 'string') {
+            if (typeof req.body[key] === "string") {
               req.body[key] = sanitizeHtml(req.body[key], {
                 allowedTags: [],
                 allowedAttributes: {},
@@ -131,32 +131,37 @@ module.exports = {
         }
         next();
       });
-      
+
       // Protection contre les injections NoSQL
-      app.use(mongoSanitize({
-        allowDots: true, // Permet les points dans les noms de champs
-        replaceWith: '_', // Remplace les caractères interdits par un underscore
-      }));
-      
+      app.use(
+        mongoSanitize({
+          allowDots: true, // Permet les points dans les noms de champs
+          replaceWith: "_", // Remplace les caractères interdits par un underscore
+        })
+      );
+
       // Limiter la taille des payloads JSON
-      app.use(express.json({ limit: '10kb' }));
-      
+      app.use(express.json({ limit: "10kb" }));
+
       // Rate limiting global pour toutes les requêtes
       app.use(limiter);
-      
+
       // Rate limiting plus strict pour les routes d'authentification
       app.use("/auth/login", authLimiter);
       app.use("/auth/register", authLimiter);
       app.use("/auth/reset-password", authLimiter);
 
       // Importer et utiliser le middleware de logging HTTP
-      const httpLogger = require('./httpLogger');
+      const httpLogger = require("./httpLogger");
       app.use(httpLogger());
-      
+
       // Log de démarrage du middleware de sécurité
       logger.info("Middleware de sécurité configuré avec succès");
     } catch (error) {
-      logger.error({ err: error }, "Erreur lors de la configuration du middleware de sécurité");
+      logger.error(
+        { err: error },
+        "Erreur lors de la configuration du middleware de sécurité"
+      );
     }
 
     // Middleware pour loguer les requêtes de modification (POST, PUT, DELETE)
@@ -167,14 +172,14 @@ module.exports = {
         req.method === "PUT" ||
         req.method === "DELETE"
       ) {
-        const securityLogger = logger.getSubLogger('security');
-        
+        const securityLogger = logger.getSubLogger("security");
+
         const logData = {
           method: req.method,
           path: req.path,
           userAgent: req.get("User-Agent"),
-          userId: req.user?.id || 'anonymous',
-          action: `${req.method} ${req.path}`
+          userId: req.user?.id || "anonymous",
+          action: `${req.method} ${req.path}`,
         };
 
         // En production, anonymiser l'IP avec l'empreinte HMAC
