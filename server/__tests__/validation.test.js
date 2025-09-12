@@ -166,14 +166,16 @@ describe("Data Validation and Sanitization Tests", () => {
 
       // Expression régulière pour les emails qui refuse les points doubles
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      const hasConsecutiveDots = (email) => email.includes('..');
+      const hasConsecutiveDots = (email) => email.includes("..");
 
       validEmails.forEach((email) => {
-        expect(emailRegex.test(email)).toBe(true);
+        expect(emailRegex.test(email) && !hasConsecutiveDots(email)).toBe(true);
       });
 
       invalidEmails.forEach((email) => {
-        expect(emailRegex.test(email)).toBe(false);
+        expect(emailRegex.test(email) && !hasConsecutiveDots(email)).toBe(
+          false
+        );
       });
     });
 
@@ -194,7 +196,7 @@ describe("Data Validation and Sanitization Tests", () => {
 
       // Critères : au moins 8 caractères, majuscule, minuscule, chiffre, caractère spécial
       const strongPasswordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
 
       strongPasswords.forEach((password) => {
         expect(strongPasswordRegex.test(password)).toBe(true);
