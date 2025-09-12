@@ -190,6 +190,10 @@ connectDB();
 // 🔐 Routes d'authentification centralisées
 app.use("/auth", authRoutes);
 
+// 💬 Routes de conversations IA
+const conversationRoutes = require("./routes/conversations");
+app.use("/api/conversations", conversationRoutes);
+
 // 🎫 Créer un ticket (version améliorée avec support tickets physiques)
 app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
