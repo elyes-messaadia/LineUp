@@ -170,13 +170,11 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
   try {
     const { docteur, userId, patientName, ticketType, notes } = req.body;
     
-    // Logs limités pour la production : éviter d'exposer des tokens ou données sensibles
+    // Logs structured (redaction configured). Avoid printing PII in production.
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`\n🎫 === CRÉATION TICKET ===`);
-      console.log(`- Docteur demandé: ${docteur}`);
-      console.log(`- Utilisateur authentifié: ${req.user ? req.user._id : 'AUCUN'}`);
-      console.log(`- Rôle utilisateur: ${req.user ? req.user.role.name : 'ANONYME'}`);
-      console.log(`- IP: ${req.ip}`);
+      logger.debug({ docteur, userId: req.user ? String(req.user._id) : null, role: req.user ? req.user.role.name : null, ip: req.ip }, 'Création ticket - debug');
+    } else {
+      logger.info({ docteur, role: req.user ? req.user.role.name : 'ANONYME' }, 'Création ticket');
     }
     
     // Si l'utilisateur est authentifié, utiliser ses informations
@@ -223,18 +221,19 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
                  req.ip ||                                    // Express default
                  'unknown';
       
-      console.log(`🔍 IP Detection:`, {
+      // Log IP detection info at debug level only
+      logger.debug({
         'x-nf-client-connection-ip': req.headers['x-nf-client-connection-ip'],
         'x-forwarded-for': req.headers['x-forwarded-for'],
         'x-real-ip': req.headers['x-real-ip'],
         'req.ip': req.ip,
-        'final': ip
-      });
+        final: ip
+      }, 'IP Detection');
       
       return ip;
     };
     
-    const ipAddress = getRealClientIP(req);
+  const ipAddress = getRealClientIP(req);
     const userAgent = req.headers['user-agent'];
     const device = req.headers['sec-ch-ua-platform'] || 'unknown';
     
@@ -247,7 +246,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
       });
       
       if (existingTicket) {
-        console.log(`🚫 LIMITATION: Utilisateur ${req.user._id} a déjà le ticket n°${existingTicket.number} chez ${existingTicket.docteur}`);
+        logger.warn({ userId: String(req.user._id), existingTicket: existingTicket.number, docteur: existingTicket.docteur }, 'LIMITATION: utilisateur a déjà un ticket');
         return res.status(400).json({
           success: false,
           message: "Vous avez déjà un ticket en cours",
@@ -265,7 +264,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
 
     // Si un utilisateur est connecté mais n'est pas secrétaire, il DOIT être patient
     if (req.user && req.user.role.name !== 'secretaire' && req.user.role.name !== 'patient') {
-      console.log(`🚫 LIMITATION: Utilisateur ${req.user._id} avec rôle ${req.user.role.name} ne peut pas créer de ticket`);
+      logger.warn({ userId: String(req.user._id), role: req.user.role.name }, 'LIMITATION: rôle non autorisé pour création de ticket');
       return res.status(403).json({
         success: false,
         message: "Seuls les patients et secrétaires peuvent créer des tickets"
@@ -287,21 +286,21 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     if (token && !req.user) {
       // Ne pas loguer le token. Indiquer juste la présence d'un token en dev.
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('⚠️ Token présent mais utilisateur non authentifié');
+        logger.warn('⚠️ Token présent mais utilisateur non authentifié');
       }
     }
 
     // **NOUVELLE LIMITATION** : Vérifier les abus par IP/appareil pour tous les utilisateurs
     // (sauf pour les secrétaires qui peuvent créer sans limite)
     if (!req.user || req.user.role.name !== 'secretaire') {
-      console.log(`🔍 VÉRIFICATION LIMITATIONS IP pour ${req.user ? 'utilisateur connecté' : 'ANONYME'}:`);
+  logger.debug({ context: req.user ? 'utilisateur connecté' : 'ANONYME' }, 'VÉRIFICATION LIMITATIONS IP');
       
       // Créer une empreinte unique de l'appareil/navigateur comme fallback
-      const deviceFingerprint = `${ipAddress}_${userAgent}_${device}`;
+  const deviceFingerprint = `${ipAddress}_${userAgent}_${device}`;
       const isIPUnknown = ipAddress === 'unknown';
       
       if (isIPUnknown) {
-        console.log(`⚠️ IP inconnue, utilisation d'empreinte appareil: ${deviceFingerprint}`);
+        logger.warn({ deviceFingerprint: hmacFingerprint(deviceFingerprint) }, 'IP inconnue, utilisation d\'empreinte appareil');
       }
       
       // Limite par adresse IP : maximum 1 ticket actif par IP (un seul ticket par appareil)
@@ -311,9 +310,9 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
         
       const ticketsByIP = await Ticket.countDocuments(query);
 
-      console.log(`- Tickets actifs par ${isIPUnknown ? 'empreinte' : 'IP'}: ${ticketsByIP}/1`);
+      logger.debug({ ticketsByIP, by: isIPUnknown ? 'deviceFingerprint' : 'ipAddress' }, 'Tickets actifs');
       if (ticketsByIP >= 1) {
-        console.log(`🚫 LIMITATION ${isIPUnknown ? 'EMPREINTE' : 'IP'}: ${ticketsByIP} ticket actif >= 1 maximum par appareil`);
+        logger.warn({ ticketsByIP, limit: 1 }, `LIMITATION ${isIPUnknown ? 'EMPREINTE' : 'IP'}`);
         return res.status(429).json({
           success: false,
           message: "Limite atteinte : maximum 1 ticket actif par appareil",
@@ -329,9 +328,9 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
         
       const recentTicketsByIP = await Ticket.countDocuments(timeQuery);
 
-      console.log(`- Tickets dernière heure: ${recentTicketsByIP}/3`);
+      logger.debug({ recentTicketsByIP }, 'Tickets dernière heure');
       if (recentTicketsByIP >= 3) {
-        console.log(`🚫 LIMITATION TEMPORELLE: ${recentTicketsByIP} tickets/heure >= 3 maximum`);
+        logger.warn({ recentTicketsByIP, limit: 3 }, 'LIMITATION TEMPORELLE');
         return res.status(429).json({
           success: false,
           message: "Limite atteinte : maximum 3 tickets par heure par appareil",
@@ -340,7 +339,7 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
         });
       }
 
-      console.log(`✅ LIMITATIONS OK - Création autorisée`);
+      logger.info('LIMITATIONS OK - Création autorisée');
     }
 
     // Générer un sessionId unique
@@ -398,9 +397,9 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     if (req.user && req.user._id) {
       try {
         await notifyNewTicket(ticket._id);
-        console.log(`🔔 Notification push envoyée pour ticket n°${ticket.number}`);
+        logger.info({ ticketNumber: ticket.number }, 'Notification push envoyée');
       } catch (notificationError) {
-        console.error('⚠️ Erreur notification push:', notificationError);
+        logger.error({ err: notificationError }, 'Erreur notification push');
         // Ne pas faire échouer la création du ticket pour une erreur de notification
       }
     }
@@ -413,10 +412,10 @@ app.post("/ticket", authenticateOptional, async (req, res) => {
     });
     
   } catch (err) {
-    console.error("❌ Erreur création ticket:", err);
+  logger.error({ err }, 'Erreur création ticket');
     
     // Gestion spécifique des erreurs de validation Mongoose
-    if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError') {
       return res.status(400).json({
         success: false,
         message: "Erreur de validation",
@@ -462,7 +461,7 @@ app.get("/ticket/:id", async (req, res) => {
     }
     res.json(ticket);
   } catch (err) {
-    console.error("❌ Erreur vérification ticket:", err);
+    logger.error({ err }, 'Erreur vérification ticket');
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
@@ -487,7 +486,7 @@ app.get("/queue", async (req, res) => {
     const queue = await Ticket.find(query).sort({ createdAt: 1 });
     res.json(queue);
   } catch (error) {
-    console.error("Erreur lors de la récupération de la file:", error);
+    logger.error({ err: error }, 'Erreur lors de la récupération de la file');
     res.status(500).json({ message: "Erreur de récupération" });
   }
 });
@@ -596,7 +595,7 @@ app.get("/admin/abuse-stats", authenticateOptional, async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Erreur stats abus:", error);
+    logger.error({ err: error }, 'Erreur stats abus');
     res.status(500).json({ 
       success: false,
       message: "Erreur lors de la récupération des statistiques" 
@@ -634,13 +633,13 @@ app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
       // Utilisateur authentifié : doit être propriétaire du ticket OU secrétaire
       if (req.user.role.name === 'secretaire') {
         // Les secrétaires peuvent annuler n'importe quel ticket
-        console.log(`✅ Secrétaire ${req.user._id} annule le ticket n°${ticket.number}`);
+        logger.info({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Secrétaire annule ticket');
       } else if (ticket.userId && ticket.userId.toString() === req.user._id.toString()) {
         // Le patient propriétaire peut annuler son ticket
-        console.log(`✅ Patient ${req.user._id} annule son ticket n°${ticket.number}`);
+        logger.info({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Patient annule son ticket');
       } else {
         // Utilisateur connecté mais pas propriétaire
-        console.log(`🚫 SÉCURITÉ: Utilisateur ${req.user._id} tente d'annuler ticket ${ticket.number} qui ne lui appartient pas`);
+        logger.warn({ userId: String(req.user._id), ticketNumber: ticket.number }, 'Tentative annulation non autorisée');
         return res.status(403).json({ 
           success: false,
           message: "Vous ne pouvez annuler que vos propres tickets" 
@@ -654,7 +653,7 @@ app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
           message: "Authentification requise pour annuler ce ticket" 
         });
       }
-      console.log(`✅ Annulation ticket anonyme n°${ticket.number} via sessionId`);
+      logger.info({ ticketNumber: ticket.number, sessionId: req.query.sessionId ? String(req.query.sessionId) : undefined }, 'Annulation ticket anonyme');
     }
 
     // Vérifier que le ticket peut être annulé
@@ -676,7 +675,7 @@ app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
     ticket.status = "desiste";
     await ticket.save();
     
-    console.log(`🎫 Ticket n°${ticket.number} annulé avec succès`);
+  logger.info({ ticketNumber: ticket.number }, 'Ticket annulé avec succès');
     
     res.json({ 
       success: true,
@@ -684,7 +683,7 @@ app.delete("/ticket/:id", authenticateOptional, async (req, res) => {
       message: "Ticket annulé avec succès"
     });
   } catch (error) {
-    console.error("❌ Erreur lors de l'annulation:", error);
+    logger.error({ err: error }, 'Erreur lors de l\'annulation');
     res.status(500).json({ 
       success: false,
       message: "Erreur lors de l'annulation" 
@@ -1023,7 +1022,7 @@ app.post("/create-secretary-temp", async (req, res) => {
     const User = require('./models/User');
     const Role = require('./models/Role');
     
-    console.log('🚨 CRÉATION SECRÉTAIRE TEMPORAIRE');
+  logger.warn('CRÉATION SECRÉTAIRE TEMPORAIRE (développement seulement)');
     
     // Vérifier si la secrétaire existe déjà
     const existingSecretary = await User.findOne({ email: 'secretaire@lineup.com' });
@@ -1065,7 +1064,7 @@ app.post("/create-secretary-temp", async (req, res) => {
     });
     
     await secretary.save();
-    console.log('✅ Secrétaire créée avec succès');
+    logger.info({ email: secretary.email, role: 'secretaire' }, 'Secrétaire créée (dev-only)');
 
     res.json({
       success: true,
