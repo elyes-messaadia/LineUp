@@ -40,9 +40,10 @@
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.1",
+    "pino": "^8.20.0",
+    "pino-http": "^10.5.0",
     "web-push": "^3.6.7",
-    "xss-clean": "^0.1.4",
-    "pino": "^8.20.0"
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
