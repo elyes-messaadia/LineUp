@@ -1,7 +1,6 @@
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const sanitizeHtml = require("sanitize-html");
-const mongoSanitize = require("express-mongo-sanitize");
 const express = require("express");
 const logger = require("../utils/logger");
 const { hmacFingerprint } = require("../utils/fingerprint");
@@ -117,6 +116,9 @@ module.exports = {
       // Protection contre les attaques communes avec Helmet
       app.use(helmet(helmetConfig));
 
+      // Parser JSON AVANT toute sanitisation
+      app.use(express.json({ limit: "10kb" }));
+
       // Protection contre les injections XSS (remplacement de xss-clean)
       app.use((req, res, next) => {
         if (req.body && typeof req.body === "object") {
@@ -132,37 +134,32 @@ module.exports = {
         next();
       });
 
-      // Protection contre les injections NoSQL
-      app.use(
-        mongoSanitize({
-          allowDots: true, // Permet les points dans les noms de champs
-        // Protection contre les injections NoSQL (sanitisation maison)
-        const sanitizeNoSQL = (obj) => {
-          if (!obj || typeof obj !== 'object') return obj;
-          if (Array.isArray(obj)) return obj.map(sanitizeNoSQL);
-          const clean = {};
-          for (const [key, value] of Object.entries(obj)) {
-            // Supprimer uniquement les clés qui commencent par '$' (conserve les points)
-            if (key.startsWith('$')) continue;
-            // Nettoyer récursivement
-            clean[key] = typeof value === 'object' ? sanitizeNoSQL(value) : value;
-          }
-          return clean;
-        };
+      // Protection contre les injections NoSQL (sanitisation maison)
+      const sanitizeNoSQL = (obj) => {
+        if (!obj || typeof obj !== "object") return obj;
+        if (Array.isArray(obj)) return obj.map(sanitizeNoSQL);
+        const clean = {};
+        for (const [key, value] of Object.entries(obj)) {
+          // Supprimer uniquement les clés qui commencent par '$' (conserve les points)
+          if (key.startsWith("$")) continue;
+          // Nettoyer récursivement
+          clean[key] = typeof value === "object" ? sanitizeNoSQL(value) : value;
+        }
+        return clean;
+      };
 
-        app.use((req, res, next) => {
-          if (req.body && typeof req.body === 'object') {
-            req.body = sanitizeNoSQL(req.body);
-          }
-          if (req.params && typeof req.params === 'object') {
-            req.params = sanitizeNoSQL(req.params);
-          }
-          // Ne pas réassigner req.query (getter en Express 5). On évite toute mutation risquée ici.
-          next();
-        });
-      app.use(express.json({ limit: "10kb" }));
+      app.use((req, res, next) => {
+        if (req.body && typeof req.body === "object") {
+          req.body = sanitizeNoSQL(req.body);
+        }
+        if (req.params && typeof req.params === "object") {
+          req.params = sanitizeNoSQL(req.params);
+        }
+        // Ne pas réassigner req.query (getter en Express 5). On évite toute mutation risquée ici.
+        next();
+      });
 
-      // Rate limiting global pour toutes les requêtes
+  // Rate limiting global pour toutes les requêtes
       app.use(limiter);
 
       // Rate limiting plus strict pour les routes d'authentification
