@@ -2,7 +2,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const xss = require("xss-clean");
 const mongoSanitize = require("express-mongo-sanitize");
-const express = require('express');
+const express = require("express");
 
 // Rate limiting
 const limiter = rateLimit({
@@ -10,8 +10,8 @@ const limiter = rateLimit({
   max: 100, // limite à 100 requêtes par fenêtre
   message: {
     success: false,
-    message: "Trop de requêtes. Veuillez réessayer plus tard."
-  }
+    message: "Trop de requêtes. Veuillez réessayer plus tard.",
+  },
 });
 
 // Limiter spécifiquement les tentatives de connexion
@@ -20,8 +20,9 @@ const authLimiter = rateLimit({
   max: 5, // limite à 5 tentatives
   message: {
     success: false,
-    message: "Trop de tentatives de connexion. Veuillez réessayer dans une heure."
-  }
+    message:
+      "Trop de tentatives de connexion. Veuillez réessayer dans une heure.",
+  },
 });
 
 // Configuration Helmet (sécurité des headers HTTP)
@@ -61,7 +62,7 @@ const helmetConfig = {
       ],
       // Polices depuis sources approuvées
       fontSrc: [
-        "'self'", 
+        "'self'",
         "https://fonts.gstatic.com",
         "data:", // Pour les icônes encodées
       ],
@@ -71,7 +72,8 @@ const helmetConfig = {
       baseUri: ["'self'"], // Limiter les URI de base
       formAction: ["'self'"], // Limiter les actions de formulaires
       // Force HTTPS en production
-      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
+      upgradeInsecureRequests:
+        process.env.NODE_ENV === "production" ? [] : null,
     },
   },
   // Politique d'intégration entre origines
