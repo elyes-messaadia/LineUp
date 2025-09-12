@@ -1,6 +1,6 @@
 // Middleware de logging HTTP basé sur pino
 const pinoHttp = require('pino-http');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const { hmacFingerprint } = require('../utils/fingerprint');
 
 // Configuration du middleware pino-http avec des options personnalisées
