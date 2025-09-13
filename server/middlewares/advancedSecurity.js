@@ -108,12 +108,9 @@ const securityHeaders = helmet({
 /**
  * Configuration CSRF avec csrf-csrf (moderne)
  */
-const {
-  generateToken,
-  validateRequest,
-  doubleCsrfProtection,
-} = doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET || "fallback-csrf-secret-change-in-production",
+const { generateToken, validateRequest, doubleCsrfProtection } = doubleCsrf({
+  getSecret: () =>
+    process.env.CSRF_SECRET || "fallback-csrf-secret-change-in-production",
   cookieName: "__Host-psifi.x-csrf-token",
   cookieOptions: {
     httpOnly: true,
@@ -148,14 +145,14 @@ const conditionalCSRF = (req, res, next) => {
 const provideCsrfToken = (req, res, next) => {
   // Générer le token CSRF
   const csrfToken = generateToken(req, res);
-  
+
   res.locals.csrfToken = csrfToken;
 
   // Ajouter le token dans les headers pour les APIs
   if (req.path.startsWith("/api/")) {
     res.set("X-CSRF-Token", csrfToken);
   }
-  
+
   next();
 };
 
