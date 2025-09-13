@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Conversation = require("../models/Conversation");
 const ChatbotAI = require("../services/ChatbotAI");
-const { authenticateRequired, authenticateToken } = require("../middlewares/auth");
+const { authenticateRequired } = require("../middlewares/auth");
 const logger = require("../utils/logger");
 
 const chatbot = new ChatbotAI();
