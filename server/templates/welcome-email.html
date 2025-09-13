@@ -1,368 +1,368 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bienvenue sur LineUp</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #374151;
-            background-color: #f9fafb;
-        }
-        
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #374151;
+        background-color: #f9fafb;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        padding: 40px 32px;
+        text-align: center;
+      }
+
+      .logo {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+      }
+
+      .header h1 {
+        color: white;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+      }
+
+      .content {
+        padding: 40px 32px;
+      }
+
+      .welcome-message {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .welcome-message h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 12px;
+      }
+
+      .welcome-message p {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+
+      .user-info {
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        padding: 24px;
+        margin: 24px 0;
+      }
+
+      .user-info h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        font-weight: 500;
+        color: #6b7280;
+      }
+
+      .info-value {
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .role-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .role-patient {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      .role-doctor {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+
+      .role-secretary {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: center;
+        margin: 24px 0;
+        transition: transform 0.2s ease;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-2px);
+      }
+
+      .cta-section {
+        text-align: center;
+        margin: 32px 0;
+      }
+
+      .features {
+        margin: 32px 0;
+      }
+
+      .feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .feature-icon {
+        width: 24px;
+        height: 24px;
+        background-color: #3b82f6;
+        border-radius: 50%;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .footer {
+        background-color: #f9fafb;
+        padding: 32px;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .footer p {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .footer a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      .security-notice {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 24px 0;
+      }
+
+      .security-notice p {
+        color: #991b1b;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      @media (max-width: 600px) {
         .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          margin: 0;
+          border-radius: 0;
         }
-        
+
         .header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            padding: 40px 32px;
-            text-align: center;
+          padding: 32px 24px;
         }
-        
-        .logo {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            margin: 0 auto 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .header h1 {
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-        }
-        
+
         .content {
-            padding: 40px 32px;
+          padding: 32px 24px;
         }
-        
-        .welcome-message {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        
-        .welcome-message h2 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 12px;
-        }
-        
-        .welcome-message p {
-            font-size: 16px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-        
-        .user-info {
-            background-color: #f3f4f6;
-            border-radius: 8px;
-            padding: 24px;
-            margin: 24px 0;
-        }
-        
-        .user-info h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 16px;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 500;
-            color: #6b7280;
-        }
-        
-        .info-value {
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .role-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .role-patient {
-            background-color: #dbeafe;
-            color: #1d4ed8;
-        }
-        
-        .role-doctor {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        
-        .role-secretary {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            text-decoration: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            text-align: center;
-            margin: 24px 0;
-            transition: transform 0.2s ease;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-        }
-        
-        .cta-section {
-            text-align: center;
-            margin: 32px 0;
-        }
-        
-        .features {
-            margin: 32px 0;
-        }
-        
-        .feature {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .feature-icon {
-            width: 24px;
-            height: 24px;
-            background-color: #3b82f6;
-            border-radius: 50%;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
+
         .footer {
-            background-color: #f9fafb;
-            padding: 32px;
-            text-align: center;
-            border-top: 1px solid #e5e7eb;
+          padding: 24px;
         }
-        
-        .footer p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
+
+        .info-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
         }
-        
-        .footer a {
-            color: #3b82f6;
-            text-decoration: none;
-        }
-        
-        .security-notice {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 24px 0;
-        }
-        
-        .security-notice p {
-            color: #991b1b;
-            font-size: 14px;
-            margin: 0;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .header {
-                padding: 32px 24px;
-            }
-            
-            .content {
-                padding: 32px 24px;
-            }
-            
-            .footer {
-                padding: 24px;
-            }
-            
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">L</div>
-            <h1>LineUp</h1>
-            <p>Plateforme médicale sécurisée</p>
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">L</div>
+        <h1>LineUp</h1>
+        <p>Plateforme médicale sécurisée</p>
+      </div>
+
+      <!-- Contenu principal -->
+      <div class="content">
+        <div class="welcome-message">
+          <h2>Bienvenue {{firstName}} ! 🎉</h2>
+          <p>Votre compte LineUp a été créé avec succès.</p>
+          <p>Vous pouvez maintenant accéder à votre espace personnel.</p>
         </div>
-        
-        <!-- Contenu principal -->
-        <div class="content">
-            <div class="welcome-message">
-                <h2>Bienvenue {{firstName}} ! 🎉</h2>
-                <p>Votre compte LineUp a été créé avec succès.</p>
-                <p>Vous pouvez maintenant accéder à votre espace personnel.</p>
-            </div>
-            
-            <!-- Informations utilisateur -->
-            <div class="user-info">
-                <h3>Informations de votre compte</h3>
-                <div class="info-row">
-                    <span class="info-label">Email :</span>
-                    <span class="info-value">{{email}}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Nom complet :</span>
-                    <span class="info-value">{{firstName}} {{lastName}}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Rôle :</span>
-                    <span class="role-badge role-{{role}}">
-                        {{#if roleLabel}}{{roleLabel}}{{else}}{{role}}{{/if}}
-                    </span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Date de création :</span>
-                    <span class="info-value">{{createdAt}}</span>
-                </div>
-            </div>
-            
-            <!-- Bouton d'action -->
-            <div class="cta-section">
-                <a href="{{loginUrl}}" class="cta-button">
-                    Accéder à mon dashboard →
-                </a>
-            </div>
-            
-            <!-- Fonctionnalités -->
-            <div class="features">
-                <h3 style="margin-bottom: 16px; color: #1f2937;">Ce que vous pouvez faire :</h3>
-                
-                {{#if isPatient}}
-                <div class="feature">
-                    <div class="feature-icon">📅</div>
-                    <span>Prendre des rendez-vous en ligne</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">👨‍⚕️</div>
-                    <span>Consulter la liste des médecins</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📋</div>
-                    <span>Suivre l'historique de vos consultations</span>
-                </div>
-                {{/if}}
-                
-                {{#if isDoctor}}
-                <div class="feature">
-                    <div class="feature-icon">🗓️</div>
-                    <span>Gérer votre planning de consultations</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">👥</div>
-                    <span>Suivre vos patients</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <span>Accéder aux statistiques de votre pratique</span>
-                </div>
-                {{/if}}
-                
-                {{#if isSecretary}}
-                <div class="feature">
-                    <div class="feature-icon">📞</div>
-                    <span>Gérer les rendez-vous de tous les médecins</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">👥</div>
-                    <span>Administrer la base de patients</span>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">⏰</div>
-                    <span>Gérer les listes d'attente</span>
-                </div>
-                {{/if}}
-            </div>
-            
-            <!-- Notice de sécurité -->
-            <div class="security-notice">
-                <p>
-                    🔒 <strong>Sécurité :</strong> Si vous n'avez pas créé ce compte, 
-                    veuillez nous contacter immédiatement à support@lineup-medical.com
-                </p>
-            </div>
+
+        <!-- Informations utilisateur -->
+        <div class="user-info">
+          <h3>Informations de votre compte</h3>
+          <div class="info-row">
+            <span class="info-label">Email :</span>
+            <span class="info-value">{{email}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nom complet :</span>
+            <span class="info-value">{{firstName}} {{lastName}}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Rôle :</span>
+            <span class="role-badge role-{{role}}">
+              {{#if roleLabel}}{{roleLabel}}{{else}}{{role}}{{/if}}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Date de création :</span>
+            <span class="info-value">{{createdAt}}</span>
+          </div>
         </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p><strong>LineUp</strong> - Plateforme médicale sécurisée</p>
-            <p>
-                <a href="{{supportUrl}}">Support technique</a> • 
-                <a href="{{privacyUrl}}">Confidentialité</a> • 
-                <a href="{{unsubscribeUrl}}">Se désabonner</a>
-            </p>
-            <p style="margin-top: 16px; font-size: 12px; color: #9ca3af;">
-                Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.
-            </p>
+
+        <!-- Bouton d'action -->
+        <div class="cta-section">
+          <a href="{{loginUrl}}" class="cta-button">
+            Accéder à mon dashboard →
+          </a>
         </div>
+
+        <!-- Fonctionnalités -->
+        <div class="features">
+          <h3 style="margin-bottom: 16px; color: #1f2937">
+            Ce que vous pouvez faire :
+          </h3>
+
+          {{#if isPatient}}
+          <div class="feature">
+            <div class="feature-icon">📅</div>
+            <span>Prendre des rendez-vous en ligne</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">👨‍⚕️</div>
+            <span>Consulter la liste des médecins</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">📋</div>
+            <span>Suivre l'historique de vos consultations</span>
+          </div>
+          {{/if}} {{#if isDoctor}}
+          <div class="feature">
+            <div class="feature-icon">🗓️</div>
+            <span>Gérer votre planning de consultations</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">👥</div>
+            <span>Suivre vos patients</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">📊</div>
+            <span>Accéder aux statistiques de votre pratique</span>
+          </div>
+          {{/if}} {{#if isSecretary}}
+          <div class="feature">
+            <div class="feature-icon">📞</div>
+            <span>Gérer les rendez-vous de tous les médecins</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">👥</div>
+            <span>Administrer la base de patients</span>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⏰</div>
+            <span>Gérer les listes d'attente</span>
+          </div>
+          {{/if}}
+        </div>
+
+        <!-- Notice de sécurité -->
+        <div class="security-notice">
+          <p>
+            🔒 <strong>Sécurité :</strong> Si vous n'avez pas créé ce compte,
+            veuillez nous contacter immédiatement à support@lineup-medical.com
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p><strong>LineUp</strong> - Plateforme médicale sécurisée</p>
+        <p>
+          <a href="{{supportUrl}}">Support technique</a> •
+          <a href="{{privacyUrl}}">Confidentialité</a> •
+          <a href="{{unsubscribeUrl}}">Se désabonner</a>
+        </p>
+        <p style="margin-top: 16px; font-size: 12px; color: #9ca3af">
+          Cet email a été envoyé automatiquement, merci de ne pas y répondre
+          directement.
+        </p>
+      </div>
     </div>
-</body>
+  </body>
 </html>
