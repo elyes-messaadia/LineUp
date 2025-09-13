@@ -5,7 +5,9 @@ export default function Layout({ children, hideTitle = false, fullscreen = false
   // Version fullscreen pour desktop (Queue page)
   if (fullscreen) {
     return (
-      <div className="min-h-screen bg-white overflow-hidden">
+      <div className="min-h-screen 
+                      bg-gradient-to-br from-primary-50 via-white to-accent-50/30
+                      overflow-hidden animate-fade-in">
         {children}
       </div>
     );
@@ -13,12 +15,15 @@ export default function Layout({ children, hideTitle = false, fullscreen = false
 
   // Version optimisée pour iPhone et anciens modèles
   return (
-    <div className="min-h-screen bg-gray-50 text-center 
+    <div className="min-h-screen 
+                    bg-gradient-to-br from-primary-50 via-white to-accent-50/30
+                    text-center 
                     px-2 xs:px-3 se:px-4 sm:px-6 
                     py-3 xs:py-4 sm:py-8 
                     flex flex-col items-center 
                     pb-safe-bottom pb-16 se:pb-18 sm:pb-20 
-                    overflow-x-hidden old-device-optimized">
+                    overflow-x-hidden old-device-optimized
+                    animate-fade-in">
       <Header hideTitle={hideTitle} />
       <main 
         className="w-full 
