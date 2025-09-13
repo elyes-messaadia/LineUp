@@ -1,16 +1,21 @@
 /**
- * 📧 Service d'Envoi d'Emails - LineUp
+ * 📧 Service d'Envoi d'Emails Sécurisé - LineUp
  *
- * Système complet pour l'envoi d'emails transactionnels
- * Supporte Gmail, Outlook, et autres providers SMTP
+ * Système complet pour l'envoi d'emails transactionnels avec templates HTML
+ * Supporte Gmail, Outlook, et autres providers SMTP avec validation et sécurité
  */
 
 const nodemailer = require("nodemailer");
-const logger = require("../utils/logger");
+const fs = require("fs").promises;
+const path = require("path");
+const crypto = require("crypto");
+const { logger } = require("../utils/logger");
+const { formatDate, formatDateTime } = require("../utils/dateUtils");
 
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.templatesCache = new Map();
     this.initializeTransporter();
   }
 
