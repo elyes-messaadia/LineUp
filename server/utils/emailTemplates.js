@@ -3,13 +3,13 @@
  * Gestion centralisée des templates HTML pour tous les types d'emails
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const Handlebars = require('handlebars');
+const fs = require("fs").promises;
+const path = require("path");
+const Handlebars = require("handlebars");
 
 class EmailTemplates {
   constructor() {
-    this.templatesPath = path.join(__dirname, '../templates');
+    this.templatesPath = path.join(__dirname, "../templates");
     this.compiledTemplates = new Map();
   }
 
@@ -22,10 +22,13 @@ class EmailTemplates {
     }
 
     try {
-      const templatePath = path.join(this.templatesPath, `${templateName}.html`);
-      const templateContent = await fs.readFile(templatePath, 'utf8');
+      const templatePath = path.join(
+        this.templatesPath,
+        `${templateName}.html`
+      );
+      const templateContent = await fs.readFile(templatePath, "utf8");
       const compiled = Handlebars.compile(templateContent);
-      
+
       this.compiledTemplates.set(templateName, compiled);
       return compiled;
     } catch (error) {
@@ -46,10 +49,10 @@ class EmailTemplates {
     // Données par défaut pour tous les templates
     const defaultData = {
       currentYear: new Date().getFullYear(),
-      appName: 'LineUp',
-      appUrl: process.env.CLIENT_URL || 'https://lineup.netlify.app',
-      supportEmail: 'support@lineup.com',
-      ...data
+      appName: "LineUp",
+      appUrl: process.env.CLIENT_URL || "https://lineup.netlify.app",
+      supportEmail: "support@lineup.com",
+      ...data,
     };
 
     return template(defaultData);
@@ -69,10 +72,10 @@ class EmailTemplates {
     try {
       const files = await fs.readdir(this.templatesPath);
       return files
-        .filter(file => file.endsWith('.html'))
-        .map(file => file.replace('.html', ''));
+        .filter((file) => file.endsWith(".html"))
+        .map((file) => file.replace(".html", ""));
     } catch (error) {
-      console.error('❌ Erreur lecture dossier templates:', error);
+      console.error("❌ Erreur lecture dossier templates:", error);
       return [];
     }
   }
@@ -87,37 +90,37 @@ class EmailTemplates {
 }
 
 // Enregistrement des helpers Handlebars personnalisés
-Handlebars.registerHelper('formatDate', function(date) {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+Handlebars.registerHelper("formatDate", function (date) {
+  return new Date(date).toLocaleDateString("fr-FR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 });
 
-Handlebars.registerHelper('formatTime', function(date) {
-  return new Date(date).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
+Handlebars.registerHelper("formatTime", function (date) {
+  return new Date(date).toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 });
 
-Handlebars.registerHelper('plural', function(count, singular, plural) {
+Handlebars.registerHelper("plural", function (count, singular, plural) {
   return count === 1 ? singular : plural;
 });
 
-Handlebars.registerHelper('eq', function(a, b) {
+Handlebars.registerHelper("eq", function (a, b) {
   return a === b;
 });
 
-Handlebars.registerHelper('gt', function(a, b) {
+Handlebars.registerHelper("gt", function (a, b) {
   return a > b;
 });
 
-Handlebars.registerHelper('currency', function(amount) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR'
+Handlebars.registerHelper("currency", function (amount) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
   }).format(amount);
 });
 
