@@ -1,96 +1,97 @@
 /**
  * 📊 Système de Logging Avancé - LineUp
- * 
+ *
  * Logging de sécurité et monitoring des activités suspectes
  */
 
-const { logger } = require('../utils/logger');
-const crypto = require('crypto');
+const { logger } = require("../utils/logger");
+const crypto = require("crypto");
 
 /**
  * Middleware de logging des requêtes avec détection d'anomalies
  */
 const securityLogger = (req, res, next) => {
   const startTime = Date.now();
-  const requestId = crypto.randomBytes(8).toString('hex');
-  
+  const requestId = crypto.randomBytes(8).toString("hex");
+
   // Ajouter l'ID de requête aux headers
   req.requestId = requestId;
-  res.set('X-Request-ID', requestId);
-  
+  res.set("X-Request-ID", requestId);
+
   // Informations de base de la requête
   const requestInfo = {
     requestId,
     method: req.method,
     url: req.originalUrl,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    referer: req.get('Referer'),
+    userAgent: req.get("User-Agent"),
+    referer: req.get("Referer"),
     timestamp: new Date().toISOString(),
     userId: req.user?.id || null,
-    userRole: req.user?.role || null
+    userRole: req.user?.role || null,
   };
-  
+
   // Détecter les patterns suspects
   const suspiciousPatterns = detectSuspiciousActivity(req);
   if (suspiciousPatterns.length > 0) {
-    logger.warn('Suspicious activity detected', {
+    logger.warn("Suspicious activity detected", {
       ...requestInfo,
       suspiciousPatterns,
-      severity: 'HIGH'
+      severity: "HIGH",
     });
   }
-  
+
   // Logger la requête entrante
-  logger.info('Incoming request', requestInfo);
-  
+  logger.info("Incoming request", requestInfo);
+
   // Intercepter la réponse
   const originalSend = res.send;
-  res.send = function(data) {
+  res.send = function (data) {
     const duration = Date.now() - startTime;
-    const responseSize = Buffer.byteLength(data || '');
-    
+    const responseSize = Buffer.byteLength(data || "");
+
     // Informations de réponse
     const responseInfo = {
       requestId,
       statusCode: res.statusCode,
       duration,
       responseSize,
-      contentType: res.get('Content-Type')
+      contentType: res.get("Content-Type"),
     };
-    
+
     // Logger selon le statut
     if (res.statusCode >= 500) {
-      logger.error('Server error response', {
+      logger.error("Server error response", {
         ...requestInfo,
         ...responseInfo,
-        severity: 'CRITICAL'
+        severity: "CRITICAL",
       });
     } else if (res.statusCode >= 400) {
-      logger.warn('Client error response', {
+      logger.warn("Client error response", {
         ...requestInfo,
         ...responseInfo,
-        severity: 'MEDIUM'
+        severity: "MEDIUM",
       });
     } else {
-      logger.info('Successful response', {
-        ...requestInfo,
-        ...responseInfo
-      });
-    }
-    
-    // Analyser les réponses lentes
-    if (duration > 5000) { // Plus de 5 secondes
-      logger.warn('Slow response detected', {
+      logger.info("Successful response", {
         ...requestInfo,
         ...responseInfo,
-        severity: 'MEDIUM'
       });
     }
-    
+
+    // Analyser les réponses lentes
+    if (duration > 5000) {
+      // Plus de 5 secondes
+      logger.warn("Slow response detected", {
+        ...requestInfo,
+        ...responseInfo,
+        severity: "MEDIUM",
+      });
+    }
+
     return originalSend.call(this, data);
   };
-  
+
   next();
 };
 
@@ -100,29 +101,29 @@ const securityLogger = (req, res, next) => {
 const detectSuspiciousActivity = (req) => {
   const patterns = [];
   const url = req.originalUrl.toLowerCase();
-  const userAgent = req.get('User-Agent') || '';
+  const userAgent = req.get("User-Agent") || "";
   const method = req.method;
-  
+
   // Tentatives d'accès à des fichiers système
   const systemFilePaths = [
-    '/etc/passwd',
-    '/etc/shadow',
-    '/proc/',
-    '/sys/',
-    '/.env',
-    '/config/',
-    '/admin/',
-    '/.git/',
-    '/.ssh/',
-    '/backup/',
-    '/db/',
-    '/database/'
+    "/etc/passwd",
+    "/etc/shadow",
+    "/proc/",
+    "/sys/",
+    "/.env",
+    "/config/",
+    "/admin/",
+    "/.git/",
+    "/.ssh/",
+    "/backup/",
+    "/db/",
+    "/database/",
   ];
-  
-  if (systemFilePaths.some(path => url.includes(path))) {
-    patterns.push('SYSTEM_FILE_ACCESS');
+
+  if (systemFilePaths.some((path) => url.includes(path))) {
+    patterns.push("SYSTEM_FILE_ACCESS");
   }
-  
+
   // Tentatives d'injection SQL
   const sqlInjectionPatterns = [
     /union.*select/i,
@@ -133,14 +134,14 @@ const detectSuspiciousActivity = (req) => {
     /exec.*sp_/i,
     /--/,
     /;.*--/,
-    /'.*or.*'.*=/i
+    /'.*or.*'.*=/i,
   ];
-  
+
   const queryString = JSON.stringify(req.query) + JSON.stringify(req.body);
-  if (sqlInjectionPatterns.some(pattern => pattern.test(queryString))) {
-    patterns.push('SQL_INJECTION_ATTEMPT');
+  if (sqlInjectionPatterns.some((pattern) => pattern.test(queryString))) {
+    patterns.push("SQL_INJECTION_ATTEMPT");
   }
-  
+
   // Tentatives XSS
   const xssPatterns = [
     /<script/i,
@@ -152,26 +153,26 @@ const detectSuspiciousActivity = (req) => {
     /eval\(/i,
     /alert\(/i,
     /document\.cookie/i,
-    /window\.location/i
+    /window\.location/i,
   ];
-  
-  if (xssPatterns.some(pattern => pattern.test(queryString + url))) {
-    patterns.push('XSS_ATTEMPT');
+
+  if (xssPatterns.some((pattern) => pattern.test(queryString + url))) {
+    patterns.push("XSS_ATTEMPT");
   }
-  
+
   // Directory traversal
   const traversalPatterns = [
     /\.\.\//,
     /\.\.%2f/i,
     /\.\.%5c/i,
     /%2e%2e%2f/i,
-    /%2e%2e%5c/i
+    /%2e%2e%5c/i,
   ];
-  
-  if (traversalPatterns.some(pattern => pattern.test(url))) {
-    patterns.push('DIRECTORY_TRAVERSAL');
+
+  if (traversalPatterns.some((pattern) => pattern.test(url))) {
+    patterns.push("DIRECTORY_TRAVERSAL");
   }
-  
+
   // Scans de ports/vulnérabilités
   const scanPatterns = [
     /nmap/i,
@@ -181,25 +182,33 @@ const detectSuspiciousActivity = (req) => {
     /dirb/i,
     /gobuster/i,
     /wfuzz/i,
-    /masscan/i
+    /masscan/i,
   ];
-  
-  if (scanPatterns.some(pattern => pattern.test(userAgent))) {
-    patterns.push('VULNERABILITY_SCAN');
+
+  if (scanPatterns.some((pattern) => pattern.test(userAgent))) {
+    patterns.push("VULNERABILITY_SCAN");
   }
-  
+
   // Tentatives de force brute
-  if (url.includes('/login') || url.includes('/auth')) {
+  if (url.includes("/login") || url.includes("/auth")) {
     // Cette logique sera améliorée avec un système de compteurs
-    patterns.push('POTENTIAL_BRUTE_FORCE');
+    patterns.push("POTENTIAL_BRUTE_FORCE");
   }
-  
+
   // Méthodes HTTP non autorisées
-  const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
+  const allowedMethods = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS",
+    "HEAD",
+  ];
   if (!allowedMethods.includes(method)) {
-    patterns.push('UNAUTHORIZED_HTTP_METHOD');
+    patterns.push("UNAUTHORIZED_HTTP_METHOD");
   }
-  
+
   // User-Agents suspects
   const botPatterns = [
     /bot/i,
@@ -209,30 +218,32 @@ const detectSuspiciousActivity = (req) => {
     /curl/i,
     /wget/i,
     /python-requests/i,
-    /go-http-client/i
+    /go-http-client/i,
   ];
-  
-  if (botPatterns.some(pattern => pattern.test(userAgent)) && 
-      !userAgent.match(/(google|bing|yahoo|duckduck)bot/i)) {
-    patterns.push('SUSPICIOUS_USER_AGENT');
+
+  if (
+    botPatterns.some((pattern) => pattern.test(userAgent)) &&
+    !userAgent.match(/(google|bing|yahoo|duckduck)bot/i)
+  ) {
+    patterns.push("SUSPICIOUS_USER_AGENT");
   }
-  
+
   // Referer suspect
-  const referer = req.get('Referer');
-  if (referer && !referer.includes(req.get('Host'))) {
+  const referer = req.get("Referer");
+  if (referer && !referer.includes(req.get("Host"))) {
     const suspiciousDomains = [
-      'malware',
-      'phishing',
-      'spam',
-      'hack',
-      'exploit'
+      "malware",
+      "phishing",
+      "spam",
+      "hack",
+      "exploit",
     ];
-    
-    if (suspiciousDomains.some(domain => referer.includes(domain))) {
-      patterns.push('SUSPICIOUS_REFERER');
+
+    if (suspiciousDomains.some((domain) => referer.includes(domain))) {
+      patterns.push("SUSPICIOUS_REFERER");
     }
   }
-  
+
   return patterns;
 };
 
@@ -244,41 +255,50 @@ const authLogger = (event, req, data = {}) => {
     event,
     requestId: req.requestId,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
+    userAgent: req.get("User-Agent"),
     timestamp: new Date().toISOString(),
-    ...data
+    ...data,
   };
-  
+
   switch (event) {
-    case 'LOGIN_SUCCESS':
-      logger.info('User login successful', logData);
+    case "LOGIN_SUCCESS":
+      logger.info("User login successful", logData);
       break;
-    case 'LOGIN_FAILURE':
-      logger.warn('User login failed', { ...logData, severity: 'MEDIUM' });
+    case "LOGIN_FAILURE":
+      logger.warn("User login failed", { ...logData, severity: "MEDIUM" });
       break;
-    case 'REGISTER_SUCCESS':
-      logger.info('User registration successful', logData);
+    case "REGISTER_SUCCESS":
+      logger.info("User registration successful", logData);
       break;
-    case 'REGISTER_FAILURE':
-      logger.warn('User registration failed', { ...logData, severity: 'MEDIUM' });
+    case "REGISTER_FAILURE":
+      logger.warn("User registration failed", {
+        ...logData,
+        severity: "MEDIUM",
+      });
       break;
-    case 'LOGOUT':
-      logger.info('User logout', logData);
+    case "LOGOUT":
+      logger.info("User logout", logData);
       break;
-    case 'PASSWORD_RESET_REQUEST':
-      logger.info('Password reset requested', logData);
+    case "PASSWORD_RESET_REQUEST":
+      logger.info("Password reset requested", logData);
       break;
-    case 'PASSWORD_RESET_SUCCESS':
-      logger.info('Password reset successful', logData);
+    case "PASSWORD_RESET_SUCCESS":
+      logger.info("Password reset successful", logData);
       break;
-    case 'ACCOUNT_LOCKED':
-      logger.warn('Account locked due to failed attempts', { ...logData, severity: 'HIGH' });
+    case "ACCOUNT_LOCKED":
+      logger.warn("Account locked due to failed attempts", {
+        ...logData,
+        severity: "HIGH",
+      });
       break;
-    case 'SUSPICIOUS_LOGIN':
-      logger.warn('Suspicious login attempt detected', { ...logData, severity: 'HIGH' });
+    case "SUSPICIOUS_LOGIN":
+      logger.warn("Suspicious login attempt detected", {
+        ...logData,
+        severity: "HIGH",
+      });
       break;
     default:
-      logger.info('Authentication event', logData);
+      logger.info("Authentication event", logData);
   }
 };
 
@@ -293,32 +313,32 @@ const adminLogger = (action, req, data = {}) => {
     adminEmail: req.user?.email,
     ip: req.ip,
     timestamp: new Date().toISOString(),
-    ...data
+    ...data,
   };
-  
-  logger.warn('Administrative action performed', { 
-    ...logData, 
-    severity: 'HIGH',
-    category: 'ADMIN_ACTION'
+
+  logger.warn("Administrative action performed", {
+    ...logData,
+    severity: "HIGH",
+    category: "ADMIN_ACTION",
   });
 };
 
 /**
  * Logger pour les erreurs de sécurité
  */
-const securityErrorLogger = (error, req, severity = 'MEDIUM') => {
-  logger.error('Security error occurred', {
+const securityErrorLogger = (error, req, severity = "MEDIUM") => {
+  logger.error("Security error occurred", {
     error: error.message,
     stack: error.stack,
     requestId: req.requestId,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
+    userAgent: req.get("User-Agent"),
     url: req.originalUrl,
     method: req.method,
     userId: req.user?.id,
     timestamp: new Date().toISOString(),
     severity,
-    category: 'SECURITY_ERROR'
+    category: "SECURITY_ERROR",
   });
 };
 
@@ -326,26 +346,26 @@ const securityErrorLogger = (error, req, severity = 'MEDIUM') => {
  * Middleware pour logger les changements de données sensibles
  */
 const dataChangeLogger = (req, res, next) => {
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
     const originalSend = res.send;
-    
-    res.send = function(data) {
+
+    res.send = function (data) {
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        logger.info('Data modification successful', {
+        logger.info("Data modification successful", {
           requestId: req.requestId,
           method: req.method,
           url: req.originalUrl,
           userId: req.user?.id,
           userRole: req.user?.role,
           timestamp: new Date().toISOString(),
-          category: 'DATA_CHANGE'
+          category: "DATA_CHANGE",
         });
       }
-      
+
       return originalSend.call(this, data);
     };
   }
-  
+
   next();
 };
 
@@ -357,66 +377,76 @@ const alertSystem = {
   thresholds: {
     FAILED_LOGINS_PER_IP: 10,
     REQUESTS_PER_MINUTE: 300,
-    ERROR_RATE_THRESHOLD: 0.1 // 10%
+    ERROR_RATE_THRESHOLD: 0.1, // 10%
   },
-  
+
   // Compteurs en mémoire (à remplacer par Redis en production)
   counters: new Map(),
-  
+
   // Vérifier les seuils et déclencher des alertes
   checkThresholds(req, event) {
     const ip = req.ip;
     const minute = Math.floor(Date.now() / 60000);
     const key = `${ip}:${minute}`;
-    
+
     if (!this.counters.has(key)) {
       this.counters.set(key, { requests: 0, errors: 0, failedLogins: 0 });
     }
-    
+
     const counter = this.counters.get(key);
     counter.requests++;
-    
-    if (event === 'ERROR') counter.errors++;
-    if (event === 'FAILED_LOGIN') counter.failedLogins++;
-    
+
+    if (event === "ERROR") counter.errors++;
+    if (event === "FAILED_LOGIN") counter.failedLogins++;
+
     // Vérifier les seuils
     if (counter.requests > this.thresholds.REQUESTS_PER_MINUTE) {
-      this.triggerAlert('HIGH_REQUEST_RATE', { ip, requests: counter.requests });
+      this.triggerAlert("HIGH_REQUEST_RATE", {
+        ip,
+        requests: counter.requests,
+      });
     }
-    
+
     if (counter.failedLogins > this.thresholds.FAILED_LOGINS_PER_IP) {
-      this.triggerAlert('BRUTE_FORCE_DETECTED', { ip, failedLogins: counter.failedLogins });
+      this.triggerAlert("BRUTE_FORCE_DETECTED", {
+        ip,
+        failedLogins: counter.failedLogins,
+      });
     }
-    
+
     const errorRate = counter.errors / counter.requests;
-    if (errorRate > this.thresholds.ERROR_RATE_THRESHOLD && counter.requests > 10) {
-      this.triggerAlert('HIGH_ERROR_RATE', { ip, errorRate });
+    if (
+      errorRate > this.thresholds.ERROR_RATE_THRESHOLD &&
+      counter.requests > 10
+    ) {
+      this.triggerAlert("HIGH_ERROR_RATE", { ip, errorRate });
     }
   },
-  
+
   // Déclencher une alerte
   triggerAlert(type, data) {
-    logger.error('Security alert triggered', {
+    logger.error("Security alert triggered", {
       alertType: type,
       ...data,
       timestamp: new Date().toISOString(),
-      severity: 'CRITICAL',
-      category: 'SECURITY_ALERT'
+      severity: "CRITICAL",
+      category: "SECURITY_ALERT",
     });
-    
+
     // Ici, on pourrait envoyer des notifications par email, Slack, etc.
   },
-  
+
   // Nettoyage périodique des compteurs
   cleanup() {
     const now = Math.floor(Date.now() / 60000);
     for (const [key] of this.counters) {
-      const [, minute] = key.split(':');
-      if (now - parseInt(minute) > 10) { // Garder 10 minutes
+      const [, minute] = key.split(":");
+      if (now - parseInt(minute) > 10) {
+        // Garder 10 minutes
         this.counters.delete(key);
       }
     }
-  }
+  },
 };
 
 // Nettoyage toutes les minutes
@@ -429,5 +459,5 @@ module.exports = {
   securityErrorLogger,
   dataChangeLogger,
   detectSuspiciousActivity,
-  alertSystem
+  alertSystem,
 };

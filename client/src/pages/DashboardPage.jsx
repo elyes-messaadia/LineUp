@@ -1,15 +1,15 @@
 /**
  * 🎯 Dashboard Principal - LineUp
- * 
+ *
  * Composant qui route vers le bon dashboard selon le rôle de l'utilisateur
  */
 
-import { useAuth } from '../contexts/AuthContext';
-import { LoadingSpinner, ErrorFeedback } from '../components/ui/UXComponents';
-import PatientDashboard from '../components/dashboards/PatientDashboard';
-import DoctorDashboard from '../components/dashboards/DoctorDashboard';
-import SecretaryDashboard from '../components/dashboards/SecretaryDashboard';
-import Icon from '../components/ui/Icon';
+import { useAuth } from "../contexts/AuthContext";
+import { LoadingSpinner, ErrorFeedback } from "../components/ui/UXComponents";
+import PatientDashboard from "../components/dashboards/PatientDashboard";
+import DoctorDashboard from "../components/dashboards/DoctorDashboard";
+import SecretaryDashboard from "../components/dashboards/SecretaryDashboard";
+import Icon from "../components/ui/Icon";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -17,11 +17,15 @@ export default function DashboardPage() {
   // Chargement
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
-                      flex items-center justify-center">
+      <div
+        className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
+                      flex items-center justify-center"
+      >
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-secondary-600">Chargement de votre dashboard...</p>
+          <p className="mt-4 text-secondary-600">
+            Chargement de votre dashboard...
+          </p>
         </div>
       </div>
     );
@@ -30,8 +34,10 @@ export default function DashboardPage() {
   // Utilisateur non connecté
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
-                      flex items-center justify-center p-4">
+      <div
+        className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
+                      flex items-center justify-center p-4"
+      >
         <div className="text-center">
           <div className="w-16 h-16 bg-error-100 rounded-full mx-auto mb-4 flex items-center justify-center">
             <Icon name="warning" size="lg" className="text-error-600" />
@@ -42,9 +48,9 @@ export default function DashboardPage() {
           <p className="text-secondary-600 mb-6">
             Vous devez être connecté pour accéder à cette page.
           </p>
-          <ErrorFeedback 
+          <ErrorFeedback
             message="Veuillez vous connecter pour continuer."
-            onClose={() => window.location.href = '/login'}
+            onClose={() => (window.location.href = "/login")}
             actionLabel="Se connecter"
           />
         </div>
@@ -69,9 +75,12 @@ export default function DashboardPage() {
                   LineUp
                 </h1>
                 <p className="text-xs text-secondary-600">
-                  Dashboard {user.role === 'docteur' ? 'Médecin' : 
-                           user.role === 'secretaire' ? 'Secrétaire' : 
-                           'Patient'}
+                  Dashboard{" "}
+                  {user.role === "docteur"
+                    ? "Médecin"
+                    : user.role === "secretaire"
+                    ? "Secrétaire"
+                    : "Patient"}
                 </p>
               </div>
             </div>
@@ -79,11 +88,15 @@ export default function DashboardPage() {
             {/* Informations utilisateur */}
             <div className="flex items-center gap-4">
               {/* Notifications (placeholder) */}
-              <button className="relative p-2 text-secondary-600 hover:text-secondary-800 
-                               hover:bg-secondary-100 rounded-lg transition-colors duration-200">
+              <button
+                className="relative p-2 text-secondary-600 hover:text-secondary-800 
+                               hover:bg-secondary-100 rounded-lg transition-colors duration-200"
+              >
                 <Icon name="notification" size="sm" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 
-                               rounded-full text-xs flex items-center justify-center">
+                <span
+                  className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 
+                               rounded-full text-xs flex items-center justify-center"
+                >
                   <span className="sr-only">Nouvelles notifications</span>
                 </span>
               </button>
@@ -91,12 +104,16 @@ export default function DashboardPage() {
               {/* Profil utilisateur */}
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                  <Icon 
-                    name={user.role === 'docteur' ? 'doctor' : 
-                          user.role === 'secretaire' ? 'secretary' : 
-                          'patient'} 
-                    size="sm" 
-                    className="text-primary-600" 
+                  <Icon
+                    name={
+                      user.role === "docteur"
+                        ? "doctor"
+                        : user.role === "secretaire"
+                        ? "secretary"
+                        : "patient"
+                    }
+                    size="sm"
+                    className="text-primary-600"
                   />
                 </div>
                 <div className="hidden sm:block">
@@ -104,16 +121,20 @@ export default function DashboardPage() {
                     {user.firstName} {user.lastName}
                   </p>
                   <p className="text-xs text-secondary-600">
-                    {user.role === 'docteur' ? 'Médecin' : 
-                     user.role === 'secretaire' ? 'Secrétaire' : 
-                     'Patient'}
+                    {user.role === "docteur"
+                      ? "Médecin"
+                      : user.role === "secretaire"
+                      ? "Secrétaire"
+                      : "Patient"}
                   </p>
                 </div>
               </div>
 
               {/* Menu utilisateur */}
-              <button className="p-2 text-secondary-600 hover:text-secondary-800 
-                               hover:bg-secondary-100 rounded-lg transition-colors duration-200">
+              <button
+                className="p-2 text-secondary-600 hover:text-secondary-800 
+                               hover:bg-secondary-100 rounded-lg transition-colors duration-200"
+              >
                 <Icon name="settings" size="sm" />
               </button>
             </div>
@@ -124,12 +145,12 @@ export default function DashboardPage() {
       {/* Contenu principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Rendu conditionnel selon le rôle */}
-        {user.role === 'patient' && <PatientDashboard />}
-        {user.role === 'docteur' && <DoctorDashboard />}
-        {user.role === 'secretaire' && <SecretaryDashboard />}
-        
+        {user.role === "patient" && <PatientDashboard />}
+        {user.role === "docteur" && <DoctorDashboard />}
+        {user.role === "secretaire" && <SecretaryDashboard />}
+
         {/* Rôle non reconnu */}
-        {!['patient', 'docteur', 'secretaire'].includes(user.role) && (
+        {!["patient", "docteur", "secretaire"].includes(user.role) && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-warning-100 rounded-full mx-auto mb-4 flex items-center justify-center">
               <Icon name="warning" size="lg" className="text-warning-600" />
@@ -138,11 +159,10 @@ export default function DashboardPage() {
               Rôle non reconnu
             </h2>
             <p className="text-secondary-600 mb-6">
-              Votre rôle "{user.role}" n'est pas pris en charge par cette version de l'application.
+              Votre rôle "{user.role}" n'est pas pris en charge par cette
+              version de l'application.
             </p>
-            <ErrorFeedback 
-              message="Contactez l'administrateur pour résoudre ce problème."
-            />
+            <ErrorFeedback message="Contactez l'administrateur pour résoudre ce problème." />
           </div>
         )}
       </main>

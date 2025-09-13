@@ -1,21 +1,40 @@
 /**
  * 📝 Page d'Inscription Moderne - LineUp
- * 
+ *
  * Interface sécurisée avec validation en temps réel et design harmonisé
  */
 
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useFormValidation } from '../utils/validation';
-import { PrimaryButton, SecondaryButton } from '../components/ui/Button';
-import Icon from '../components/ui/Icon';
-import { LoadingSpinner, ErrorFeedback, SuccessFeedback } from '../components/ui/UXComponents';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useFormValidation } from "../utils/validation";
+import { PrimaryButton, SecondaryButton } from "../components/ui/Button";
+import Icon from "../components/ui/Icon";
+import {
+  LoadingSpinner,
+  ErrorFeedback,
+  SuccessFeedback,
+} from "../components/ui/UXComponents";
 
 const ROLES = [
-  { value: 'patient', label: 'Patient', icon: 'patient', description: 'Prendre des rendez-vous' },
-  { value: 'docteur', label: 'Médecin', icon: 'doctor', description: 'Gérer les consultations' },
-  { value: 'secretaire', label: 'Secrétaire', icon: 'secretary', description: 'Administrer les rendez-vous' }
+  {
+    value: "patient",
+    label: "Patient",
+    icon: "patient",
+    description: "Prendre des rendez-vous",
+  },
+  {
+    value: "docteur",
+    label: "Médecin",
+    icon: "doctor",
+    description: "Gérer les consultations",
+  },
+  {
+    value: "secretaire",
+    label: "Secrétaire",
+    icon: "secretary",
+    description: "Administrer les rendez-vous",
+  },
 ];
 
 export default function RegisterPage() {
@@ -38,24 +57,32 @@ export default function RegisterPage() {
     handleBlur,
     validateAll,
     getFieldProps,
-    isValid
+    isValid,
   } = useFormValidation(
-    { 
-      email: '', 
-      password: '', 
-      confirmPassword: '',
-      firstName: '', 
-      lastName: '', 
-      phone: '',
-      role: 'patient'
+    {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      role: "patient",
     },
-    ['email', 'password', 'confirmPassword', 'firstName', 'lastName', 'phone', 'role']
+    [
+      "email",
+      "password",
+      "confirmPassword",
+      "firstName",
+      "lastName",
+      "phone",
+      "role",
+    ]
   );
 
   // Redirection si déjà connecté
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -63,18 +90,27 @@ export default function RegisterPage() {
   const validateStep = (step) => {
     switch (step) {
       case 1:
-        return ['email', 'password', 'confirmPassword'].every(field => 
-          !errors[field] || errors[field].length === 0
-        ) && values.email && values.password && values.confirmPassword;
-      
+        return (
+          ["email", "password", "confirmPassword"].every(
+            (field) => !errors[field] || errors[field].length === 0
+          ) &&
+          values.email &&
+          values.password &&
+          values.confirmPassword
+        );
+
       case 2:
-        return ['firstName', 'lastName'].every(field => 
-          !errors[field] || errors[field].length === 0
-        ) && values.firstName && values.lastName;
-      
+        return (
+          ["firstName", "lastName"].every(
+            (field) => !errors[field] || errors[field].length === 0
+          ) &&
+          values.firstName &&
+          values.lastName
+        );
+
       case 3:
         return values.role && agreedToTerms;
-      
+
       default:
         return false;
     }
@@ -96,11 +132,11 @@ export default function RegisterPage() {
   // Soumission du formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateAll() || !isValid || !agreedToTerms) {
       setFeedback({
-        type: 'error',
-        message: 'Veuillez corriger les erreurs et accepter les conditions.'
+        type: "error",
+        message: "Veuillez corriger les erreurs et accepter les conditions.",
       });
       return;
     }
@@ -115,34 +151,36 @@ export default function RegisterPage() {
         firstName: values.firstName,
         lastName: values.lastName,
         phone: values.phone || undefined,
-        role: values.role
+        role: values.role,
       };
 
       const result = await register(registrationData);
-      
+
       if (result.success) {
         setFeedback({
-          type: 'success',
-          message: 'Inscription réussie ! Vérifiez votre email pour activer votre compte.'
+          type: "success",
+          message:
+            "Inscription réussie ! Vérifiez votre email pour activer votre compte.",
         });
-        
+
         setTimeout(() => {
-          navigate('/login', { 
-            state: { 
-              message: 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.' 
-            }
+          navigate("/login", {
+            state: {
+              message:
+                "Compte créé avec succès ! Vous pouvez maintenant vous connecter.",
+            },
           });
         }, 3000);
       } else {
         setFeedback({
-          type: 'error',
-          message: result.message || 'Erreur lors de l\'inscription.'
+          type: "error",
+          message: result.message || "Erreur lors de l'inscription.",
         });
       }
     } catch (error) {
       setFeedback({
-        type: 'error',
-        message: 'Erreur de connexion. Vérifiez votre connexion internet.'
+        type: "error",
+        message: "Erreur de connexion. Vérifiez votre connexion internet.",
       });
     } finally {
       setIsSubmitting(false);
@@ -153,20 +191,21 @@ export default function RegisterPage() {
   const progressPercentage = (currentStep / 3) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
-                    flex items-center justify-center p-4 animate-fade-in">
-      
+    <div
+      className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50/30 
+                    flex items-center justify-center p-4 animate-fade-in"
+    >
       {/* Feedback Messages */}
       {feedback && (
         <div className="fixed top-4 right-4 z-50">
-          {feedback.type === 'success' ? (
-            <SuccessFeedback 
+          {feedback.type === "success" ? (
+            <SuccessFeedback
               message={feedback.message}
               onClose={() => setFeedback(null)}
               autoClose={false}
             />
           ) : (
-            <ErrorFeedback 
+            <ErrorFeedback
               message={feedback.message}
               onClose={() => setFeedback(null)}
             />
@@ -177,8 +216,10 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 animate-slide-up">
-          <div className="inline-flex items-center justify-center w-16 h-16 
-                          bg-accent-500 rounded-full mb-4 shadow-accessible">
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 
+                          bg-accent-500 rounded-full mb-4 shadow-accessible"
+          >
             <Icon name="add" size="xl" className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-secondary-800 mb-2">
@@ -192,18 +233,24 @@ export default function RegisterPage() {
         {/* Barre de progression */}
         <div className="mb-6">
           <div className="flex justify-between text-xs text-secondary-600 mb-2">
-            <span className={currentStep >= 1 ? 'text-primary-600 font-medium' : ''}>
+            <span
+              className={currentStep >= 1 ? "text-primary-600 font-medium" : ""}
+            >
               Sécurité
             </span>
-            <span className={currentStep >= 2 ? 'text-primary-600 font-medium' : ''}>
+            <span
+              className={currentStep >= 2 ? "text-primary-600 font-medium" : ""}
+            >
               Identité
             </span>
-            <span className={currentStep >= 3 ? 'text-primary-600 font-medium' : ''}>
+            <span
+              className={currentStep >= 3 ? "text-primary-600 font-medium" : ""}
+            >
               Rôle
             </span>
           </div>
           <div className="w-full bg-secondary-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-primary-500 h-2 rounded-full transition-all duration-500 ease-smooth"
               style={{ width: `${progressPercentage}%` }}
             />
@@ -211,9 +258,10 @@ export default function RegisterPage() {
         </div>
 
         {/* Formulaire */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-accessible 
-                        border border-secondary-200 p-6 animate-scale-in">
-          
+        <div
+          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-accessible 
+                        border border-secondary-200 p-6 animate-scale-in"
+        >
           <form onSubmit={handleSubmit}>
             {/* Étape 1: Sécurité */}
             {currentStep === 1 && (
@@ -230,7 +278,10 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="email" size="sm" className="inline mr-2" />
                     Adresse email *
                   </label>
@@ -242,44 +293,49 @@ export default function RegisterPage() {
                       w-full px-4 py-3 rounded-lg border transition-all duration-300
                       focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                       disabled:bg-secondary-50 disabled:cursor-not-allowed
-                      ${getFieldProps('email').error ? 
-                        'border-error-300 bg-error-50' : 
-                        'border-secondary-300 hover:border-secondary-400'
+                      ${
+                        getFieldProps("email").error
+                          ? "border-error-300 bg-error-50"
+                          : "border-secondary-300 hover:border-secondary-400"
                       }
                     `}
                     placeholder="votre@email.com"
-                    {...getFieldProps('email')}
+                    {...getFieldProps("email")}
                   />
-                  {getFieldProps('email').helperText && (
+                  {getFieldProps("email").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('email').helperText}
+                      {getFieldProps("email").helperText}
                     </p>
                   )}
                 </div>
 
                 {/* Mot de passe */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="lock" size="sm" className="inline mr-2" />
                     Mot de passe *
                   </label>
                   <div className="relative">
                     <input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       disabled={isSubmitting}
                       className={`
                         w-full px-4 py-3 pr-12 rounded-lg border transition-all duration-300
                         focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                         disabled:bg-secondary-50 disabled:cursor-not-allowed
-                        ${getFieldProps('password').error ? 
-                          'border-error-300 bg-error-50' : 
-                          'border-secondary-300 hover:border-secondary-400'
+                        ${
+                          getFieldProps("password").error
+                            ? "border-error-300 bg-error-50"
+                            : "border-secondary-300 hover:border-secondary-400"
                         }
                       `}
                       placeholder="••••••••"
-                      {...getFieldProps('password')}
+                      {...getFieldProps("password")}
                     />
                     <button
                       type="button"
@@ -289,55 +345,64 @@ export default function RegisterPage() {
                                text-secondary-500 hover:text-secondary-700
                                transition-colors duration-200 disabled:opacity-50"
                     >
-                      <Icon name={showPassword ? 'unlock' : 'lock'} size="sm" />
+                      <Icon name={showPassword ? "unlock" : "lock"} size="sm" />
                     </button>
                   </div>
-                  {getFieldProps('password').helperText && (
+                  {getFieldProps("password").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('password').helperText}
+                      {getFieldProps("password").helperText}
                     </p>
                   )}
                 </div>
 
                 {/* Confirmation mot de passe */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="lock" size="sm" className="inline mr-2" />
                     Confirmer le mot de passe *
                   </label>
                   <div className="relative">
                     <input
                       id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       disabled={isSubmitting}
                       className={`
                         w-full px-4 py-3 pr-12 rounded-lg border transition-all duration-300
                         focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                         disabled:bg-secondary-50 disabled:cursor-not-allowed
-                        ${getFieldProps('confirmPassword').error ? 
-                          'border-error-300 bg-error-50' : 
-                          'border-secondary-300 hover:border-secondary-400'
+                        ${
+                          getFieldProps("confirmPassword").error
+                            ? "border-error-300 bg-error-50"
+                            : "border-secondary-300 hover:border-secondary-400"
                         }
                       `}
                       placeholder="••••••••"
-                      {...getFieldProps('confirmPassword')}
+                      {...getFieldProps("confirmPassword")}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       disabled={isSubmitting}
                       className="absolute right-3 top-1/2 -translate-y-1/2 
                                text-secondary-500 hover:text-secondary-700
                                transition-colors duration-200 disabled:opacity-50"
                     >
-                      <Icon name={showConfirmPassword ? 'unlock' : 'lock'} size="sm" />
+                      <Icon
+                        name={showConfirmPassword ? "unlock" : "lock"}
+                        size="sm"
+                      />
                     </button>
                   </div>
-                  {getFieldProps('confirmPassword').helperText && (
+                  {getFieldProps("confirmPassword").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('confirmPassword').helperText}
+                      {getFieldProps("confirmPassword").helperText}
                     </p>
                   )}
                 </div>
@@ -353,13 +418,17 @@ export default function RegisterPage() {
                     Vos informations personnelles
                   </h2>
                   <p className="text-sm text-secondary-600">
-                    Ces informations nous aident à personnaliser votre expérience
+                    Ces informations nous aident à personnaliser votre
+                    expérience
                   </p>
                 </div>
 
                 {/* Prénom */}
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="user" size="sm" className="inline mr-2" />
                     Prénom *
                   </label>
@@ -371,25 +440,29 @@ export default function RegisterPage() {
                       w-full px-4 py-3 rounded-lg border transition-all duration-300
                       focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                       disabled:bg-secondary-50 disabled:cursor-not-allowed
-                      ${getFieldProps('firstName').error ? 
-                        'border-error-300 bg-error-50' : 
-                        'border-secondary-300 hover:border-secondary-400'
+                      ${
+                        getFieldProps("firstName").error
+                          ? "border-error-300 bg-error-50"
+                          : "border-secondary-300 hover:border-secondary-400"
                       }
                     `}
                     placeholder="Jean"
-                    {...getFieldProps('firstName')}
+                    {...getFieldProps("firstName")}
                   />
-                  {getFieldProps('firstName').helperText && (
+                  {getFieldProps("firstName").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('firstName').helperText}
+                      {getFieldProps("firstName").helperText}
                     </p>
                   )}
                 </div>
 
                 {/* Nom */}
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="user" size="sm" className="inline mr-2" />
                     Nom *
                   </label>
@@ -401,25 +474,29 @@ export default function RegisterPage() {
                       w-full px-4 py-3 rounded-lg border transition-all duration-300
                       focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                       disabled:bg-secondary-50 disabled:cursor-not-allowed
-                      ${getFieldProps('lastName').error ? 
-                        'border-error-300 bg-error-50' : 
-                        'border-secondary-300 hover:border-secondary-400'
+                      ${
+                        getFieldProps("lastName").error
+                          ? "border-error-300 bg-error-50"
+                          : "border-secondary-300 hover:border-secondary-400"
                       }
                     `}
                     placeholder="Dupont"
-                    {...getFieldProps('lastName')}
+                    {...getFieldProps("lastName")}
                   />
-                  {getFieldProps('lastName').helperText && (
+                  {getFieldProps("lastName").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('lastName').helperText}
+                      {getFieldProps("lastName").helperText}
                     </p>
                   )}
                 </div>
 
                 {/* Téléphone */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-secondary-700 mb-2"
+                  >
                     <Icon name="phone" size="sm" className="inline mr-2" />
                     Téléphone (optionnel)
                   </label>
@@ -431,18 +508,19 @@ export default function RegisterPage() {
                       w-full px-4 py-3 rounded-lg border transition-all duration-300
                       focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
                       disabled:bg-secondary-50 disabled:cursor-not-allowed
-                      ${getFieldProps('phone').error ? 
-                        'border-error-300 bg-error-50' : 
-                        'border-secondary-300 hover:border-secondary-400'
+                      ${
+                        getFieldProps("phone").error
+                          ? "border-error-300 bg-error-50"
+                          : "border-secondary-300 hover:border-secondary-400"
                       }
                     `}
                     placeholder="06 12 34 56 78"
-                    {...getFieldProps('phone')}
+                    {...getFieldProps("phone")}
                   />
-                  {getFieldProps('phone').helperText && (
+                  {getFieldProps("phone").helperText && (
                     <p className="mt-1 text-sm text-error-600 flex items-center gap-1">
                       <Icon name="warning" size="xs" />
-                      {getFieldProps('phone').helperText}
+                      {getFieldProps("phone").helperText}
                     </p>
                   )}
                 </div>
@@ -470,9 +548,10 @@ export default function RegisterPage() {
                       className={`
                         flex items-center p-4 rounded-lg border-2 cursor-pointer
                         transition-all duration-300 hover:shadow-mobile
-                        ${values.role === role.value ? 
-                          'border-primary-400 bg-primary-50' : 
-                          'border-secondary-200 hover:border-secondary-300'
+                        ${
+                          values.role === role.value
+                            ? "border-primary-400 bg-primary-50"
+                            : "border-secondary-200 hover:border-secondary-300"
                         }
                       `}
                     >
@@ -481,17 +560,20 @@ export default function RegisterPage() {
                         name="role"
                         value={role.value}
                         checked={values.role === role.value}
-                        onChange={handleChange('role')}
+                        onChange={handleChange("role")}
                         className="sr-only"
                       />
                       <div className="flex items-center flex-1">
-                        <div className={`
+                        <div
+                          className={`
                           w-10 h-10 rounded-full flex items-center justify-center mr-3
-                          ${values.role === role.value ? 
-                            'bg-primary-500 text-white' : 
-                            'bg-secondary-100 text-secondary-600'
+                          ${
+                            values.role === role.value
+                              ? "bg-primary-500 text-white"
+                              : "bg-secondary-100 text-secondary-600"
                           }
-                        `}>
+                        `}
+                        >
                           <Icon name={role.icon} size="sm" />
                         </div>
                         <div>
@@ -503,13 +585,16 @@ export default function RegisterPage() {
                           </p>
                         </div>
                       </div>
-                      <div className={`
+                      <div
+                        className={`
                         w-5 h-5 rounded-full border-2 flex-shrink-0
-                        ${values.role === role.value ? 
-                          'border-primary-500 bg-primary-500' : 
-                          'border-secondary-300'
+                        ${
+                          values.role === role.value
+                            ? "border-primary-500 bg-primary-500"
+                            : "border-secondary-300"
                         }
-                      `}>
+                      `}
+                      >
                         {values.role === role.value && (
                           <div className="w-full h-full rounded-full bg-white scale-50" />
                         )}
@@ -529,18 +614,18 @@ export default function RegisterPage() {
                                focus:ring-primary-400 focus:ring-2"
                     />
                     <div className="text-sm text-secondary-600">
-                      J'accepte les{' '}
-                      <Link 
-                        to="/terms" 
+                      J'accepte les{" "}
+                      <Link
+                        to="/terms"
                         className="text-primary-600 hover:text-primary-700 font-medium
                                  transition-colors duration-200"
                         target="_blank"
                       >
                         conditions d'utilisation
-                      </Link>
-                      {' '}et la{' '}
-                      <Link 
-                        to="/privacy" 
+                      </Link>{" "}
+                      et la{" "}
+                      <Link
+                        to="/privacy"
                         className="text-primary-600 hover:text-primary-700 font-medium
                                  transition-colors duration-200"
                         target="_blank"
@@ -566,7 +651,7 @@ export default function RegisterPage() {
                   Précédent
                 </SecondaryButton>
               )}
-              
+
               {currentStep < 3 ? (
                 <PrimaryButton
                   type="button"
@@ -580,12 +665,14 @@ export default function RegisterPage() {
               ) : (
                 <PrimaryButton
                   type="submit"
-                  disabled={!validateStep(currentStep) || !agreedToTerms || isSubmitting}
+                  disabled={
+                    !validateStep(currentStep) || !agreedToTerms || isSubmitting
+                  }
                   loading={isSubmitting}
                   icon="add"
                   className="flex-1"
                 >
-                  {isSubmitting ? 'Création...' : 'Créer mon compte'}
+                  {isSubmitting ? "Création..." : "Créer mon compte"}
                 </PrimaryButton>
               )}
             </div>
@@ -594,9 +681,9 @@ export default function RegisterPage() {
           {/* Lien connexion */}
           <div className="mt-6 text-center border-t border-secondary-200 pt-6">
             <p className="text-secondary-600">
-              Déjà un compte ?{' '}
-              <Link 
-                to="/login" 
+              Déjà un compte ?{" "}
+              <Link
+                to="/login"
                 className="text-primary-600 hover:text-primary-700 font-semibold
                          transition-colors duration-200"
               >

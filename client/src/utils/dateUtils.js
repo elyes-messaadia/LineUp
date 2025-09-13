@@ -1,6 +1,6 @@
 /**
  * 📅 Utilitaires de gestion des dates - LineUp
- * 
+ *
  * Fonctions pour formatter et manipuler les dates dans l'application
  */
 
@@ -11,21 +11,21 @@
  * @returns {string} Date formatée
  */
 export const formatDate = (date, options = {}) => {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (isNaN(dateObj.getTime())) return '';
+  if (!date) return "";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) return "";
 
   const defaultOptions = {
     weekday: undefined,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    ...options
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    ...options,
   };
 
-  return dateObj.toLocaleDateString('fr-FR', defaultOptions);
+  return dateObj.toLocaleDateString("fr-FR", defaultOptions);
 };
 
 /**
@@ -34,16 +34,16 @@ export const formatDate = (date, options = {}) => {
  * @returns {string} Date formatée
  */
 export const formatDateShort = (date) => {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (isNaN(dateObj.getTime())) return '';
+  if (!date) return "";
 
-  return dateObj.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) return "";
+
+  return dateObj.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
 };
 
@@ -53,18 +53,18 @@ export const formatDateShort = (date) => {
  * @returns {string} Heure formatée
  */
 export const formatTime = (time) => {
-  if (!time) return '';
-  
+  if (!time) return "";
+
   // Si c'est déjà au format HH:MM, on le retourne tel quel
-  if (typeof time === 'string' && time.match(/^\d{2}:\d{2}$/)) {
+  if (typeof time === "string" && time.match(/^\d{2}:\d{2}$/)) {
     return time;
   }
 
   // Si c'est un objet Date
   if (time instanceof Date) {
-    return time.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return time.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
@@ -80,10 +80,10 @@ export const formatTime = (time) => {
 export const formatDateTime = (date, time) => {
   const formattedDate = formatDate(date);
   const formattedTime = formatTime(time);
-  
+
   if (!formattedDate) return formattedTime;
   if (!formattedTime) return formattedDate;
-  
+
   return `${formattedDate} à ${formattedTime}`;
 };
 
@@ -94,19 +94,19 @@ export const formatDateTime = (date, time) => {
  */
 export const calculateAge = (birthDate) => {
   if (!birthDate) return 0;
-  
+
   const today = new Date();
-  const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate;
-  
+  const birth = typeof birthDate === "string" ? new Date(birthDate) : birthDate;
+
   if (isNaN(birth.getTime())) return 0;
-  
+
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--;
   }
-  
+
   return age;
 };
 
@@ -117,12 +117,12 @@ export const calculateAge = (birthDate) => {
  */
 export const isToday = (date) => {
   if (!date) return false;
-  
+
   const today = new Date();
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
   if (isNaN(dateObj.getTime())) return false;
-  
+
   return today.toDateString() === dateObj.toDateString();
 };
 
@@ -133,13 +133,13 @@ export const isToday = (date) => {
  */
 export const isTomorrow = (date) => {
   if (!date) return false;
-  
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
   if (isNaN(dateObj.getTime())) return false;
-  
+
   return tomorrow.toDateString() === dateObj.toDateString();
 };
 
@@ -149,33 +149,33 @@ export const isTomorrow = (date) => {
  * @returns {string} Date relative
  */
 export const getRelativeDate = (date) => {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (isNaN(dateObj.getTime())) return '';
-  
-  if (isToday(dateObj)) return 'Aujourd\'hui';
-  if (isTomorrow(dateObj)) return 'Demain';
-  
+  if (!date) return "";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  if (isNaN(dateObj.getTime())) return "";
+
+  if (isToday(dateObj)) return "Aujourd'hui";
+  if (isTomorrow(dateObj)) return "Demain";
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   if (yesterday.toDateString() === dateObj.toDateString()) {
-    return 'Hier';
+    return "Hier";
   }
-  
+
   // Si c'est dans la semaine courante
   const today = new Date();
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
-  
+
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
-  
+
   if (dateObj >= startOfWeek && dateObj <= endOfWeek) {
-    return dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
+    return dateObj.toLocaleDateString("fr-FR", { weekday: "long" });
   }
-  
+
   // Sinon, format normal
   return formatDate(dateObj);
 };
@@ -186,20 +186,20 @@ export const getRelativeDate = (date) => {
  * @returns {string} Durée formatée
  */
 export const formatDuration = (minutes) => {
-  if (!minutes || minutes < 0) return '0 min';
-  
+  if (!minutes || minutes < 0) return "0 min";
+
   if (minutes < 60) {
     return `${minutes} min`;
   }
-  
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  
+
   if (remainingMinutes === 0) {
     return `${hours}h`;
   }
-  
-  return `${hours}h${remainingMinutes.toString().padStart(2, '0')}`;
+
+  return `${hours}h${remainingMinutes.toString().padStart(2, "0")}`;
 };
 
 /**
@@ -212,11 +212,11 @@ export const getTimeElapsed = (date) => {
   const dateObj = new Date(date);
   const now = new Date();
   const diffMs = now - dateObj;
-  
+
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffDays > 0) return `${diffDays}j`;
   if (diffHours > 0) return `${diffHours}h`;
   return `${diffMinutes}min`;
@@ -233,5 +233,5 @@ export default {
   isTomorrow,
   getRelativeDate,
   formatDuration,
-  getTimeElapsed
-}; 
+  getTimeElapsed,
+};
