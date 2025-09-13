@@ -17,7 +17,7 @@ const mockLogger = {
     warn: jest.fn(),
     error: jest.fn(),
     debug: jest.fn(),
-  })
+  }),
 };
 
 function pinoMock() {
@@ -25,7 +25,7 @@ function pinoMock() {
 }
 
 pinoMock.stdTimeFunctions = {
-  isoTime: jest.fn(() => new Date().toISOString())
+  isoTime: jest.fn(() => new Date().toISOString()),
 };
 
 module.exports = pinoMock;
