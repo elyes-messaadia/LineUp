@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const { connectDB } = require("./config/db");
-const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
 const { authenticateOptional } = require("./middlewares/auth");
 const errorHandler = require("./middlewares/errorHandler");
@@ -1184,9 +1183,6 @@ app.get("/stats", async (req, res) => {
       .json({ message: "Erreur de récupération des statistiques" });
   }
 });
-
-// 🟣 Routes API externes
-app.use("/patient", patientRoutes);
 
 // 🆘 Route temporaire pour créer une secrétaire (DÉVELOPPEMENT SEULEMENT)
 app.post("/create-secretary-temp", async (req, res) => {

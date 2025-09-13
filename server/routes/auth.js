@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Role = require('../models/Role');
+const Ticket = require('../models/Ticket');
 const { authenticateRequired: authenticate } = require("../middlewares/auth");
 const { generateToken, verifyToken } = require('../utils/jwtUtils');
 const webpush = require('web-push');
@@ -323,6 +324,45 @@ router.post('/push/send', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Erreur lors de l\'envoi de la notification'
+    });
+  }
+});
+
+/**
+ * GET /auth/my-ticket
+ * ➤ Récupérer le ticket actuel du patient connecté
+ */
+router.get('/my-ticket', authenticate, async (req, res) => {
+  try {
+    if (req.user.role.name !== 'patient') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès réservé aux patients'
+      });
+    }
+
+    const ticket = await Ticket.findOne({
+      userId: req.user._id,
+      status: { $in: ['en_attente', 'en_consultation'] }
+    }).sort({ createdAt: -1 });
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Aucun ticket actif trouvé'
+      });
+    }
+
+    res.json({
+      success: true,
+      ticket
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur récupération ticket patient:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération du ticket'
     });
   }
 });
