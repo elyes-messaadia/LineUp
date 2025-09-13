@@ -66,15 +66,23 @@ class EmailService {
         return this.templatesCache.get(templateName);
       }
 
-      const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
-      const template = await fs.readFile(templatePath, 'utf8');
-      
+      const templatePath = path.join(
+        __dirname,
+        "..",
+        "templates",
+        `${templateName}.html`
+      );
+      const template = await fs.readFile(templatePath, "utf8");
+
       // Mettre en cache pour éviter les lectures répétées
       this.templatesCache.set(templateName, template);
-      
+
       return template;
     } catch (error) {
-      logger.error(`Erreur lors du chargement du template ${templateName}:`, error);
+      logger.error(
+        `Erreur lors du chargement du template ${templateName}:`,
+        error
+      );
       return this.getFallbackTemplate();
     }
   }
@@ -119,21 +127,24 @@ class EmailService {
    */
   renderTemplate(template, variables) {
     let rendered = template;
-    
+
     // Remplacements simples {{variable}}
-    Object.keys(variables).forEach(key => {
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      rendered = rendered.replace(regex, variables[key] || '');
+    Object.keys(variables).forEach((key) => {
+      const regex = new RegExp(`{{${key}}}`, "g");
+      rendered = rendered.replace(regex, variables[key] || "");
     });
 
     // Gestion des conditions {{#if condition}}...{{/if}}
-    rendered = rendered.replace(/{{#if\s+([^}]+)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
-      const conditionValue = variables[condition.trim()];
-      return conditionValue ? content : '';
-    });
+    rendered = rendered.replace(
+      /{{#if\s+([^}]+)}}([\s\S]*?){{\/if}}/g,
+      (match, condition, content) => {
+        const conditionValue = variables[condition.trim()];
+        return conditionValue ? content : "";
+      }
+    );
 
     // Nettoyage des variables non remplacées
-    rendered = rendered.replace(/{{[^}]+}}/g, '');
+    rendered = rendered.replace(/{{[^}]+}}/g, "");
 
     return rendered;
   }
@@ -142,8 +153,8 @@ class EmailService {
    * 🔐 Validation et sécurisation de l'adresse email
    */
   validateEmail(email) {
-    if (!email || typeof email !== 'string') return false;
-    
+    if (!email || typeof email !== "string") return false;
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim().toLowerCase());
   }
@@ -152,12 +163,12 @@ class EmailService {
    * 🛡️ Sanitisation du contenu pour éviter les injections
    */
   sanitizeContent(content) {
-    if (typeof content !== 'string') return '';
-    
+    if (typeof content !== "string") return "";
+
     return content
-      .replace(/[<>]/g, '') // Supprimer les caractères HTML dangereux
-      .replace(/javascript:/gi, '') // Supprimer les liens JavaScript
-      .replace(/data:/gi, '') // Supprimer les URLs data:
+      .replace(/[<>]/g, "") // Supprimer les caractères HTML dangereux
+      .replace(/javascript:/gi, "") // Supprimer les liens JavaScript
+      .replace(/data:/gi, "") // Supprimer les URLs data:
       .trim();
   }
 
@@ -165,13 +176,13 @@ class EmailService {
    * 📊 Génère un ID de tracking unique pour l'email
    */
   generateTrackingId() {
-    return crypto.randomBytes(16).toString('hex');
+    return crypto.randomBytes(16).toString("hex");
   }
 
   /**
    * 🏥 Template de base HTML pour tous les emails
    */
-  getBaseTemplate(content, title = 'LineUp - Notification') {
+  getBaseTemplate(content, title = "LineUp - Notification") {
     return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -365,12 +376,7 @@ class EmailService {
       from: `"LineUp - C'est votre tour ! 🎯" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: `🎯 C'est votre tour ! Dr. ${doctorName} vous attend`,
-      html: this.getBaseTemplate(
-        "🎯 C'est votre tour !",
-        content,
-        "https://lineup.netlify.app/queue",
-        "🏃‍♂️ J'arrive !"
-      ),
+      html: this.getBaseTemplate(content, "🎯 C'est votre tour !"),
     };
 
     try {
