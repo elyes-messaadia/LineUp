@@ -197,6 +197,70 @@ describe("Auth API Tests", () => {
     });
   });
 
+  describe("Rate Limiting Tests", () => {
+    it("devrait limiter les tentatives de connexion", async () => {
+      // Faire 6 requêtes rapides
+      const requests = [];
+      for (let i = 0; i < 6; i++) {
+        requests.push(
+          request(app).post("/auth/login").send({
+            email: "test@example.com",
+            password: "wrong",
+          })
+        );
+      }
+
+      const responses = await Promise.all(requests);
+      
+      // La dernière requête devrait être limitée
+      expect(responses[5].status).toBe(429);
+      expect(responses[5].body.message).toMatch(/trop de tentatives/i);
+    });
+  });
+
+  describe("Session et Token Tests", () => {
+    it("devrait invalider un token expiré", async () => {
+      const user = await User.create({
+        email: "test@example.com",
+        password: "password123",
+        role: "patient",
+      });
+
+      // Créer un token qui expire dans 1 seconde
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1s",
+      });
+
+      // Attendre 2 secondes
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const response = await request(app)
+        .get("/auth/verify")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toMatch(/token.*expiré/i);
+    });
+
+    it("devrait nettoyer les informations sensibles des réponses", async () => {
+      const user = await User.create({
+        email: "test@example.com",
+        password: "password123",
+        role: "patient",
+      });
+
+      const response = await request(app).post("/auth/login").send({
+        email: "test@example.com",
+        password: "password123",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user.password).toBeUndefined();
+      expect(response.body.user.__v).toBeUndefined();
+      expect(response.body.user.token).toBeUndefined();
+    });
+  });
+
   describe("Security-focused Authentication Tests", () => {
     let req, res, next;
 

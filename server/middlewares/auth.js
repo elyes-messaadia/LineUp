@@ -1,10 +1,32 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const rateLimit = require("express-rate-limit");
 const {
   verifyToken,
   extractTokenFromHeaders,
   decodeToken,
 } = require("../utils/jwtUtils");
+
+// Rate limiter pour l'authentification
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 tentatives
+  message: {
+    success: false,
+    message: "Trop de tentatives de connexion, veuillez réessayer plus tard",
+  },
+  skipSuccessfulRequests: true, // Ne pas compter les succès
+});
+
+// Nettoyer les informations sensibles de l'utilisateur
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const sanitized = user.toObject();
+  delete sanitized.password;
+  delete sanitized.__v;
+  delete sanitized.token;
+  return sanitized;
+};
 
 // Middleware pour vérifier l'authentification (optionnel)
 const authenticateOptional = async (req, res, next) => {
