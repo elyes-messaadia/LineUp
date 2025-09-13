@@ -98,7 +98,7 @@ app.use(httpLogger());
 app.use(express.json({ limit: "10kb" }));
 
 // 🛡️ Middlewares de sécurité avancés
-const { 
+const {
   securityHeaders,
   conditionalCSRF,
   provideCsrfToken,
@@ -108,8 +108,8 @@ const {
   headerInjectionProtection,
   generateNonce,
   secureCookies,
-  securityErrorHandler
-} = require('./middlewares/advancedSecurity');
+  securityErrorHandler,
+} = require("./middlewares/advancedSecurity");
 
 const {
   apiRateLimit,
@@ -117,14 +117,14 @@ const {
   registerRateLimit,
   emailRateLimit,
   strictRateLimit,
-  bruteForceProtection
-} = require('./middlewares/rateLimiting');
+  bruteForceProtection,
+} = require("./middlewares/rateLimiting");
 
 const {
   securityLogger,
   authLogger,
-  dataChangeLogger
-} = require('./middlewares/securityLogging');
+  dataChangeLogger,
+} = require("./middlewares/securityLogging");
 
 // Application des middlewares de sécurité dans l'ordre optimal
 app.use(securityHeaders); // Headers de sécurité (CSP, HSTS, etc.)
@@ -139,7 +139,7 @@ app.use(bruteForceProtection()); // Protection contre la force brute
 app.use(dataChangeLogger); // Logging des modifications de données
 
 // Rate limiting général pour toutes les API
-app.use('/api/', apiRateLimit);
+app.use("/api/", apiRateLimit);
 
 // Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
 try {
