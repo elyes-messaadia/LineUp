@@ -56,16 +56,19 @@ app.use(csrf());
 ### 1. Validation des Champs
 
 #### Email
+
 - Format valide
 - Domaine existant
 - Pas de caractères dangereux
 
 #### Mot de passe
+
 - Longueur minimum
 - Complexité requise
 - Pas de données personnelles
 
 #### Noms/Identifiants
+
 - Longueur limitée
 - Caractères autorisés
 - Pas d'injection possible
@@ -73,6 +76,7 @@ app.use(csrf());
 ### 2. Protection contre les Attaques
 
 #### XSS (Cross-Site Scripting)
+
 ```javascript
 // Middleware de sanitization
 app.use((req, res, next) => {
@@ -88,6 +92,7 @@ app.use((req, res, next) => {
 ```
 
 #### SQL/NoSQL Injection
+
 ```javascript
 // Middleware de protection NoSQL
 const sanitizeNoSQL = (obj) => {
