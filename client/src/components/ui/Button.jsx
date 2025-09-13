@@ -1,21 +1,27 @@
-import { forwardRef } from 'react';
-import { useTheme } from '../../theme/useTheme';
+/**
+ * 🎨 Composants Boutons Harmonisés - LineUp
+ * 
+ * Système de boutons cohérent avec le nouveau design
+ */
 
-const Button = forwardRef(({ 
+import { forwardRef } from 'react';
+import Icon from './Icon';
+
+// 🎯 Bouton Principal
+export const PrimaryButton = forwardRef(({ 
   children, 
-  variant = "primary", 
-  size = "md", 
-  className = "", 
+  icon, 
+  loading = false, 
+  size = 'md',
+  className = '',
   disabled = false,
-  loading = false,
-  icon,
-  iconPosition = "left",
-  fullWidth = false,
   ...props 
 }, ref) => {
-  const theme = useTheme();
-  
-  const classes = `${theme.button.base} ${theme.button.variants[variant]} ${theme.button.sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`;
+  const sizeClasses = {
+    sm: 'px-3 py-2 text-sm',
+    md: 'px-4 py-3 text-base',
+    lg: 'px-6 py-4 text-lg'
+  };
 
   return (
     <button
