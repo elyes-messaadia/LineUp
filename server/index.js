@@ -97,6 +97,50 @@ app.use(httpLogger());
 // JSON body parsing with size limit to mitigate large payload attacks
 app.use(express.json({ limit: "10kb" }));
 
+// 🛡️ Middlewares de sécurité avancés
+const { 
+  securityHeaders,
+  conditionalCSRF,
+  provideCsrfToken,
+  originValidation,
+  timingAttackProtection,
+  userAgentValidation,
+  headerInjectionProtection,
+  generateNonce,
+  secureCookies,
+  securityErrorHandler
+} = require('./middlewares/advancedSecurity');
+
+const {
+  apiRateLimit,
+  loginRateLimit,
+  registerRateLimit,
+  emailRateLimit,
+  strictRateLimit,
+  bruteForceProtection
+} = require('./middlewares/rateLimiting');
+
+const {
+  securityLogger,
+  authLogger,
+  dataChangeLogger
+} = require('./middlewares/securityLogging');
+
+// Application des middlewares de sécurité dans l'ordre optimal
+app.use(securityHeaders); // Headers de sécurité (CSP, HSTS, etc.)
+app.use(generateNonce); // Génération des nonces pour CSP
+app.use(secureCookies); // Sécurisation des cookies
+app.use(securityLogger); // Logging de sécurité avec détection d'anomalies
+app.use(originValidation); // Validation des origines
+app.use(userAgentValidation); // Validation des User-Agents
+app.use(headerInjectionProtection); // Protection contre l'injection dans les headers
+app.use(timingAttackProtection); // Protection contre les attaques de timing
+app.use(bruteForceProtection()); // Protection contre la force brute
+app.use(dataChangeLogger); // Logging des modifications de données
+
+// Rate limiting général pour toutes les API
+app.use('/api/', apiRateLimit);
+
 // Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
 try {
   const { setupSecurity } = require("./middlewares/security");
