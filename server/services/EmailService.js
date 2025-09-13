@@ -423,7 +423,10 @@ class EmailService {
       from: `"LineUp - Sécurité 🔑" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: "🔑 Réinitialisation de votre mot de passe LineUp",
-      html: this.getBaseTemplate(content, "🔑 Réinitialisation de mot de passe"),
+      html: this.getBaseTemplate(
+        content,
+        "🔑 Réinitialisation de mot de passe"
+      ),
     };
 
     try {
@@ -474,12 +477,7 @@ class EmailService {
       subject: `📊 Votre semaine LineUp - ${ticketsCount} ticket${
         ticketsCount > 1 ? "s" : ""
       }`,
-      html: this.getBaseTemplate(
-        "📊 Récapitulatif Hebdomadaire",
-        content,
-        "https://lineup.netlify.app/dashboard",
-        "📱 Voir mon tableau de bord"
-      ),
+      html: this.getBaseTemplate(content, "📊 Récapitulatif Hebdomadaire"),
     };
 
     try {
