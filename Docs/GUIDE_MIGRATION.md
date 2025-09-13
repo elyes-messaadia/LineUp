@@ -91,12 +91,14 @@ chat, message, notification, bell, email, phone
 ### Configuration
 
 1. **Installer les dépendances :**
+
 ```bash
 cd server
 npm install nodemailer
 ```
 
 2. **Configurer les variables d'environnement :**
+
 ```env
 # Dans server/.env
 SMTP_SERVICE=gmail
@@ -308,21 +310,25 @@ npm start
 Votre application LineUp dispose maintenant de :
 
 ### 🎨 **Design Professionnel et Chaleureux**
+
 - Couleurs harmonisées et accessibles
 - Ombres subtiles et naturelles
 - Animations fluides et engageantes
 
 ### 📧 **Communication Automatisée**
+
 - Emails de bienvenue personnalisés
 - Confirmations de tickets
 - Notifications en temps réel
 
 ### 🧩 **Composants Réutilisables**
+
 - Système de design unifié
 - Boutons cohérents
 - États UX optimisés
 
 ### 🚀 **Performance et Accessibilité**
+
 - Animations optimisées
 - Contraste amélioré
 - Support multi-appareils
