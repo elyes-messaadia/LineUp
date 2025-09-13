@@ -423,12 +423,7 @@ class EmailService {
       from: `"LineUp - Sécurité 🔑" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: "🔑 Réinitialisation de votre mot de passe LineUp",
-      html: this.getBaseTemplate(
-        "🔑 Réinitialisation de mot de passe",
-        content,
-        resetUrl,
-        "🔐 Changer mon mot de passe"
-      ),
+      html: this.getBaseTemplate(content, "🔑 Réinitialisation de mot de passe"),
     };
 
     try {
