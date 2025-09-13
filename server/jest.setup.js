@@ -43,7 +43,9 @@ global.cleanupTestData = async () => {
     // S'assurer que nous sommes connectés à la base de test
     const dbName = mongoose.connection.name;
     if (dbName !== "lineup-test") {
-      throw new Error(`Tentative de nettoyage sur une base non-test : ${dbName}`);
+      throw new Error(
+        `Tentative de nettoyage sur une base non-test : ${dbName}`
+      );
     }
 
     // Nettoyer toutes les collections
