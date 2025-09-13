@@ -36,10 +36,21 @@ jest.mock("pino");
 jest.mock("pino-http");
 
 // Helper pour nettoyer la base de données entre les tests
+const { mongoose } = require("./config/db");
+
 global.cleanupTestData = async () => {
-  // Cette fonction peut être utilisée dans les tests pour nettoyer les données
   if (process.env.NODE_ENV === "test") {
-    // Logique de nettoyage ici si nécessaire
+    // S'assurer que nous sommes connectés à la base de test
+    const dbName = mongoose.connection.name;
+    if (dbName !== "lineup-test") {
+      throw new Error(`Tentative de nettoyage sur une base non-test : ${dbName}`);
+    }
+
+    // Nettoyer toutes les collections
+    const collections = await mongoose.connection.db.collections();
+    for (let collection of collections) {
+      await collection.deleteMany({});
+    }
   }
 };
 

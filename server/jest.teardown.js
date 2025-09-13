@@ -1,10 +1,7 @@
 // Configuration pour nettoyer après tous les tests
-const mongoose = require("mongoose");
+const { disconnectDB } = require("./config/db");
 
 module.exports = async () => {
-  // Fermer toutes les connexions MongoDB
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-    console.log("MongoDB disconnected after all tests");
-  }
+  // Utiliser la fonction de déconnexion optimisée
+  await disconnectDB();
 };
