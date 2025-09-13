@@ -43,24 +43,24 @@ function ToastItem({ message, type = 'info', duration = 3000, onClose }) {
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = "p-3 xs:p-4 rounded-lg se:rounded-xl accessible-shadow transition-all duration-200 transform legacy-text-secondary border-2 old-android-safe";
+    const baseStyles = "p-4 xs:p-5 rounded-xl shadow-mobile transition-all duration-400 ease-smooth transform legacy-text-secondary border old-android-safe backdrop-blur-sm";
     
     if (!isVisible) {
-      return `${baseStyles} se:translate-x-full translate-y-full se:translate-y-0 opacity-0`;
+      return `${baseStyles} se:translate-x-full translate-y-full se:translate-y-0 opacity-0 scale-95`;
     }
 
     switch (type) {
       case 'success':
-        return `${baseStyles} bg-green-50 text-green-900 border-green-200`;
+        return `${baseStyles} bg-success-50/95 text-success-700 border-success-200 shadow-accessible animate-slide-in-right`;
       case 'error':
-        return `${baseStyles} bg-red-50 text-red-900 border-red-200`;
+        return `${baseStyles} bg-error-50/95 text-error-700 border-error-200 shadow-accessible animate-slide-in-right`;
       case 'warning':
-        return `${baseStyles} bg-yellow-50 text-yellow-900 border-yellow-200`;
+        return `${baseStyles} bg-warning-50/95 text-warning-700 border-warning-200 shadow-accessible animate-slide-in-right`;
       case 'important':
-        return `${baseStyles} bg-purple-50 text-purple-900 border-purple-300 border-4 shadow-lg ring-2 ring-purple-200 animate-pulse`;
+        return `${baseStyles} bg-accent-50/95 text-accent-700 border-accent-300 border-2 shadow-accessible-strong ring-2 ring-accent-200/50 animate-bounce-gentle`;
       case 'info':
       default:
-        return `${baseStyles} bg-blue-50 text-blue-900 border-blue-200`;
+        return `${baseStyles} bg-info-50/95 text-info-700 border-info-200 shadow-accessible animate-slide-in-right`;
     }
   };
 
