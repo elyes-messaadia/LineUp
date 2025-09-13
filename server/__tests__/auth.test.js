@@ -211,7 +211,7 @@ describe("Auth API Tests", () => {
       }
 
       const responses = await Promise.all(requests);
-      
+
       // La dernière requête devrait être limitée
       expect(responses[5].status).toBe(429);
       expect(responses[5].body.message).toMatch(/trop de tentatives/i);
