@@ -218,6 +218,54 @@ describe("Auth API Tests", () => {
     });
   });
 
+  describe("Tests de Permissions", () => {
+    it("devrait vérifier correctement les permissions requises", async () => {
+      const role = await Role.create({
+        name: "doctor",
+        displayName: "Docteur",
+        permissions: ["view_patient", "edit_patient"],
+      });
+
+      const user = await User.create({
+        email: "doctor@example.com",
+        password: "password123",
+        role: role._id,
+      });
+
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+
+      const response = await request(app)
+        .get("/patients")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+    });
+
+    it("devrait refuser l'accès sans les permissions requises", async () => {
+      const role = await Role.create({
+        name: "receptionist",
+        displayName: "Réceptionniste",
+        permissions: ["view_patient"],
+      });
+
+      const user = await User.create({
+        email: "reception@example.com",
+        password: "password123",
+        role: role._id,
+      });
+
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+
+      const response = await request(app)
+        .put("/patients/123")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ status: "updated" });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toMatch(/permissions insuffisantes/i);
+    });
+  });
+
   describe("Session et Token Tests", () => {
     it("devrait invalider un token expiré", async () => {
       const user = await User.create({
