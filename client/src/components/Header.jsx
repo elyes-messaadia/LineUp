@@ -16,12 +16,13 @@ export default function Header({ hideTitle = false }) {
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1 
-                       px-2 py-1 xs:py-2 se:px-3 se:py-2 
-                       bg-gray-100 hover:bg-gray-200 text-gray-800 
-                       rounded border border-gray-300 
-                       transition-colors duration-200 
+                       px-3 py-2 xs:py-2 se:px-4 se:py-3 
+                       bg-secondary-50 hover:bg-secondary-100 text-secondary-700 
+                       rounded-lg shadow-subtle hover:shadow-mobile
+                       transition-all duration-300 ease-smooth
                        text-xs se:text-sm font-medium 
-                       min-h-touch iphone-se-friendly"
+                       min-h-touch iphone-se-friendly
+                       transform hover:scale-105 active:scale-95"
             aria-label="Retour à la page précédente"
             title="Retour à la page précédente"
           >
@@ -33,12 +34,13 @@ export default function Header({ hideTitle = false }) {
         <button
           onClick={() => navigate('/')}
           className="flex items-center gap-1 
-                     px-2 py-1 xs:py-2 se:px-3 se:py-2 
-                     bg-blue-100 hover:bg-blue-200 text-blue-800 
-                     rounded border border-blue-300 
-                     transition-colors duration-200 
+                     px-3 py-2 xs:py-2 se:px-4 se:py-3 
+                     bg-primary-50 hover:bg-primary-100 text-primary-700 
+                     rounded-lg shadow-subtle hover:shadow-mobile
+                     transition-all duration-300 ease-smooth
                      text-xs se:text-sm font-medium ml-auto 
-                     min-h-touch iphone-se-friendly"
+                     min-h-touch iphone-se-friendly
+                     transform hover:scale-105 active:scale-95"
           aria-label="Retour à l'accueil"
           title="Retour à l'accueil"
         >
