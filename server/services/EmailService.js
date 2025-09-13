@@ -167,6 +167,39 @@ class EmailService {
   generateTrackingId() {
     return crypto.randomBytes(16).toString('hex');
   }
+
+  /**
+   * 🏥 Template de base HTML pour tous les emails
+   */
+  getBaseTemplate(content, title = 'LineUp - Notification') {
+    return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f7fa; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #0091ff, #00d4ff); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 30px; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; border-radius: 0 0 8px 8px; }
+        .highlight { background: #e8f4fd; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #0091ff; }
+        .button { display: inline-block; background: #0091ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🏥 LineUp</h1>
+          <p>Système de gestion médicale</p>
+        </div>
+        <div class="content">
+          ${content}
+        </div>
+        <div class="footer">
           <p>📧 Cet email a été envoyé automatiquement par LineUp</p>
           <p>🏥 Système de gestion de file d'attente médicale</p>
           <p style="margin-top: 1rem;">
@@ -223,12 +256,7 @@ class EmailService {
       from: `"LineUp - Bienvenue ! 🎉" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: "🎉 Bienvenue sur LineUp - Votre compte est activé !",
-      html: this.getBaseTemplate(
-        "🏡 Bienvenue sur LineUp !",
-        content,
-        "https://lineup.netlify.app/login",
-        "🚀 Commencer maintenant"
-      ),
+      html: this.getBaseTemplate(content, "🏡 Bienvenue sur LineUp !"),
     };
 
     try {
@@ -286,12 +314,7 @@ class EmailService {
       from: `"LineUp - Confirmation 🎟️" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: `🎟️ Ticket confirmé - Position n°${position} chez Dr. ${doctorName}`,
-      html: this.getBaseTemplate(
-        "✅ Ticket Confirmé !",
-        content,
-        "https://lineup.netlify.app/queue",
-        "👀 Voir ma position"
-      ),
+      html: this.getBaseTemplate(content, "✅ Ticket Confirmé !"),
     };
 
     try {
