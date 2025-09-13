@@ -11,17 +11,64 @@ const httpLogger = (options = {}) => {
       ? { logger: false }
       : { logger: logger }),
 
-    // Masquer les informations sensibles des headers
+    // Masquer les informations sensibles
     redact: {
       paths: [
+        // Headers sensibles
         "req.headers.authorization",
         "req.headers.cookie",
         'req.headers["set-cookie"]',
+        // Corps de la requête
         "req.body.password",
         "req.body.token",
+        "req.body.accessToken",
+        "req.body.refreshToken",
+        "req.body.apiKey",
+        "req.body.secret",
+        // Paramètres de requête
+        "req.query.token",
+        "req.query.accessToken",
+        "req.query.refreshToken",
+        // Headers de réponse
         'res.headers["set-cookie"]',
+        // Paramètres de session
+        "req.session.token",
+        "req.session.accessToken",
+        // Chemins dynamiques pour les tokens
+        "*token*",
+        "*Token*",
+        "*password*",
+        "*Password*",
+        "*secret*",
+        "*Secret*",
+        "*key*",
+        "*Key*"
       ],
-      censor: "[REDACTED]",
+      // Remplacer par une valeur générique
+      censor: "[DONNÉES SENSIBLES MASQUÉES]",
+    },
+
+    // Fonction de nettoyage personnalisée pour les données sensibles
+    serializers: {
+      req: (req) => {
+        // Créer une copie pour ne pas modifier l'objet original
+        const sanitizedReq = JSON.parse(JSON.stringify(req));
+        
+        // Nettoyer les headers d'autorisation
+        if (sanitizedReq.headers && sanitizedReq.headers.authorization) {
+          sanitizedReq.headers.authorization = "[AUTHORIZATION MASQUÉE]";
+        }
+        
+        // Nettoyer les cookies
+        if (sanitizedReq.headers && sanitizedReq.headers.cookie) {
+          sanitizedReq.headers.cookie = sanitizedReq.headers.cookie.replace(
+            /(session|token|auth)=[^;]+/gi,
+            "$1=[MASQUÉ]"
+          );
+        }
+        
+        return sanitizedReq;
+      }
     },
 
     // Personnaliser les données loguées pour chaque requête
