@@ -27,32 +27,23 @@ describe("Auth API Tests", () => {
   let mongoServer;
 
   beforeAll(async () => {
-    // Se connecter à la base de données de test
     try {
-      mongoServer =
-        process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test";
-      await mongoose.connect(mongoServer, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      const { connectDB } = require("../config/db");
+      await connectDB(); // Utiliser notre configuration optimisée
       server = app.listen(0); // Port dynamique pour éviter les conflits
     } catch (err) {
-      console.error("Erreur de connexion MongoDB:", err);
+      console.error("Erreur de connexion:", err);
       throw err;
     }
   });
 
   afterAll(async () => {
     try {
-      await Promise.all([
-        // Attendre tous les nettoyages
-        User.deleteMany({}),
-        Role.deleteMany({}),
-        new Promise((resolve) => {
-          server.close(resolve); // Fermer le serveur HTTP
-        }),
-      ]);
-      await mongoose.disconnect(); // Fermer la connexion MongoDB
+      const { disconnectDB } = require("../config/db");
+      await new Promise((resolve) => server.close(resolve));
+      await disconnectDB(); // Utiliser notre fonction de déconnexion
+      // Attendre un peu pour s'assurer que tout est fermé
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (err) {
       console.error("Erreur lors du nettoyage final:", err);
       throw err;
@@ -61,7 +52,7 @@ describe("Auth API Tests", () => {
 
   beforeEach(async () => {
     try {
-      await Promise.all([User.deleteMany({}), Role.deleteMany({})]);
+      await cleanupTestData(); // Utiliser la fonction globale de nettoyage
     } catch (err) {
       console.error("Erreur lors du nettoyage beforeEach:", err);
       throw err;
@@ -69,12 +60,9 @@ describe("Auth API Tests", () => {
   });
 
   afterEach(async () => {
-    try {
-      await Promise.all([User.deleteMany({}), Role.deleteMany({})]);
-    } catch (err) {
-      console.error("Erreur lors du nettoyage afterEach:", err);
-      throw err;
-    }
+    // Pas besoin de nettoyage après chaque test
+    // Le beforeEach du prochain test s'en chargera
+    jest.clearAllMocks(); // Nettoyer les mocks
   });
 
   describe("POST /auth/register", () => {
