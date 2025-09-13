@@ -5,9 +5,9 @@
  */
 
 const helmet = require("helmet");
-const csrf = require("csurf");
+const { doubleCsrf } = require("csrf-csrf");
 const crypto = require("crypto");
-const { logger } = require("../utils/logger");
+const logger = require("../utils/logger");
 
 /**
  * Configuration avancée des headers de sécurité avec Helmet
@@ -106,26 +106,23 @@ const securityHeaders = helmet({
 });
 
 /**
- * Configuration CSRF avec exclusions pour les API publiques
+ * Configuration CSRF avec csrf-csrf (moderne)
  */
-const csrfProtection = csrf({
-  cookie: {
+const {
+  generateToken,
+  validateRequest,
+  doubleCsrfProtection,
+} = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET || "fallback-csrf-secret-change-in-production",
+  cookieName: "__Host-psifi.x-csrf-token",
+  cookieOptions: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: 3600000, // 1 heure
   },
-  ignoreMethods: ["GET", "HEAD", "OPTIONS"], // Methods exemptées par défaut
-  value: (req) => {
-    // Priorité des sources du token CSRF
-    return (
-      req.body._csrf ||
-      req.query._csrf ||
-      req.headers["csrf-token"] ||
-      req.headers["x-csrf-token"] ||
-      req.headers["x-xsrf-token"]
-    );
-  },
+  size: 64,
+  ignoredMethods: ["GET", "HEAD", "OPTIONS"],
 });
 
 /**
@@ -142,21 +139,23 @@ const conditionalCSRF = (req, res, next) => {
   }
 
   // Appliquer la protection CSRF
-  csrfProtection(req, res, next);
+  doubleCsrfProtection(req, res, next);
 };
 
 /**
  * Génération et envoi du token CSRF pour les clients
  */
 const provideCsrfToken = (req, res, next) => {
-  if (req.csrfToken) {
-    res.locals.csrfToken = req.csrfToken();
+  // Générer le token CSRF
+  const csrfToken = generateToken(req, res);
+  
+  res.locals.csrfToken = csrfToken;
 
-    // Ajouter le token dans les headers pour les APIs
-    if (req.path.startsWith("/api/")) {
-      res.set("X-CSRF-Token", res.locals.csrfToken);
-    }
+  // Ajouter le token dans les headers pour les APIs
+  if (req.path.startsWith("/api/")) {
+    res.set("X-CSRF-Token", csrfToken);
   }
+  
   next();
 };
 
