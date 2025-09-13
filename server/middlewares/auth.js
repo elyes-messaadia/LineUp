@@ -150,11 +150,11 @@ const authenticateRequired = async (req, res, next) => {
       req.user = sanitizeUser(user);
       req.token = token;
       req.tokenPayload = decoded;
-      
+
       // Nettoyer les headers sensibles
       delete req.headers["x-powered-by"];
       delete req.headers["server"];
-      
+
       next();
     } catch (dbError) {
       console.error("❌ Erreur base de données:", dbError);
