@@ -1,12 +1,12 @@
 /**
  * 📧 Service d'Envoi d'Emails - LineUp
- * 
+ *
  * Système complet pour l'envoi d'emails transactionnels
  * Supporte Gmail, Outlook, et autres providers SMTP
  */
 
-const nodemailer = require('nodemailer');
-const logger = require('../utils/logger');
+const nodemailer = require("nodemailer");
+const logger = require("../utils/logger");
 
 class EmailService {
   constructor() {
@@ -20,21 +20,21 @@ class EmailService {
   async initializeTransporter() {
     try {
       // Configuration pour Gmail (recommandé)
-      if (process.env.SMTP_SERVICE === 'gmail') {
+      if (process.env.SMTP_SERVICE === "gmail") {
         this.transporter = nodemailer.createTransporter({
-          service: 'gmail',
+          service: "gmail",
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_APP_PASSWORD, // App Password, pas le mot de passe normal
           },
         });
-      } 
+      }
       // Configuration SMTP générique
       else {
         this.transporter = nodemailer.createTransporter({
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          host: process.env.SMTP_HOST || "smtp.gmail.com",
           port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
+          secure: process.env.SMTP_SECURE === "true",
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -44,9 +44,9 @@ class EmailService {
 
       // Test de connexion
       await this.transporter.verify();
-      logger.info('📧 Service email initialisé avec succès');
+      logger.info("📧 Service email initialisé avec succès");
     } catch (error) {
-      logger.error('❌ Erreur initialisation service email:', error);
+      logger.error("❌ Erreur initialisation service email:", error);
       this.transporter = null;
     }
   }
@@ -82,11 +82,15 @@ class EmailService {
         </div>
         <div class="content">
           ${content}
-          ${actionUrl && actionText ? `
+          ${
+            actionUrl && actionText
+              ? `
           <div style="text-align: center; margin: 2rem 0;">
             <a href="${actionUrl}" class="button">${actionText}</a>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
         <div class="footer">
           <p>📧 Cet email a été envoyé automatiquement par LineUp</p>
@@ -107,7 +111,7 @@ class EmailService {
    */
   async sendWelcomeEmail(userEmail, userName) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const content = `
@@ -144,18 +148,20 @@ class EmailService {
     const mailOptions = {
       from: `"LineUp - Bienvenue ! 🎉" <${process.env.SMTP_USER}>`,
       to: userEmail,
-      subject: '🎉 Bienvenue sur LineUp - Votre compte est activé !',
+      subject: "🎉 Bienvenue sur LineUp - Votre compte est activé !",
       html: this.getBaseTemplate(
-        '🏡 Bienvenue sur LineUp !',
+        "🏡 Bienvenue sur LineUp !",
         content,
-        'https://lineup.netlify.app/login',
-        '🚀 Commencer maintenant'
+        "https://lineup.netlify.app/login",
+        "🚀 Commencer maintenant"
       ),
     };
 
     try {
       const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`📧 Email de bienvenue envoyé à ${userEmail}`, { messageId: result.messageId });
+      logger.info(`📧 Email de bienvenue envoyé à ${userEmail}`, {
+        messageId: result.messageId,
+      });
       return result;
     } catch (error) {
       logger.error(`❌ Erreur envoi email bienvenue à ${userEmail}:`, error);
@@ -168,11 +174,11 @@ class EmailService {
    */
   async sendTicketConfirmation(userEmail, ticketData) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const { ticketNumber, doctorName, position, estimatedWait } = ticketData;
-    
+
     const content = `
       <h2>Votre ticket a été confirmé ! 🎟️</h2>
       
@@ -180,7 +186,9 @@ class EmailService {
         <h3>📋 Détails de votre ticket</h3>
         <p><strong>Numéro :</strong> #${ticketNumber}</p>
         <p><strong>Médecin :</strong> Dr. ${doctorName}</p>
-        <p><strong>Position :</strong> ${position}${position === 1 ? 'er' : 'ème'} dans la file</p>
+        <p><strong>Position :</strong> ${position}${
+      position === 1 ? "er" : "ème"
+    } dans la file</p>
         <p><strong>Temps d'attente estimé :</strong> ${estimatedWait} minutes</p>
       </div>
 
@@ -205,19 +213,24 @@ class EmailService {
       to: userEmail,
       subject: `🎟️ Ticket confirmé - Position n°${position} chez Dr. ${doctorName}`,
       html: this.getBaseTemplate(
-        '✅ Ticket Confirmé !',
+        "✅ Ticket Confirmé !",
         content,
-        'https://lineup.netlify.app/queue',
-        '👀 Voir ma position'
+        "https://lineup.netlify.app/queue",
+        "👀 Voir ma position"
       ),
     };
 
     try {
       const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`📧 Confirmation ticket envoyée à ${userEmail}`, { ticketNumber });
+      logger.info(`📧 Confirmation ticket envoyée à ${userEmail}`, {
+        ticketNumber,
+      });
       return result;
     } catch (error) {
-      logger.error(`❌ Erreur envoi confirmation ticket à ${userEmail}:`, error);
+      logger.error(
+        `❌ Erreur envoi confirmation ticket à ${userEmail}:`,
+        error
+      );
       throw error;
     }
   }
@@ -227,18 +240,18 @@ class EmailService {
    */
   async sendTurnNotification(userEmail, userData) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const { userName, doctorName, roomNumber } = userData;
-    
+
     const content = `
       <h2>C'est votre tour ! 🎯</h2>
       
       <div class="highlight">
         <h3>🏃‍♂️ Présentez-vous maintenant</h3>
         <p><strong>Médecin :</strong> Dr. ${doctorName}</p>
-        <p><strong>Salle :</strong> ${roomNumber || 'Voir à l\'accueil'}</p>
+        <p><strong>Salle :</strong> ${roomNumber || "Voir à l'accueil"}</p>
       </div>
 
       <p><strong>${userName}</strong>, votre tour est arrivé ! Présentez-vous dès maintenant à l'accueil ou directement dans la salle indiquée.</p>
@@ -256,10 +269,10 @@ class EmailService {
       to: userEmail,
       subject: `🎯 C'est votre tour ! Dr. ${doctorName} vous attend`,
       html: this.getBaseTemplate(
-        '🎯 C\'est votre tour !',
+        "🎯 C'est votre tour !",
         content,
-        'https://lineup.netlify.app/queue',
-        '🏃‍♂️ J\'arrive !'
+        "https://lineup.netlify.app/queue",
+        "🏃‍♂️ J'arrive !"
       ),
     };
 
@@ -278,11 +291,11 @@ class EmailService {
    */
   async sendPasswordReset(userEmail, resetToken, userName) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
-    
+
     const content = `
       <h2>Réinitialisation de mot de passe 🔑</h2>
       
@@ -306,12 +319,12 @@ class EmailService {
     const mailOptions = {
       from: `"LineUp - Sécurité 🔑" <${process.env.SMTP_USER}>`,
       to: userEmail,
-      subject: '🔑 Réinitialisation de votre mot de passe LineUp',
+      subject: "🔑 Réinitialisation de votre mot de passe LineUp",
       html: this.getBaseTemplate(
-        '🔑 Réinitialisation de mot de passe',
+        "🔑 Réinitialisation de mot de passe",
         content,
         resetUrl,
-        '🔐 Changer mon mot de passe'
+        "🔐 Changer mon mot de passe"
       ),
     };
 
@@ -330,11 +343,11 @@ class EmailService {
    */
   async sendWeeklySummary(userEmail, summaryData) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const { userName, ticketsCount, averageWait, favoriteDoctor } = summaryData;
-    
+
     const content = `
       <h2>Votre semaine avec LineUp 📊</h2>
       
@@ -350,7 +363,9 @@ class EmailService {
       </div>
 
       <h3>💡 Le saviez-vous ?</h3>
-      <p>Grâce à LineUp, vous avez économisé environ <strong>${ticketsCount * 15} minutes</strong> d'attente en salle cette semaine !</p>
+      <p>Grâce à LineUp, vous avez économisé environ <strong>${
+        ticketsCount * 15
+      } minutes</strong> d'attente en salle cette semaine !</p>
 
       <p>Merci de faire confiance à LineUp pour simplifier vos rendez-vous médicaux ! 💙</p>
     `;
@@ -358,12 +373,14 @@ class EmailService {
     const mailOptions = {
       from: `"LineUp - Récapitulatif 📊" <${process.env.SMTP_USER}>`,
       to: userEmail,
-      subject: `📊 Votre semaine LineUp - ${ticketsCount} ticket${ticketsCount > 1 ? 's' : ''}`,
+      subject: `📊 Votre semaine LineUp - ${ticketsCount} ticket${
+        ticketsCount > 1 ? "s" : ""
+      }`,
       html: this.getBaseTemplate(
-        '📊 Récapitulatif Hebdomadaire',
+        "📊 Récapitulatif Hebdomadaire",
         content,
-        'https://lineup.netlify.app/dashboard',
-        '📱 Voir mon tableau de bord'
+        "https://lineup.netlify.app/dashboard",
+        "📱 Voir mon tableau de bord"
       ),
     };
 
@@ -382,7 +399,7 @@ class EmailService {
    */
   async sendTestEmail(userEmail) {
     if (!this.transporter) {
-      throw new Error('Service email non disponible');
+      throw new Error("Service email non disponible");
     }
 
     const content = `
@@ -401,12 +418,12 @@ class EmailService {
     const mailOptions = {
       from: `"LineUp - Test 🧪" <${process.env.SMTP_USER}>`,
       to: userEmail,
-      subject: '🧪 Test du service email LineUp - ✅ Succès !',
+      subject: "🧪 Test du service email LineUp - ✅ Succès !",
       html: this.getBaseTemplate(
-        '🧪 Test Email - ✅ Succès !',
+        "🧪 Test Email - ✅ Succès !",
         content,
-        'https://lineup.netlify.app',
-        '🏡 Retour à LineUp'
+        "https://lineup.netlify.app",
+        "🏡 Retour à LineUp"
       ),
     };
 
