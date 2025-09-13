@@ -57,47 +57,116 @@ class EmailService {
   }
 
   /**
-   * 🎨 Template HTML de base
+   * 📁 Charge un template HTML depuis le système de fichiers
    */
-  getBaseTemplate(title, content, actionUrl = null, actionText = null) {
+  async loadTemplate(templateName) {
+    try {
+      // Vérifier le cache d'abord
+      if (this.templatesCache.has(templateName)) {
+        return this.templatesCache.get(templateName);
+      }
+
+      const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
+      const template = await fs.readFile(templatePath, 'utf8');
+      
+      // Mettre en cache pour éviter les lectures répétées
+      this.templatesCache.set(templateName, template);
+      
+      return template;
+    } catch (error) {
+      logger.error(`Erreur lors du chargement du template ${templateName}:`, error);
+      return this.getFallbackTemplate();
+    }
+  }
+
+  /**
+   * 🎨 Template de fallback en cas d'erreur
+   */
+  getFallbackTemplate() {
     return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${title}</title>
+      <title>{{title}}</title>
       <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f9fafb; }
-        .container { max-width: 600px; margin: 0 auto; background: white; }
-        .header { background: linear-gradient(135deg, #0091ff, #45b3ff); color: white; padding: 2rem; text-align: center; border-radius: 12px 12px 0 0; }
-        .content { padding: 2rem; }
-        .footer { background: #f3f4f6; padding: 1rem 2rem; text-align: center; color: #6b7280; font-size: 0.875rem; border-radius: 0 0 12px 12px; }
-        .button { display: inline-block; background: #0091ff; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 1rem 0; }
-        .button:hover { background: #0077e6; }
-        .feature-list { list-style: none; padding: 0; }
-        .feature-list li { padding: 0.5rem 0; }
-        .highlight { background: #f0f7ff; padding: 1rem; border-left: 4px solid #0091ff; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #3b82f6; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>${title}</h1>
+          <h1>{{title}}</h1>
         </div>
         <div class="content">
-          ${content}
-          ${
-            actionUrl && actionText
-              ? `
-          <div style="text-align: center; margin: 2rem 0;">
-            <a href="${actionUrl}" class="button">${actionText}</a>
-          </div>
-          `
-              : ""
-          }
+          {{content}}
         </div>
         <div class="footer">
+          <p>LineUp - Plateforme médicale sécurisée</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  /**
+   * 🔄 Remplace les variables dans un template
+   */
+  renderTemplate(template, variables) {
+    let rendered = template;
+    
+    // Remplacements simples {{variable}}
+    Object.keys(variables).forEach(key => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      rendered = rendered.replace(regex, variables[key] || '');
+    });
+
+    // Gestion des conditions {{#if condition}}...{{/if}}
+    rendered = rendered.replace(/{{#if\s+([^}]+)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
+      const conditionValue = variables[condition.trim()];
+      return conditionValue ? content : '';
+    });
+
+    // Nettoyage des variables non remplacées
+    rendered = rendered.replace(/{{[^}]+}}/g, '');
+
+    return rendered;
+  }
+
+  /**
+   * 🔐 Validation et sécurisation de l'adresse email
+   */
+  validateEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim().toLowerCase());
+  }
+
+  /**
+   * 🛡️ Sanitisation du contenu pour éviter les injections
+   */
+  sanitizeContent(content) {
+    if (typeof content !== 'string') return '';
+    
+    return content
+      .replace(/[<>]/g, '') // Supprimer les caractères HTML dangereux
+      .replace(/javascript:/gi, '') // Supprimer les liens JavaScript
+      .replace(/data:/gi, '') // Supprimer les URLs data:
+      .trim();
+  }
+
+  /**
+   * 📊 Génère un ID de tracking unique pour l'email
+   */
+  generateTrackingId() {
+    return crypto.randomBytes(16).toString('hex');
+  }
           <p>📧 Cet email a été envoyé automatiquement par LineUp</p>
           <p>🏥 Système de gestion de file d'attente médicale</p>
           <p style="margin-top: 1rem;">
