@@ -515,12 +515,7 @@ class EmailService {
       from: `"LineUp - Test 🧪" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: "🧪 Test du service email LineUp - ✅ Succès !",
-      html: this.getBaseTemplate(
-        "🧪 Test Email - ✅ Succès !",
-        content,
-        "https://lineup.netlify.app",
-        "🏡 Retour à LineUp"
-      ),
+      html: this.getBaseTemplate(content, "🧪 Test Email - ✅ Succès !"),
     };
 
     try {
