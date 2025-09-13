@@ -85,20 +85,24 @@ const ImprovedQueueCard = ({
   return (
     <div
       className={`
-      relative rounded-xl border-2 p-4 sm:p-6 transition-all duration-300 shadow-sm hover:shadow-md
+      relative rounded-xl border p-4 sm:p-6 
+      transition-all duration-400 ease-smooth
+      shadow-mobile hover:shadow-accessible
+      transform hover:scale-[1.02] active:scale-[0.98]
+      backdrop-blur-sm
       ${config.bgClass}
       ${
         isMyTicket
-          ? "ring-2 ring-blue-400 ring-offset-2 transform scale-[1.02]"
+          ? "ring-2 ring-primary-400 ring-offset-2 shadow-focus animate-scale-in"
           : ""
       }
-      ${hasStatusChanged ? "border-orange-400 shadow-lg" : ""}
-      ${position === 1 ? "border-green-400 shadow-lg bg-green-50" : ""}
+      ${hasStatusChanged ? "border-accent-400 shadow-accessible-strong animate-bounce-gentle" : ""}
+      ${position === 1 ? "border-success-400 shadow-accessible bg-success-50/90 animate-fade-in" : ""}
     `}
     >
       {/* Badge "Mon ticket" */}
       {isMyTicket && (
-        <div className="absolute -top-2 -right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+        <div className="absolute -top-2 -right-2 bg-primary-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-accessible animate-bounce-gentle">
           👤 MON TICKET
         </div>
       )}
