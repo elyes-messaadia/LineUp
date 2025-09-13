@@ -3,6 +3,7 @@
 ## 🎨 Palette de Couleurs Harmonisée
 
 ### Couleurs Principales
+
 ```css
 /* Bleu professionnel et chaleureux */
 primary-50: '#f0f7ff'
@@ -21,6 +22,7 @@ accent-700: '#c2410c'
 ```
 
 ### Couleurs de Statut
+
 ```css
 /* Succès - Vert professionnel */
 success-50: '#f0fdf4'
@@ -62,6 +64,7 @@ shadow-focus: '0 0 0 3px rgba(0, 145, 255, 0.2)'
 ## ✨ Animations et Transitions
 
 ### Durées et Fonctions
+
 ```css
 /* Durées recommandées */
 duration-300: '300ms'   /* Hover rapide */
@@ -74,6 +77,7 @@ ease-bounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
 ```
 
 ### Animations Prêtes à l'Emploi
+
 ```css
 animate-fade-in       /* Apparition douce */
 animate-slide-up      /* Glissement vers le haut */
@@ -85,6 +89,7 @@ animate-slide-in-right /* Glissement depuis la droite */
 ## 🎯 Exemples d'Utilisation
 
 ### Boutons
+
 ```jsx
 // Bouton principal
 <button className="
@@ -124,6 +129,7 @@ animate-slide-in-right /* Glissement depuis la droite */
 ```
 
 ### Cartes
+
 ```jsx
 // Carte de base
 <div className="
@@ -156,6 +162,7 @@ animate-slide-in-right /* Glissement depuis la droite */
 ```
 
 ### Notifications (Toasts)
+
 ```jsx
 // Toast d'information
 <div className="
@@ -186,6 +193,7 @@ animate-slide-in-right /* Glissement depuis la droite */
 ```
 
 ### États Interactifs
+
 ```jsx
 // Élément avec focus
 <div className="
@@ -211,6 +219,7 @@ animate-slide-in-right /* Glissement depuis la droite */
 ## 🎨 Conseils d'Utilisation
 
 ### ✅ Bonnes Pratiques
+
 - Utilisez les couleurs avec transparence (ex: `bg-primary-50/95`) pour plus de profondeur
 - Combinez plusieurs ombres pour créer de la hiérarchie
 - Utilisez `backdrop-blur-sm` avec des arrière-plans transparents
@@ -218,12 +227,14 @@ animate-slide-in-right /* Glissement depuis la droite */
 - Ajoutez des micro-interactions avec `transform` et `scale`
 
 ### ❌ À Éviter
+
 - Mélanger trop de couleurs d'accent sur une même page
 - Utiliser des animations trop rapides (< 200ms)
 - Ombres trop prononcées sur mobile
 - Transitions abruptes sans courbes d'ease
 
 ### 📱 Responsive Design
+
 - Les ombres sont adaptées aux écrans mobiles
 - Les animations sont optimisées pour éviter les problèmes de performance
 - Les couleurs gardent un bon contraste sur tous les écrans
