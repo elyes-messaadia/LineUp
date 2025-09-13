@@ -1281,8 +1281,13 @@ app.post("/create-secretary-temp", async (req, res) => {
   }
 });
 
-// 🛡️ Middleware de gestion d'erreurs (doit être en dernier)
-app.use(errorHandler);
+// � Protection CSRF conditionnelle (après les routes)
+app.use(conditionalCSRF);
+app.use(provideCsrfToken);
+
+// �🛡️ Middlewares de gestion d'erreurs (doivent être en dernier)
+app.use(securityErrorHandler); // Gestionnaire d'erreurs de sécurité
+app.use(errorHandler); // Gestionnaire d'erreurs général
 
 const startServer = async () => {
   try {
