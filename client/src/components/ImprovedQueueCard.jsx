@@ -96,8 +96,16 @@ const ImprovedQueueCard = ({
           ? "ring-2 ring-primary-400 ring-offset-2 shadow-focus animate-scale-in"
           : ""
       }
-      ${hasStatusChanged ? "border-accent-400 shadow-accessible-strong animate-bounce-gentle" : ""}
-      ${position === 1 ? "border-success-400 shadow-accessible bg-success-50/90 animate-fade-in" : ""}
+      ${
+        hasStatusChanged
+          ? "border-accent-400 shadow-accessible-strong animate-bounce-gentle"
+          : ""
+      }
+      ${
+        position === 1
+          ? "border-success-400 shadow-accessible bg-success-50/90 animate-fade-in"
+          : ""
+      }
     `}
     >
       {/* Badge "Mon ticket" */}
