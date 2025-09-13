@@ -125,62 +125,130 @@ module.exports = {
         next();
       });
 
-      // Protection contre les injections NoSQL (sanitisation maison)
-      const sanitizeNoSQL = (obj) => {
+      // Protection renforcée contre les injections
+      const sanitizeInput = (obj) => {
         if (!obj || typeof obj !== "object") return obj;
-        if (Array.isArray(obj)) return obj.map(sanitizeNoSQL);
+        if (Array.isArray(obj)) return obj.map(sanitizeInput);
+        
         const clean = {};
         for (const [key, value] of Object.entries(obj)) {
-          // Supprimer uniquement les clés qui commencent par '$' (conserve les points)
-          if (key.startsWith("$")) continue;
-          // Nettoyer récursivement
-          clean[key] = typeof value === "object" ? sanitizeNoSQL(value) : value;
+          // Vérifier les caractères suspects dans les clés
+          if (/[${}]/.test(key)) continue;
+          
+          // Nettoyer les chaînes
+          if (typeof value === "string") {
+            // Bloquer les caractères dangereux
+            if (/[<>{}$]/.test(value)) {
+              throw new Error("Caractères interdits détectés");
+            }
+            // Nettoyer les chemins de fichiers
+            if (value.includes("..") || value.includes("/")) {
+              throw new Error("Traversée de répertoire interdite");
+            }
+            clean[key] = value;
+          } 
+          // Nettoyer récursivement les objets
+          else if (typeof value === "object") {
+            clean[key] = sanitizeInput(value);
+          }
+          // Accepter les nombres et booléens
+          else if (["number", "boolean"].includes(typeof value)) {
+            clean[key] = value;
+          }
         }
         return clean;
       };
 
+      // Middleware de protection contre les injections
       app.use((req, res, next) => {
-        if (req.body && typeof req.body === "object") {
-          req.body = sanitizeNoSQL(req.body);
+        try {
+          if (req.body) req.body = sanitizeInput(req.body);
+          if (req.params) req.params = sanitizeInput(req.params);
+          if (req.query) {
+            // Copier query car c'est un getter en Express 5
+            const cleanQuery = sanitizeInput({...req.query});
+            Object.keys(req.query).forEach(key => delete req.query[key]);
+            Object.assign(req.query, cleanQuery);
+          }
+          next();
+        } catch (error) {
+          return res.status(400).json({
+            success: false,
+            message: "Données invalides",
+            error: error.message
+          });
         }
-        if (req.params && typeof req.params === "object") {
-          req.params = sanitizeNoSQL(req.params);
-        }
-        // Ne pas réassigner req.query (getter en Express 5). On évite toute mutation risquée ici.
-        next();
       });
 
-      // Rate limiting global pour toutes les requêtes (nouvelle instance par app)
+      // Rate limiting global avec pénalité progressive
       const limiter = rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100,
+        max: 100, // Limite de base
         standardHeaders: true,
         legacyHeaders: false,
-        message: {
-          success: false,
-          message: "Trop de requêtes. Veuillez réessayer plus tard.",
+        // Pénalité progressive
+        skip: (req) => {
+          if (process.env.NODE_ENV === 'test') return false;
+          return req.method === 'GET' && !req.path.includes('auth');
         },
-        // Utiliser ipKeyGenerator pour gérer IPv6 correctement et isoler par chemin
-        keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${req.path}`,
+        keyGenerator: (req) => {
+          const key = `${ipKeyGenerator(req.ip)}:${req.path}`;
+          // Ajouter un suffixe si c'est une requête sensible
+          if (req.method !== 'GET' || req.path.includes('auth')) {
+            return `${key}:protected`;
+          }
+          return key;
+        },
+        handler: (req, res) => {
+          res.status(429).json({
+            success: false,
+            message: "Trop de requêtes. Veuillez réessayer plus tard.",
+            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+          });
+        }
       });
       app.use(limiter);
 
-      // Rate limiting plus strict pour les routes d'authentification (nouvelle instance par app)
+      // Rate limiting strict pour l'authentification avec surveillance
       const authLimiter = rateLimit({
         windowMs: 60 * 60 * 1000, // 1 heure
-        max: 5,
+        max: 5, // 5 tentatives max
         standardHeaders: true,
         legacyHeaders: false,
-        message: {
-          success: false,
-          message:
-            "Trop de tentatives de connexion. Veuillez réessayer dans une heure.",
+        skipFailedRequests: false, // Compter même les échecs
+        skip: (req) => process.env.NODE_ENV === 'test' && req.headers['skip-rate-limit'],
+        keyGenerator: (req) => {
+          const baseKey = `${ipKeyGenerator(req.ip)}:auth`;
+          // Ajouter l'email pour éviter le contournement par changement d'email
+          if (req.body && req.body.email) {
+            return `${baseKey}:${req.body.email.toLowerCase()}`;
+          }
+          return baseKey;
         },
-        keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${req.path}`,
+        handler: (req, res) => {
+          // Logger la tentative de force brute
+          logger.warn({
+            ip: req.ip,
+            path: req.path,
+            attempts: req.rateLimit.current,
+            email: req.body?.email
+          }, "Tentative de force brute détectée");
+          
+          res.status(429).json({
+            success: false,
+            message: "Trop de tentatives. Compte temporairement bloqué.",
+            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+          });
+        }
       });
-      app.use("/auth/login", authLimiter);
-      app.use("/auth/register", authLimiter);
-      app.use("/auth/reset-password", authLimiter);
+      
+      // Appliquer le rate limiting auth sur toutes les routes sensibles
+      app.use([
+        "/auth/login",
+        "/auth/register",
+        "/auth/reset-password",
+        "/auth/verify"
+      ], authLimiter);
 
       // Importer et utiliser le middleware de logging HTTP
       const httpLogger = require("./httpLogger");
