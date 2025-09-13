@@ -43,7 +43,7 @@ describe("Auth API Tests", () => {
       await new Promise((resolve) => server.close(resolve));
       await disconnectDB(); // Utiliser notre fonction de déconnexion
       // Attendre un peu pour s'assurer que tout est fermé
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (err) {
       console.error("Erreur lors du nettoyage final:", err);
       throw err;

@@ -136,6 +136,7 @@ npm test -- --detectOpenHandles
 ### Solutions
 
 1. Handles DB
+
    ```javascript
    afterAll(async () => {
      await disconnectDB();
@@ -145,6 +146,7 @@ npm test -- --detectOpenHandles
    ```
 
 2. Mocks
+
    ```javascript
    jest.mock('../services/external', () => ({
      callExternal: jest.fn().mockResolvedValue({ success: true })
@@ -152,6 +154,7 @@ npm test -- --detectOpenHandles
    ```
 
 3. Cleanup
+
    ```javascript
    afterEach(async () => {
      jest.clearAllMocks();
