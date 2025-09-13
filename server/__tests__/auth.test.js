@@ -6,7 +6,7 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const { generateToken } = require("../utils/jwtUtils");
 const {
-  authenticateToken,
+  authenticateRequired,
   authenticateOptional,
 } = require("../middlewares/auth");
 
@@ -196,7 +196,7 @@ describe("Auth API Tests", () => {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
         req.headers.authorization = `Bearer ${token}`;
 
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(req.user).toBeTruthy();
         expect(req.user._id.toString()).toBe(user._id.toString());
@@ -205,7 +205,7 @@ describe("Auth API Tests", () => {
       });
 
       it("devrait rejeter un token manquant", async () => {
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -230,7 +230,7 @@ describe("Auth API Tests", () => {
 
         req.headers.authorization = `Bearer ${expiredToken}`;
 
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -243,7 +243,7 @@ describe("Auth API Tests", () => {
         const fakeToken = jwt.sign({ userId: "user123" }, "wrong-secret");
         req.headers.authorization = `Bearer ${fakeToken}`;
 
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -261,7 +261,7 @@ describe("Auth API Tests", () => {
 
         req.headers.authorization = `Bearer ${token}`;
 
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -283,7 +283,7 @@ describe("Auth API Tests", () => {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
         req.headers.authorization = `Bearer ${token}`;
 
-        await authenticateToken(req, res, next);
+        await authenticateRequired(req, res, next);
 
         expect(req.user).toBeTruthy();
         expect(req.user.password).toBeUndefined();
