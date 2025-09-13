@@ -42,7 +42,7 @@ const httpLogger = (options = {}) => {
         "*secret*",
         "*Secret*",
         "*key*",
-        "*Key*"
+        "*Key*",
       ],
       // Remplacer par une valeur générique
       censor: "[DONNÉES SENSIBLES MASQUÉES]",
@@ -53,12 +53,12 @@ const httpLogger = (options = {}) => {
       req: (req) => {
         // Créer une copie pour ne pas modifier l'objet original
         const sanitizedReq = JSON.parse(JSON.stringify(req));
-        
+
         // Nettoyer les headers d'autorisation
         if (sanitizedReq.headers && sanitizedReq.headers.authorization) {
           sanitizedReq.headers.authorization = "[AUTHORIZATION MASQUÉE]";
         }
-        
+
         // Nettoyer les cookies
         if (sanitizedReq.headers && sanitizedReq.headers.cookie) {
           sanitizedReq.headers.cookie = sanitizedReq.headers.cookie.replace(
@@ -66,9 +66,9 @@ const httpLogger = (options = {}) => {
             "$1=[MASQUÉ]"
           );
         }
-        
+
         return sanitizedReq;
-      }
+      },
     },
 
     // Personnaliser les données loguées pour chaque requête
