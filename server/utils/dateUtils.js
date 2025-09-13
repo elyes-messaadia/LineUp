@@ -8,47 +8,47 @@ class DateUtils {
    * 📅 Formate une date en français
    */
   static formatDate(date, options = {}) {
-    if (!date) return '';
-    
+    if (!date) return "";
+
     const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
+    if (isNaN(dateObj.getTime())) return "";
 
     const defaultOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      ...options
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      ...options,
     };
 
-    return dateObj.toLocaleDateString('fr-FR', defaultOptions);
+    return dateObj.toLocaleDateString("fr-FR", defaultOptions);
   }
 
   /**
    * ⏰ Formate une heure
    */
   static formatTime(date, options = {}) {
-    if (!date) return '';
-    
+    if (!date) return "";
+
     const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
+    if (isNaN(dateObj.getTime())) return "";
 
     const defaultOptions = {
-      hour: '2-digit',
-      minute: '2-digit',
-      ...options
+      hour: "2-digit",
+      minute: "2-digit",
+      ...options,
     };
 
-    return dateObj.toLocaleTimeString('fr-FR', defaultOptions);
+    return dateObj.toLocaleTimeString("fr-FR", defaultOptions);
   }
 
   /**
    * 📅⏰ Formate date et heure
    */
   static formatDateTime(date) {
-    if (!date) return '';
-    
+    if (!date) return "";
+
     const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
+    if (isNaN(dateObj.getTime())) return "";
 
     return `${this.formatDate(dateObj)} à ${this.formatTime(dateObj)}`;
   }
@@ -66,17 +66,17 @@ class DateUtils {
    */
   static formatDuration(minutes) {
     if (minutes < 60) {
-      return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      return `${minutes} minute${minutes > 1 ? "s" : ""}`;
     }
-    
+
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     if (remainingMinutes === 0) {
-      return `${hours} heure${hours > 1 ? 's' : ''}`;
+      return `${hours} heure${hours > 1 ? "s" : ""}`;
     }
-    
-    return `${hours}h${remainingMinutes.toString().padStart(2, '0')}`;
+
+    return `${hours}h${remainingMinutes.toString().padStart(2, "0")}`;
   }
 
   /**
@@ -85,7 +85,7 @@ class DateUtils {
   static isToday(date) {
     const today = new Date();
     const dateObj = new Date(date);
-    
+
     return dateObj.toDateString() === today.toDateString();
   }
 
@@ -96,7 +96,7 @@ class DateUtils {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateObj = new Date(date);
-    
+
     return dateObj.toDateString() === tomorrow.toDateString();
   }
 
@@ -128,7 +128,7 @@ class DateUtils {
    */
   static getLogTimestamp() {
     const now = new Date();
-    return now.toISOString().replace('T', ' ').substring(0, 19);
+    return now.toISOString().replace("T", " ").substring(0, 19);
   }
 
   /**
@@ -136,11 +136,11 @@ class DateUtils {
    */
   static getPeriodOfDay(date = new Date()) {
     const hour = new Date(date).getHours();
-    
-    if (hour < 6) return 'nuit';
-    if (hour < 12) return 'matin';
-    if (hour < 18) return 'après-midi';
-    return 'soir';
+
+    if (hour < 6) return "nuit";
+    if (hour < 12) return "matin";
+    if (hour < 18) return "après-midi";
+    return "soir";
   }
 
   /**
@@ -148,13 +148,18 @@ class DateUtils {
    */
   static getGreeting(date = new Date()) {
     const period = this.getPeriodOfDay(date);
-    
+
     switch (period) {
-      case 'matin': return 'Bonjour';
-      case 'après-midi': return 'Bonjour';
-      case 'soir': return 'Bonsoir';
-      case 'nuit': return 'Bonsoir';
-      default: return 'Bonjour';
+      case "matin":
+        return "Bonjour";
+      case "après-midi":
+        return "Bonjour";
+      case "soir":
+        return "Bonsoir";
+      case "nuit":
+        return "Bonsoir";
+      default:
+        return "Bonjour";
     }
   }
 
@@ -166,11 +171,14 @@ class DateUtils {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }
 
@@ -181,12 +189,12 @@ class DateUtils {
     const dates = [];
     const current = new Date(startDate);
     const end = new Date(endDate);
-    
+
     while (current <= end) {
       dates.push(new Date(current));
       current.setDate(current.getDate() + 1);
     }
-    
+
     return dates;
   }
 
@@ -205,10 +213,10 @@ class DateUtils {
     // Format: PT30M ou PT1H30M
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
     if (!match) return 0;
-    
-    const hours = parseInt(match[1] || '0', 10);
-    const minutes = parseInt(match[2] || '0', 10);
-    
+
+    const hours = parseInt(match[1] || "0", 10);
+    const minutes = parseInt(match[2] || "0", 10);
+
     return hours * 60 + minutes;
   }
 }
