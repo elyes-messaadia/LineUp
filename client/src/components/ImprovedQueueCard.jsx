@@ -31,41 +31,41 @@ const getStatusConfig = (status) => {
       return {
         icon: '⏱️',
         label: 'En attente',
-        bgClass: 'bg-blue-50 border-blue-200',
-        badgeClass: 'bg-blue-100 text-blue-800',
-        textClass: 'text-blue-900'
+        bgClass: 'bg-info-50/80 border-info-200',
+        badgeClass: 'bg-info-100 text-info-700',
+        textClass: 'text-info-800'
       };
     case 'en_consultation':
       return {
         icon: '🩺',
         label: 'En consultation',
-        bgClass: 'bg-green-50 border-green-200',
-        badgeClass: 'bg-green-100 text-green-800',
-        textClass: 'text-green-900'
+        bgClass: 'bg-success-50/80 border-success-200',
+        badgeClass: 'bg-success-100 text-success-700',
+        textClass: 'text-success-800'
       };
     case 'termine':
       return {
         icon: '✅',
         label: 'Terminé',
-        bgClass: 'bg-gray-50 border-gray-200',
-        badgeClass: 'bg-gray-100 text-gray-700',
-        textClass: 'text-gray-700'
+        bgClass: 'bg-secondary-50/80 border-secondary-200',
+        badgeClass: 'bg-secondary-100 text-secondary-700',
+        textClass: 'text-secondary-700'
       };
     case 'desiste':
       return {
         icon: '❌',
         label: 'Annulé',
-        bgClass: 'bg-red-50 border-red-200',
-        badgeClass: 'bg-red-100 text-red-800',
-        textClass: 'text-red-900'
+        bgClass: 'bg-error-50/80 border-error-200',
+        badgeClass: 'bg-error-100 text-error-700',
+        textClass: 'text-error-800'
       };
     default:
       return {
         icon: '❓',
         label: status,
-        bgClass: 'bg-gray-50 border-gray-200',
-        badgeClass: 'bg-gray-100 text-gray-700',
-        textClass: 'text-gray-700'
+        bgClass: 'bg-secondary-50/80 border-secondary-200',
+        badgeClass: 'bg-secondary-100 text-secondary-700',
+        textClass: 'text-secondary-700'
       };
   }
 };
