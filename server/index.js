@@ -233,7 +233,7 @@ connectDB();
 
 // 🔐 Routes d'authentification centralisées avec rate limiting spécifique
 app.use("/auth/login", loginRateLimit); // Rate limiting pour les connexions
-app.use("/auth/register", registerRateLimit); // Rate limiting pour les inscriptions  
+app.use("/auth/register", registerRateLimit); // Rate limiting pour les inscriptions
 app.use("/auth/forgot-password", emailRateLimit); // Rate limiting pour les emails
 app.use("/auth/reset-password", strictRateLimit); // Rate limiting strict pour le reset
 app.use("/auth", authRoutes);
