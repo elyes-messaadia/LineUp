@@ -129,12 +129,12 @@ module.exports = {
       const sanitizeInput = (obj) => {
         if (!obj || typeof obj !== "object") return obj;
         if (Array.isArray(obj)) return obj.map(sanitizeInput);
-        
+
         const clean = {};
         for (const [key, value] of Object.entries(obj)) {
           // Vérifier les caractères suspects dans les clés
           if (/[${}]/.test(key)) continue;
-          
+
           // Nettoyer les chaînes
           if (typeof value === "string") {
             // Bloquer les caractères dangereux
@@ -146,7 +146,7 @@ module.exports = {
               throw new Error("Traversée de répertoire interdite");
             }
             clean[key] = value;
-          } 
+          }
           // Nettoyer récursivement les objets
           else if (typeof value === "object") {
             clean[key] = sanitizeInput(value);
@@ -166,8 +166,8 @@ module.exports = {
           if (req.params) req.params = sanitizeInput(req.params);
           if (req.query) {
             // Copier query car c'est un getter en Express 5
-            const cleanQuery = sanitizeInput({...req.query});
-            Object.keys(req.query).forEach(key => delete req.query[key]);
+            const cleanQuery = sanitizeInput({ ...req.query });
+            Object.keys(req.query).forEach((key) => delete req.query[key]);
             Object.assign(req.query, cleanQuery);
           }
           next();
@@ -175,7 +175,7 @@ module.exports = {
           return res.status(400).json({
             success: false,
             message: "Données invalides",
-            error: error.message
+            error: error.message,
           });
         }
       });
@@ -188,13 +188,13 @@ module.exports = {
         legacyHeaders: false,
         // Pénalité progressive
         skip: (req) => {
-          if (process.env.NODE_ENV === 'test') return false;
-          return req.method === 'GET' && !req.path.includes('auth');
+          if (process.env.NODE_ENV === "test") return false;
+          return req.method === "GET" && !req.path.includes("auth");
         },
         keyGenerator: (req) => {
           const key = `${ipKeyGenerator(req.ip)}:${req.path}`;
           // Ajouter un suffixe si c'est une requête sensible
-          if (req.method !== 'GET' || req.path.includes('auth')) {
+          if (req.method !== "GET" || req.path.includes("auth")) {
             return `${key}:protected`;
           }
           return key;
@@ -203,9 +203,9 @@ module.exports = {
           res.status(429).json({
             success: false,
             message: "Trop de requêtes. Veuillez réessayer plus tard.",
-            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
           });
-        }
+        },
       });
       app.use(limiter);
 
@@ -216,7 +216,8 @@ module.exports = {
         standardHeaders: true,
         legacyHeaders: false,
         skipFailedRequests: false, // Compter même les échecs
-        skip: (req) => process.env.NODE_ENV === 'test' && req.headers['skip-rate-limit'],
+        skip: (req) =>
+          process.env.NODE_ENV === "test" && req.headers["skip-rate-limit"],
         keyGenerator: (req) => {
           const baseKey = `${ipKeyGenerator(req.ip)}:auth`;
           // Ajouter l'email pour éviter le contournement par changement d'email
@@ -227,28 +228,34 @@ module.exports = {
         },
         handler: (req, res) => {
           // Logger la tentative de force brute
-          logger.warn({
-            ip: req.ip,
-            path: req.path,
-            attempts: req.rateLimit.current,
-            email: req.body?.email
-          }, "Tentative de force brute détectée");
-          
+          logger.warn(
+            {
+              ip: req.ip,
+              path: req.path,
+              attempts: req.rateLimit.current,
+              email: req.body?.email,
+            },
+            "Tentative de force brute détectée"
+          );
+
           res.status(429).json({
             success: false,
             message: "Trop de tentatives. Compte temporairement bloqué.",
-            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
           });
-        }
+        },
       });
-      
+
       // Appliquer le rate limiting auth sur toutes les routes sensibles
-      app.use([
-        "/auth/login",
-        "/auth/register",
-        "/auth/reset-password",
-        "/auth/verify"
-      ], authLimiter);
+      app.use(
+        [
+          "/auth/login",
+          "/auth/register",
+          "/auth/reset-password",
+          "/auth/verify",
+        ],
+        authLimiter
+      );
 
       // Importer et utiliser le middleware de logging HTTP
       const httpLogger = require("./httpLogger");
