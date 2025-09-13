@@ -36,7 +36,7 @@ const httpLogger = (options = {}) => {
         "req.session.accessToken",
         // Chemins dynamiques pour les tokens
         "token",
-        "Token", 
+        "Token",
         "password",
         "Password",
         "secret",
