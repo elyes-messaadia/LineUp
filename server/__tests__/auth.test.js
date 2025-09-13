@@ -15,24 +15,71 @@ jest.mock("../utils/logger", () => ({
   warn: jest.fn(),
   error: jest.fn(),
   info: jest.fn(),
+  child: jest.fn().mockReturnValue({
+    warn: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+  }),
 }));
 
 describe("Auth API Tests", () => {
+  let server;
+  let mongoServer;
+
   beforeAll(async () => {
-    // Connexion à la base de données de test
-    await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test"
-    );
+    // Se connecter à la base de données de test
+    try {
+      mongoServer = process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test";
+      await mongoose.connect(mongoServer, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      server = app.listen(0); // Port dynamique pour éviter les conflits
+    } catch (err) {
+      console.error("Erreur de connexion MongoDB:", err);
+      throw err;
+    }
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    try {
+      await Promise.all([
+        // Attendre tous les nettoyages
+        User.deleteMany({}),
+        Role.deleteMany({}),
+        new Promise((resolve) => {
+          server.close(resolve); // Fermer le serveur HTTP
+        })
+      ]);
+      await mongoose.disconnect(); // Fermer la connexion MongoDB
+    } catch (err) {
+      console.error("Erreur lors du nettoyage final:", err);
+      throw err;
+    }
   });
 
   beforeEach(async () => {
-    // Nettoyer la base de données avant chaque test
-    await User.deleteMany({});
-    await Role.deleteMany({});
+    try {
+      await Promise.all([
+        User.deleteMany({}),
+        Role.deleteMany({}),
+      ]);
+    } catch (err) {
+      console.error("Erreur lors du nettoyage beforeEach:", err);
+      throw err;
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await Promise.all([
+        User.deleteMany({}),
+        Role.deleteMany({}),
+      ]);
+    } catch (err) {
+      console.error("Erreur lors du nettoyage afterEach:", err);
+      throw err;
+    }
   });
 
   describe("POST /auth/register", () => {
