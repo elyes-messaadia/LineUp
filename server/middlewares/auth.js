@@ -99,21 +99,29 @@ const authenticateRequired = async (req, res, next) => {
         .json({ success: false, message: "Server misconfiguration" });
     }
 
+    let decoded;
     try {
-      const decoded = verifyToken(
+      decoded = verifyToken(
         token,
         jwtSecret || "fallback_secret_change_in_production"
       );
+    } catch (jwtError) {
+      return res.status(401).json({
+        success: false,
+        message: "Token invalide",
+      });
+    }
 
-      // Vérifier l'expiration
-      const now = Date.now() / 1000;
-      if (decoded.exp && decoded.exp < now) {
-        return res.status(401).json({
-          success: false,
-          message: "Token expiré",
-        });
-      }
+    // Vérifier l'expiration
+    const now = Date.now() / 1000;
+    if (decoded.exp && decoded.exp < now) {
+      return res.status(401).json({
+        success: false,
+        message: "Token expiré",
+      });
+    }
 
+    try {
       // Récupérer l'utilisateur complet avec son rôle
       const user = await User.findById(decoded.userId)
         .populate("role")
@@ -148,21 +156,13 @@ const authenticateRequired = async (req, res, next) => {
       delete req.headers["server"];
       
       next();
-    } catch (jwtError) {
-      // Erreur spécifique à la vérification JWT
-      return res.status(401).json({
+    } catch (dbError) {
+      console.error("❌ Erreur base de données:", dbError);
+      return res.status(500).json({
         success: false,
-        message: "Token invalide",
+        message: "Erreur interne du serveur",
       });
     }
-  } catch (error) {
-    // Erreur générale
-    console.error("❌ Erreur authentification:", error);
-    return res.status(401).json({
-      success: false,
-      message: error.message || "Token invalide",
-    });
-  }
   } catch (error) {
     console.error("❌ Erreur authentification:", error);
     return res.status(401).json({
