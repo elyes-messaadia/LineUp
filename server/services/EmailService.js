@@ -9,8 +9,8 @@ const nodemailer = require("nodemailer");
 const fs = require("fs").promises;
 const path = require("path");
 const crypto = require("crypto");
-const { logger } = require("../utils/logger");
-const { formatDate, formatDateTime } = require("../utils/dateUtils");
+const logger = require("../utils/logger");
+const DateUtils = require("../utils/dateUtils");
 
 class EmailService {
   constructor() {
