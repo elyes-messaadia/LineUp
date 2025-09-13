@@ -1236,11 +1236,35 @@ app.post("/create-secretary-temp", async (req, res) => {
 // 🛡️ Middleware de gestion d'erreurs (doit être en dernier)
 app.use(errorHandler);
 
-// 🚀 Démarrage du serveur
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ API LineUp en ligne sur port ${PORT}`);
-  console.log(`🌐 Environnement: ${process.env.NODE_ENV || "development"}`);
-  console.log(
-    `📊 MongoDB: ${process.env.MONGO_URI ? "Configuré" : "Non configuré"}`
-  );
-});
+const startServer = async () => {
+  try {
+    // Connecter à MongoDB avant de démarrer le serveur
+    await connectDB();
+    
+    const server = app.listen(PORT, "0.0.0.0", () => {
+      logger.info(`✅ API LineUp en ligne sur port ${PORT}`);
+      logger.info(`🌐 Environnement: ${process.env.NODE_ENV || "development"}`);
+      logger.info(`📊 MongoDB connecté: ${process.env.MONGO_URI ? "Oui" : "Non"}`);
+    });
+
+    // Gestion propre de l'arrêt
+    process.on('SIGTERM', () => {
+      server.close(() => {
+        logger.info('Arrêt gracieux du serveur');
+        process.exit(0);
+      });
+    });
+
+    return server;
+  } catch (error) {
+    logger.error('Erreur au démarrage du serveur:', error);
+    process.exit(1);
+  }
+};
+
+// Démarrer le serveur si ce fichier est exécuté directement
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { app, startServer };
