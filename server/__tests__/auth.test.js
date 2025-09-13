@@ -29,7 +29,8 @@ describe("Auth API Tests", () => {
   beforeAll(async () => {
     // Se connecter à la base de données de test
     try {
-      mongoServer = process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test";
+      mongoServer =
+        process.env.MONGODB_URI || "mongodb://localhost:27017/lineup-test";
       await mongoose.connect(mongoServer, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -49,7 +50,7 @@ describe("Auth API Tests", () => {
         Role.deleteMany({}),
         new Promise((resolve) => {
           server.close(resolve); // Fermer le serveur HTTP
-        })
+        }),
       ]);
       await mongoose.disconnect(); // Fermer la connexion MongoDB
     } catch (err) {
@@ -60,10 +61,7 @@ describe("Auth API Tests", () => {
 
   beforeEach(async () => {
     try {
-      await Promise.all([
-        User.deleteMany({}),
-        Role.deleteMany({}),
-      ]);
+      await Promise.all([User.deleteMany({}), Role.deleteMany({})]);
     } catch (err) {
       console.error("Erreur lors du nettoyage beforeEach:", err);
       throw err;
@@ -72,10 +70,7 @@ describe("Auth API Tests", () => {
 
   afterEach(async () => {
     try {
-      await Promise.all([
-        User.deleteMany({}),
-        Role.deleteMany({}),
-      ]);
+      await Promise.all([User.deleteMany({}), Role.deleteMany({})]);
     } catch (err) {
       console.error("Erreur lors du nettoyage afterEach:", err);
       throw err;
