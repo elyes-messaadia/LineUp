@@ -48,12 +48,15 @@ export default {
           'senior-small': ['1rem', { lineHeight: '1.6', fontWeight: '500' }],
         },
         
-        // Ombres adaptées aux petits écrans
+        // Système d'ombres harmonisé
         boxShadow: {
-          'mobile': '0 2px 8px rgba(0, 0, 0, 0.1)',
-          'mobile-md': '0 4px 12px rgba(0, 0, 0, 0.15)',
-          'accessible': '0 4px 12px rgba(0, 0, 0, 0.15)',
-          'accessible-strong': '0 6px 20px rgba(0, 0, 0, 0.25)',
+          'subtle': '0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)',
+          'mobile': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          'mobile-md': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          'accessible': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          'accessible-strong': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+          'focus': '0 0 0 3px rgba(0, 145, 255, 0.2)',
         },
         
         // Hauteurs minimales pour zones tactiles
