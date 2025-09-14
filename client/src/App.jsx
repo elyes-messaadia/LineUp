@@ -10,7 +10,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 
 // Debug components (only in development)
-const UserDebugPanel = import.meta.env.DEV 
+const UserDebugPanel = import.meta.env.DEV
   ? lazy(() => import("./components/UserDebugPanel"))
   : () => null;
 
@@ -27,36 +27,36 @@ function App() {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem("user");
       // Logic to handle auth change would go here
     };
 
     // Écouter les changements de localStorage (autres onglets)
-    window.addEventListener('storage', handleAuthChange);
-    
+    window.addEventListener("storage", handleAuthChange);
+
     // Écouter notre événement personnalisé (même onglet)
-    window.addEventListener('authStateChanged', handleAuthChange);
-    
+    window.addEventListener("authStateChanged", handleAuthChange);
+
     return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('authStateChanged', handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("authStateChanged", handleAuthChange);
     };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('isAuthenticated');
-    
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("isAuthenticated");
+
     // Mettre à jour l'état immédiatement
     setIsAuthenticated(null);
     setUser(null);
-    
+
     // Déclencher l'événement pour notifier d'autres composants
-    window.dispatchEvent(new Event('authStateChanged'));
-    
+    window.dispatchEvent(new Event("authStateChanged"));
+
     // Rediriger vers l'accueil
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return (
@@ -65,42 +65,43 @@ function App() {
       <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-blue-100 sticky top-0 z-50 w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 w-full min-w-0">
-            
             {/* Logo - Toujours visible mais compacte sur mobile */}
             <div className="flex items-center space-x-2 sm:space-x-8 flex-shrink-0">
               <Link to="/" className="flex items-center space-x-2 group">
-                                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-white font-bold text-sm sm:text-lg">L</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-white font-bold text-sm sm:text-lg">
+                    L
+                  </span>
                 </div>
-                                  <span className="text-lg sm:text-xl font-bold text-blue-600">
+                <span className="text-lg sm:text-xl font-bold text-blue-600">
                   LineUp
                 </span>
               </Link>
-              
+
               {/* Navigation desktop - FORCÉ INVISIBLE sur mobile */}
               <div className="hidden lg:flex space-x-6 force-hide-mobile">
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                 >
                   <span>🏠</span>
                   <span className="font-medium">Accueil</span>
                 </Link>
-                <Link 
-                  to="/queue" 
+                <Link
+                  to="/queue"
                   className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                 >
                   <span>📋</span>
                   <span className="font-medium">File d'attente</span>
                 </Link>
                 {!isAuthenticated && (
-                                      <Link 
-                      to="/ticket" 
-                      className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-                    >
-                      <span>🎫</span>
-                      <span className="font-medium">Mon ticket</span>
-                    </Link>
+                  <Link
+                    to="/ticket"
+                    className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                  >
+                    <span>🎫</span>
+                    <span className="font-medium">Mon ticket</span>
+                  </Link>
                 )}
               </div>
             </div>
@@ -109,60 +110,68 @@ function App() {
             {/* Auth section - Visible seulement sur desktop (768px+) */}
             {isDesktop && (
               <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
-              {isAuthenticated && user ? (
-                <div className="flex items-center space-x-4">
-                  {/* Badge utilisateur amélioré */}
-                  <div className="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                      {user.role?.name === "medecin" && "🩺"}
-                      {user.role?.name === "secretaire" && "👩‍💼"}
-                      {user.role?.name === "patient" && "👤"}
-                      {user.role?.name === "visiteur" && "👁️"}
+                {isAuthenticated && user ? (
+                  <div className="flex items-center space-x-4">
+                    {/* Badge utilisateur amélioré */}
+                    <div className="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                        {user.role?.name === "medecin" && "🩺"}
+                        {user.role?.name === "secretaire" && "👩‍💼"}
+                        {user.role?.name === "patient" && "👤"}
+                        {user.role?.name === "visiteur" && "👁️"}
+                      </div>
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900">
+                          {getDisplayName(user)}
+                        </div>
+                        <div className="text-gray-500 capitalize">
+                          {user.role?.name}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900">{getDisplayName(user)}</div>
-                      <div className="text-gray-500 capitalize">{user.role?.name}</div>
-                    </div>
+
+                    {/* Bouton Mon espace */}
+                    <Link
+                      to={
+                        user.role?.name === "medecin"
+                          ? getDoctorDashboardRoute(user)
+                          : `/dashboard/${user.role?.name}`
+                      }
+                      className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <span>📊</span>
+                      <span className="font-medium">Mon espace</span>
+                    </Link>
+
+                    {/* Bouton déconnexion */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 px-4 py-2 rounded-lg transition-all duration-200 border border-red-200"
+                      title="Se déconnecter"
+                    >
+                      <span>🚪</span>
+                      <span className="font-medium">Déconnexion</span>
+                    </button>
                   </div>
-                  
-                  {/* Bouton Mon espace */}
-                  <Link 
-                    to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <span>📊</span>
-                    <span className="font-medium">Mon espace</span>
-                  </Link>
-                  
-                  {/* Bouton déconnexion */}
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 px-4 py-2 rounded-lg transition-all duration-200 border border-red-200"
-                    title="Se déconnecter"
-                  >
-                    <span>🚪</span>
-                    <span className="font-medium">Déconnexion</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-3">
-                  <Link 
-                    to="/login" 
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <span>🔐</span>
-                    <span className="font-medium">Connexion</span>
-                  </Link>
-                  <Link 
-                    to="/register" 
-                    className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <span>✨</span>
-                    <span className="font-medium">Inscription</span>
-                  </Link>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <Link
+                      to="/login"
+                      className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <span>🔐</span>
+                      <span className="font-medium">Connexion</span>
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <span>✨</span>
+                      <span className="font-medium">Inscription</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Menu mobile hamburger - Visible sur mobile */}
@@ -173,9 +182,21 @@ function App() {
                 aria-label="Ouvrir le menu"
               >
                 <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1">
-                  <span className={`block w-5 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-                  <span className={`block w-5 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                  <span className={`block w-5 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                  <span
+                    className={`block w-5 h-0.5 bg-current transition-all duration-300 ${
+                      isMobileMenuOpen ? "rotate-45 translate-y-1.5" : ""
+                    }`}
+                  ></span>
+                  <span
+                    className={`block w-5 h-0.5 bg-current transition-all duration-300 ${
+                      isMobileMenuOpen ? "opacity-0" : ""
+                    }`}
+                  ></span>
+                  <span
+                    className={`block w-5 h-0.5 bg-current transition-all duration-300 ${
+                      isMobileMenuOpen ? "-rotate-45 -translate-y-1.5" : ""
+                    }`}
+                  ></span>
                 </div>
               </button>
             </div>
@@ -183,11 +204,17 @@ function App() {
         </div>
 
         {/* Menu mobile - Responsive jusqu'aux tablettes */}
-        <div className={`lg:hidden transition-all duration-300 ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+        <div
+          className={`lg:hidden transition-all duration-300 ${
+            isMobileMenuOpen
+              ? "max-h-96 opacity-100"
+              : "max-h-0 opacity-0 overflow-hidden"
+          }`}
+        >
           <div className="bg-white border-t border-gray-200 px-4 py-4 space-y-3 legacy-container">
             {/* Navigation mobile - Grid sur écrans moyens */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
-              <Link 
+              <Link
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
@@ -195,7 +222,7 @@ function App() {
                 <span>🏠</span>
                 <span className="font-medium">Accueil</span>
               </Link>
-              <Link 
+              <Link
                 to="/queue"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
@@ -204,7 +231,7 @@ function App() {
                 <span className="font-medium">File d'attente</span>
               </Link>
               {!isAuthenticated && (
-                <Link 
+                <Link
                   to="/ticket"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center justify-center md:justify-start space-x-2 px-3 py-3 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors touch-target-large"
@@ -227,15 +254,23 @@ function App() {
                     {user.role?.name === "visiteur" && "👁️"}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-gray-900 truncate">{getDisplayName(user)}</div>
-                    <div className="text-sm text-gray-500 capitalize">{user.role?.name}</div>
+                    <div className="font-medium text-gray-900 truncate">
+                      {getDisplayName(user)}
+                    </div>
+                    <div className="text-sm text-gray-500 capitalize">
+                      {user.role?.name}
+                    </div>
                   </div>
                 </div>
-                
+
                 {/* Actions utilisateur - Grid sur écrans moyens */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Link 
-                    to={user.role?.name === "medecin" ? getDoctorDashboardRoute(user) : `/dashboard/${user.role?.name}`}
+                  <Link
+                    to={
+                      user.role?.name === "medecin"
+                        ? getDoctorDashboardRoute(user)
+                        : `/dashboard/${user.role?.name}`
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors touch-target-large"
                   >
@@ -258,7 +293,7 @@ function App() {
               <div className="pt-4 border-t border-gray-200">
                 {/* Boutons auth - Grid sur écrans moyens */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Link 
+                  <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors hover:bg-blue-700 touch-target-large"
@@ -266,7 +301,7 @@ function App() {
                     <span>🔐</span>
                     <span className="font-medium">Connexion</span>
                   </Link>
-                  <Link 
+                  <Link
                     to="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg transition-colors hover:from-green-700 hover:to-emerald-700 touch-target-large"
@@ -289,25 +324,37 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/queue" element={<Queue />} />
             <Route path="/ticket" element={<Ticket />} />
-            
+
             {/* Authentification */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+
             {/* Dashboards par rôle */}
             <Route path="/dashboard/patient" element={<PatientDashboard />} />
             <Route path="/dashboard/visiteur" element={<VisiteurDashboard />} />
             <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
-            <Route path="/dashboard/secretaire" element={<SecretaireDashboard />} />
-            
+            <Route
+              path="/dashboard/secretaire"
+              element={<SecretaireDashboard />}
+            />
+
             {/* Dashboards spécifiques des médecins */}
-            <Route path="/dashboard/dr-husni-said-habibi" element={<DrHusniDashboard />} />
-            <Route path="/dashboard/dr-helios-blasco" element={<DrHeliosDashboard />} />
-            <Route path="/dashboard/dr-jean-eric-panacciulli" element={<DrJeanEricDashboard />} />
+            <Route
+              path="/dashboard/dr-husni-said-habibi"
+              element={<DrHusniDashboard />}
+            />
+            <Route
+              path="/dashboard/dr-helios-blasco"
+              element={<DrHeliosDashboard />}
+            />
+            <Route
+              path="/dashboard/dr-jean-eric-panacciulli"
+              element={<DrJeanEricDashboard />}
+            />
           </Routes>
         </div>
       </main>
-      
+
       {/* Panneau de debug (toujours visible pour diagnostiquer) */}
       <UserDebugPanel />
     </div>
