@@ -377,6 +377,7 @@ function App() {
               element={<DrJeanEricDashboard />}
             />
           </Routes>
+          </Suspense>
         </div>
       </main>
 
