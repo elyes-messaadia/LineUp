@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Étape 1: Prise de ticket -->
+  <rect x="20" y="40" width="160" height="120" rx="10" fill="white" stroke="#4F46E5" stroke-width="2"/>
+  <rect x="50" y="70" width="100" height="60" rx="5" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1"/>
+  <text x="100" y="30" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#4F46E5">Étape 1</text>
+  <text x="100" y="105" text-anchor="middle" font-family="Arial" font-size="14" fill="#1E3A8A">Prenez votre ticket</text>
+  <text x="100" y="170" text-anchor="middle" font-family="Arial" font-size="12" fill="#6B7280">Sur place ou en ligne</text>
+  
+  <!-- Flèche 1->2 -->
+  <path d="M190 100 L230 100" stroke="#4F46E5" stroke-width="2"/>
+  <path d="M220 90 L230 100 L220 110" stroke="#4F46E5" stroke-width="2" fill="none"/>
+  
+  <!-- Étape 2: Attente -->
+  <rect x="240" y="40" width="160" height="120" rx="10" fill="white" stroke="#4F46E5" stroke-width="2"/>
+  <circle cx="290" cy="90" r="15" fill="#60A5FA"/>
+  <rect x="280" y="110" width="20" height="30" rx="5" fill="#60A5FA"/>
+  <circle cx="320" cy="90" r="15" fill="#93C5FD"/>
+  <rect x="310" y="110" width="20" height="30" rx="5" fill="#93C5FD"/>
+  <circle cx="350" cy="90" r="15" fill="#BFDBFE"/>
+  <rect x="340" y="110" width="20" height="30" rx="5" fill="#BFDBFE"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#4F46E5">Étape 2</text>
+  <text x="320" y="170" text-anchor="middle" font-family="Arial" font-size="12" fill="#6B7280">Suivez votre position en temps réel</text>
+  
+  <!-- Flèche 2->3 -->
+  <path d="M410 100 L450 100" stroke="#4F46E5" stroke-width="2"/>
+  <path d="M440 90 L450 100 L440 110" stroke="#4F46E5" stroke-width="2" fill="none"/>
+  
+  <!-- Étape 3: Notification -->
+  <rect x="460" y="40" width="160" height="120" rx="10" fill="white" stroke="#4F46E5" stroke-width="2"/>
+  <rect x="500" y="70" width="80" height="50" rx="8" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1"/>
+  <text x="540" y="100" text-anchor="middle" font-family="Arial" font-size="24" fill="#1E3A8A">🔔</text>
+  <text x="540" y="30" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#4F46E5">Étape 3</text>
+  <text x="540" y="170" text-anchor="middle" font-family="Arial" font-size="12" fill="#6B7280">Recevez une notification</text>
+  
+  <!-- Flèche 3->4 -->
+  <path d="M630 100 L670 100" stroke="#4F46E5" stroke-width="2"/>
+  <path d="M660 90 L670 100 L660 110" stroke="#4F46E5" stroke-width="2" fill="none"/>
+  
+  <!-- Étape 4: Consultation -->
+  <rect x="680" y="40" width="160" height="120" rx="10" fill="white" stroke="#4F46E5" stroke-width="2"/>
+  <circle cx="730" cy="90" r="15" fill="#3B82F6"/>
+  <rect x="720" y="110" width="20" height="30" rx="5" fill="#3B82F6"/>
+  <circle cx="790" cy="80" r="15" fill="#1E40AF"/>
+  <rect x="780" y="100" width="20" height="30" rx="5" fill="#1E40AF"/>
+  <text x="760" y="30" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#4F46E5">Étape 4</text>
+  <text x="760" y="170" text-anchor="middle" font-family="Arial" font-size="12" fill="#6B7280">Consultation médicale</text>
+</svg>

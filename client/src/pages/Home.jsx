@@ -20,6 +20,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const navigate = useNavigate();
   const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
 
@@ -33,6 +34,27 @@ export default function Home() {
       setIsAuthenticated(true);
     }
   }, []);
+  
+  // Gestion du bouton "Retour en haut"
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   const handleTakeTicket = () => {
     if (isAuthenticated && user) {
@@ -141,7 +163,7 @@ export default function Home() {
     <AnimatedPage>
       <ResponsiveContainer>
         {/* Hero Section */}
-        <div className="text-center space-y-4 md:space-y-6">
+        <div className="text-center space-y-6 md:space-y-8">
           <div className="inline-flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-2xl p-3 md:p-4 shadow-lg border border-white/50 w-full max-w-sm mx-auto md:max-w-none md:w-auto">
             <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xl md:text-2xl">🏥</span>
@@ -160,13 +182,34 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="space-y-3 md:space-y-4">
-            <ResponsiveText as="h2" variant="h2" className="text-gray-900 px-2">
-              Bienvenue sur votre plateforme de gestion
-            </ResponsiveText>
-            <ResponsiveText variant="body-large" className="text-gray-600 max-w-2xl mx-auto px-4">
-              Prenez un ticket, suivez votre position en temps réel et gérez vos consultations en toute simplicité
-            </ResponsiveText>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 my-6 px-4">
+            <div className="space-y-4 md:space-y-6 md:w-1/2 text-center md:text-left">
+              <ResponsiveText as="h2" variant="h2" className="text-gray-900">
+                Bienvenue sur votre plateforme de gestion
+              </ResponsiveText>
+              <ResponsiveText variant="body-large" className="text-gray-600 max-w-2xl mx-auto">
+                Prenez un ticket, suivez votre position en temps réel et gérez vos consultations en toute simplicité.
+                Plus besoin d'attendre des heures dans une salle d'attente bondée !
+              </ResponsiveText>
+              <div className="pt-4 flex justify-center md:justify-start">
+                <Button 
+                  onClick={handleTakeTicket} 
+                  size="lg"
+                  variant="gradient"
+                  icon="🎟️"
+                  className="shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  Prendre un ticket
+                </Button>
+              </div>
+            </div>
+            <div className="md:w-1/2 p-4 mt-4 md:mt-0">
+              <img 
+                src="/src/assets/hero-illustration.svg" 
+                alt="Gestion de file d'attente" 
+                className="w-full max-w-sm mx-auto rounded-lg shadow-md hover:shadow-lg transition-shadow" 
+              />
+            </div>
           </div>
         </div>
 
@@ -204,6 +247,81 @@ export default function Home() {
             </Card.Content>
           </Card>
         )}
+
+        {/* Section Comment ça marche */}
+        <div className="mt-12 mb-8">
+          <div className="text-center mb-8">
+            <ResponsiveText as="h2" variant="h2" className="text-gray-900">
+              Comment ça marche ?
+            </ResponsiveText>
+            <ResponsiveText variant="body-large" className="text-gray-600 max-w-2xl mx-auto px-4 mt-2">
+              LineUp simplifie votre expérience en cabinet médical en 4 étapes simples
+            </ResponsiveText>
+          </div>
+          
+          <div className="max-w-5xl mx-auto p-4">
+            <div className="overflow-x-auto pb-2 shadow-sm rounded-lg bg-gray-50/50 border border-gray-100">
+              <img 
+                src="/src/assets/process-steps.svg" 
+                alt="Étapes du processus" 
+                className="w-full min-w-[800px] p-4" 
+              />
+              <div className="text-center text-xs text-gray-500 pb-2 md:hidden">
+                ← Faites défiler pour voir toutes les étapes →
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 max-w-5xl mx-auto px-4">
+            <Card variant="default" className="text-center h-full">
+              <Card.Content>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl mb-3">
+                    🎫
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Prenez votre ticket</h3>
+                  <p className="text-gray-600">En ligne ou sur place, c'est simple et rapide</p>
+                </div>
+              </Card.Content>
+            </Card>
+            
+            <Card variant="default" className="text-center h-full">
+              <Card.Content>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl mb-3">
+                    📱
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">2. Suivez l'attente</h3>
+                  <p className="text-gray-600">Visualisez votre position en temps réel</p>
+                </div>
+              </Card.Content>
+            </Card>
+            
+            <Card variant="default" className="text-center h-full">
+              <Card.Content>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl mb-3">
+                    🔔
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Recevez une alerte</h3>
+                  <p className="text-gray-600">Soyez notifié quand votre tour approche</p>
+                </div>
+              </Card.Content>
+            </Card>
+            
+            <Card variant="default" className="text-center h-full">
+              <Card.Content>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl mb-3">
+                    👨‍⚕️
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">4. Consultation</h3>
+                  <p className="text-gray-600">Rencontrez votre médecin sans stress</p>
+                </div>
+              </Card.Content>
+            </Card>
+          </div>
+        </div>
 
         {/* Accès rapide médecins */}
         {!isAuthenticated && (
@@ -561,6 +679,19 @@ export default function Home() {
 
         {/* Toasts pour les messages */}
         <Toast toasts={toasts} removeToast={removeToast} />
+        
+        {/* Bouton retour en haut */}
+        {showScrollTop && (
+          <button 
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors duration-300 z-50 animate-fade-in"
+            aria-label="Retour en haut"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </button>
+        )}
       </ResponsiveContainer>
     </AnimatedPage>
   );
