@@ -13,6 +13,8 @@ import { useToast } from "../hooks/useToast";
 import { getDisplayName } from "../utils/userUtils";
 import BACKEND_URL from "../config/api";
 import { DOCTEURS } from "../config/doctors";
+import heroIllustration from "../assets/hero-illustration.svg";
+import processStepsIllustration from "../assets/process-steps.svg";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
