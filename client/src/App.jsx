@@ -24,7 +24,11 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isDesktop = useIsDesktop();
   const { isAuthenticated, user } = useAuth();
-      setUser(userData ? JSON.parse(userData) : null);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const userData = localStorage.getItem('user');
+      // Logic to handle auth change would go here
     };
 
     // Écouter les changements de localStorage (autres onglets)
