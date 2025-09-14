@@ -48,7 +48,7 @@ const allowedOrigins = new Set([
   "https://ligneup.netlify.app",
   "https://lineup.netlify.app",
   "https://lineup-app.netlify.app",
-  "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:5174",
   "http://localhost:3000",
 ]);
