@@ -21,11 +21,16 @@ const UserDebugPanel = import.meta.env.DEV
   ? lazy(() => import("./components/UserDebugPanel"))
   : () => null;
 
-// Utils
-
 // Dashboards par rôle
+const PatientDashboard = lazy(() => import("./pages/dashboards/PatientDashboard"));
+const VisiteurDashboard = lazy(() => import("./pages/dashboards/VisiteurDashboard"));
+const MedecinDashboard = lazy(() => import("./pages/dashboards/MedecinDashboard"));
+const SecretaireDashboard = lazy(() => import("./pages/dashboards/SecretaireDashboard"));
 
 // Dashboards spécifiques des médecins
+const DrHusniDashboard = lazy(() => import("./pages/dashboards/DrHusniDashboard"));
+const DrHeliosDashboard = lazy(() => import("./pages/dashboards/DrHeliosDashboard"));
+const DrJeanEricDashboard = lazy(() => import("./pages/dashboards/DrJeanEricDashboard"));
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
