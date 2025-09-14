@@ -6,7 +6,7 @@ import {
   Link,
   Navigate,
 } from "react-router-dom";
-import { useIsDesktop } from "./hooks/useIsDesktop";
+import { useIsDesktop } from "./hooks/useIsDesktop.js";
 import { useAuth } from "./contexts/AuthContext";
 
 // Lazy loading des pages
