@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fond avec dégradé -->
-  <rect width="400" height="300" rx="20" fill="url(#paint0_linear)" />
-  
-  <!-- Bâtiment de l'hôpital -->
-  <rect x="100" y="80" width="120" height="150" rx="5" fill="#F8FAFC" stroke="#4F46E5" stroke-width="2"/>
-  <rect x="120" y="100" width="30" height="40" rx="2" fill="#DBEAFE"/>
-  <rect x="170" y="100" width="30" height="40" rx="2" fill="#DBEAFE"/>
-  <rect x="140" y="180" width="40" height="50" rx="2" fill="#DBEAFE"/>
-  <rect x="145" y="30" width="30" height="50" rx="2" fill="#F8FAFC" stroke="#4F46E5" stroke-width="2"/>
-  <path d="M110 80L210 80" stroke="#4F46E5" stroke-width="2"/>
-  
-  <!-- Croix de l'hôpital -->
-  <rect x="155" y="40" width="10" height="30" rx="2" fill="#EF4444"/>
-  <rect x="145" y="50" width="30" height="10" rx="2" fill="#EF4444"/>
-  
-  <!-- Personnes en file d'attente (symboles simplifiés) -->
-  <circle cx="250" cy="120" r="15" fill="#3B82F6"/>
-  <rect x="240" y="140" width="20" height="40" rx="5" fill="#3B82F6"/>
-  
-  <circle cx="290" cy="125" r="15" fill="#60A5FA"/>
-  <rect x="280" y="145" width="20" height="40" rx="5" fill="#60A5FA"/>
-  
-  <circle cx="330" cy="130" r="15" fill="#93C5FD"/>
-  <rect x="320" y="150" width="20" height="40" rx="5" fill="#93C5FD"/>
-  
-  <!-- Ligne de file d'attente -->
-  <path d="M250 190 L330 190" stroke="#6366F1" stroke-width="2" stroke-dasharray="5 5"/>
-  
-  <!-- Flèche montrant la direction -->
-  <path d="M260 210 L310 210" stroke="#4F46E5" stroke-width="2"/>
-  <path d="M300 200 L310 210 L300 220" stroke="#4F46E5" stroke-width="2" fill="none"/>
-  
-  <!-- Dégradé pour le fond -->
-  <defs>
-    <linearGradient id="paint0_linear" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#EEF2FF"/>
-      <stop offset="1" stop-color="#E0E7FF"/>
-    </linearGradient>
-  </defs>
+    <!-- Fond avec dégradé -->
+    <rect width="400" height="300" rx="20" fill="url(#paint0_linear)" />
+
+    <!-- Bâtiment de l'hôpital -->
+    <rect x="100" y="80" width="120" height="150" rx="5" fill="#F8FAFC" stroke="#4F46E5" stroke-width="2" />
+    <rect x="120" y="100" width="30" height="40" rx="2" fill="#DBEAFE" />
+    <rect x="170" y="100" width="30" height="40" rx="2" fill="#DBEAFE" />
+    <rect x="140" y="180" width="40" height="50" rx="2" fill="#DBEAFE" />
+    <rect x="145" y="30" width="30" height="50" rx="2" fill="#F8FAFC" stroke="#4F46E5" stroke-width="2" />
+    <path d="M110 80L210 80" stroke="#4F46E5" stroke-width="2" />
+
+    <!-- Croix de l'hôpital -->
+    <rect x="155" y="40" width="10" height="30" rx="2" fill="#EF4444" />
+    <rect x="145" y="50" width="30" height="10" rx="2" fill="#EF4444" />
+
+    <!-- Personnes en file d'attente (symboles simplifiés) -->
+    <circle cx="250" cy="120" r="15" fill="#3B82F6" />
+    <rect x="240" y="140" width="20" height="40" rx="5" fill="#3B82F6" />
+
+    <circle cx="290" cy="125" r="15" fill="#60A5FA" />
+    <rect x="280" y="145" width="20" height="40" rx="5" fill="#60A5FA" />
+
+    <circle cx="330" cy="130" r="15" fill="#93C5FD" />
+    <rect x="320" y="150" width="20" height="40" rx="5" fill="#93C5FD" />
+
+    <!-- Ligne de file d'attente -->
+    <path d="M250 190 L330 190" stroke="#6366F1" stroke-width="2" stroke-dasharray="5 5" />
+
+    <!-- Flèche montrant la direction -->
+    <path d="M260 210 L310 210" stroke="#4F46E5" stroke-width="2" />
+    <path d="M300 200 L310 210 L300 220" stroke="#4F46E5" stroke-width="2" fill="none" />
+
+    <!-- Dégradé pour le fond -->
+    <defs>
+        <linearGradient id="paint0_linear" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#EEF2FF" />
+            <stop offset="1" stop-color="#E0E7FF" />
+        </linearGradient>
+    </defs>
 </svg>
