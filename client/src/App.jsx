@@ -55,10 +55,6 @@ function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("isAuthenticated");
 
-    // Mettre à jour l'état immédiatement
-    setIsAuthenticated(null);
-    setUser(null);
-
     // Déclencher l'événement pour notifier d'autres composants
     window.dispatchEvent(new Event("authStateChanged"));
 
