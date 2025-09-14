@@ -14,7 +14,7 @@ if (!rootElement) {
 } else {
   const root = createRoot(rootElement);
   console.log("✅ Root React créé");
-  
+
   root.render(<AppTest />);
   console.log("✅ Rendu React terminé");
 }
