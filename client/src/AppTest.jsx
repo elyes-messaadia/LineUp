@@ -1,5 +1,3 @@
-import React from "react";
-
 console.log("🧩 AppTest - Composant en cours de chargement");
 
 function AppTest() {
