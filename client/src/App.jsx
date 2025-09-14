@@ -22,15 +22,29 @@ const UserDebugPanel = import.meta.env.DEV
   : () => null;
 
 // Dashboards par rôle
-const PatientDashboard = lazy(() => import("./pages/dashboards/PatientDashboard"));
-const VisiteurDashboard = lazy(() => import("./pages/dashboards/VisiteurDashboard"));
-const MedecinDashboard = lazy(() => import("./pages/dashboards/MedecinDashboard"));
-const SecretaireDashboard = lazy(() => import("./pages/dashboards/SecretaireDashboard"));
+const PatientDashboard = lazy(() =>
+  import("./pages/dashboards/PatientDashboard")
+);
+const VisiteurDashboard = lazy(() =>
+  import("./pages/dashboards/VisiteurDashboard")
+);
+const MedecinDashboard = lazy(() =>
+  import("./pages/dashboards/MedecinDashboard")
+);
+const SecretaireDashboard = lazy(() =>
+  import("./pages/dashboards/SecretaireDashboard")
+);
 
 // Dashboards spécifiques des médecins
-const DrHusniDashboard = lazy(() => import("./pages/dashboards/DrHusniDashboard"));
-const DrHeliosDashboard = lazy(() => import("./pages/dashboards/DrHeliosDashboard"));
-const DrJeanEricDashboard = lazy(() => import("./pages/dashboards/DrJeanEricDashboard"));
+const DrHusniDashboard = lazy(() =>
+  import("./pages/dashboards/DrHusniDashboard")
+);
+const DrHeliosDashboard = lazy(() =>
+  import("./pages/dashboards/DrHeliosDashboard")
+);
+const DrJeanEricDashboard = lazy(() =>
+  import("./pages/dashboards/DrJeanEricDashboard")
+);
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -327,7 +341,10 @@ function App() {
       {/* Contenu principal avec container responsive */}
       <main className="flex-1 overflow-protection">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Routes>
+          <Suspense fallback={<div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>}>
+            <Routes>
             {/* Pages publiques */}
             <Route path="/" element={<Home />} />
             <Route path="/queue" element={<Queue />} />
