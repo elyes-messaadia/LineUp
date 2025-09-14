@@ -237,7 +237,7 @@ export default function Home() {
             </div>
             <div className="md:w-1/2 p-4 mt-4 md:mt-0">
               <img
-                src="/src/assets/hero-illustration.svg"
+                src="../assets/hero-illustration.svg"
                 alt="Gestion de file d'attente"
                 className="w-full max-w-sm mx-auto rounded-lg shadow-md hover:shadow-lg transition-shadow"
               />
