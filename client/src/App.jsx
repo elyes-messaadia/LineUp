@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, useState, useEffect } from "react";
 import { useIsDesktop } from "./hooks/useIsDesktop";
 import { useAuth } from "./contexts/AuthContext";
 
