@@ -1,5 +1,11 @@
 import { lazy, useState, useEffect, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+} from "react-router-dom";
 import { useIsDesktop } from "./hooks/useIsDesktop";
 import { useAuth } from "./contexts/AuthContext";
 
