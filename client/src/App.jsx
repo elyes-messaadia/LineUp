@@ -341,42 +341,49 @@ function App() {
       {/* Contenu principal avec container responsive */}
       <main className="flex-1 overflow-protection">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Suspense fallback={<div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            }
+          >
             <Routes>
-            {/* Pages publiques */}
-            <Route path="/" element={<Home />} />
-            <Route path="/queue" element={<Queue />} />
-            <Route path="/ticket" element={<Ticket />} />
+              {/* Pages publiques */}
+              <Route path="/" element={<Home />} />
+              <Route path="/queue" element={<Queue />} />
+              <Route path="/ticket" element={<Ticket />} />
 
-            {/* Authentification */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+              {/* Authentification */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Dashboards par rôle */}
-            <Route path="/dashboard/patient" element={<PatientDashboard />} />
-            <Route path="/dashboard/visiteur" element={<VisiteurDashboard />} />
-            <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
-            <Route
-              path="/dashboard/secretaire"
-              element={<SecretaireDashboard />}
-            />
+              {/* Dashboards par rôle */}
+              <Route path="/dashboard/patient" element={<PatientDashboard />} />
+              <Route
+                path="/dashboard/visiteur"
+                element={<VisiteurDashboard />}
+              />
+              <Route path="/dashboard/medecin" element={<MedecinDashboard />} />
+              <Route
+                path="/dashboard/secretaire"
+                element={<SecretaireDashboard />}
+              />
 
-            {/* Dashboards spécifiques des médecins */}
-            <Route
-              path="/dashboard/dr-husni-said-habibi"
-              element={<DrHusniDashboard />}
-            />
-            <Route
-              path="/dashboard/dr-helios-blasco"
-              element={<DrHeliosDashboard />}
-            />
-            <Route
-              path="/dashboard/dr-jean-eric-panacciulli"
-              element={<DrJeanEricDashboard />}
-            />
-          </Routes>
+              {/* Dashboards spécifiques des médecins */}
+              <Route
+                path="/dashboard/dr-husni-said-habibi"
+                element={<DrHusniDashboard />}
+              />
+              <Route
+                path="/dashboard/dr-helios-blasco"
+                element={<DrHeliosDashboard />}
+              />
+              <Route
+                path="/dashboard/dr-jean-eric-panacciulli"
+                element={<DrJeanEricDashboard />}
+              />
+            </Routes>
           </Suspense>
         </div>
       </main>
