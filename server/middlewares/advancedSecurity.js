@@ -162,7 +162,7 @@ const provideCsrfToken = (req, res, next) => {
 const originValidation = (req, res, next) => {
   const allowedOrigins = [
     process.env.CLIENT_URL || "http://localhost:3000",
-    process.env.FRONTEND_URL || "http://localhost:5173",
+    process.env.FRONTEND_URL || "http://localhost:5174",
     "https://lineup-medical.netlify.app", // URL de production
   ];
 
