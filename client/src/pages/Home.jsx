@@ -2,11 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AnimatedPage from "../components/AnimatedPage";
-import Toast from "../compo              <img 
-                src={heroIllustration} 
-                alt="Gestion de file d'attente" 
-                className="w-full max-w-sm mx-auto rounded-lg shadow-md hover:shadow-lg transition-shadow" 
-              />/Toast";
+import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";

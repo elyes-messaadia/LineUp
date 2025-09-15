@@ -3,8 +3,8 @@ console.log("🔥 main.jsx - Démarrage du script");
 import { createRoot } from "react-dom/client";
 console.log("✅ Import React DOM réussi");
 
-import AppTest from "./AppTest.jsx";
-console.log("✅ Import AppTest réussi");
+import App from "./App.jsx";
+console.log("✅ Import App réussi");
 
 const rootElement = document.getElementById("root");
 console.log("🎯 Élément root trouvé:", rootElement);
@@ -15,6 +15,6 @@ if (!rootElement) {
   const root = createRoot(rootElement);
   console.log("✅ Root React créé");
 
-  root.render(<AppTest />);
+  root.render(<App />);
   console.log("✅ Rendu React terminé");
 }
