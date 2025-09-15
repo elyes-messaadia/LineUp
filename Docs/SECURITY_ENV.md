@@ -24,6 +24,7 @@
 ## Configuration
 
 1. Copiez les fichiers .env.example :
+
    ```bash
    cp server/.env.example server/.env
    cp client/.env.example client/.env
@@ -45,6 +46,7 @@
 Pour vérifier qu'aucun secret n'a été commité :
 
 1. Vérifiez l'historique Git :
+
    ```bash
    git log -p | grep -i "password\|secret\|key\|token"
    ```
