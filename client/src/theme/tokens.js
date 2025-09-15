@@ -137,7 +137,7 @@ const zIndex = {
   toast: 1000,
 };
 
-module.exports = {
+const tokens = {
   colors,
   spacing,
   typography,
@@ -146,3 +146,5 @@ module.exports = {
   transitions,
   zIndex,
 };
+
+export default tokens;
