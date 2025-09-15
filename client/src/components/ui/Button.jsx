@@ -8,7 +8,8 @@ import { forwardRef } from "react";
 import Icon from "./Icon";
 
 // Styles utilitaires partagés
-const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed";
+const baseClasses =
+  "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed";
 const sizeClassesMap = {
   xs: "px-2 py-1 text-xs",
   sm: "px-3 py-2 text-sm",
