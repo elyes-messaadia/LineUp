@@ -4,7 +4,8 @@ import { createRoot } from "react-dom/client";
 console.log("✅ Import React DOM réussi");
 
 import App from "./App.jsx";
-console.log("✅ Import App réussi");
+import { AuthProvider } from "./contexts/AuthContext";
+console.log("✅ Import App et AuthContext réussis");
 
 const rootElement = document.getElementById("root");
 console.log("🎯 Élément root trouvé:", rootElement);
