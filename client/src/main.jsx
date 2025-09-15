@@ -16,6 +16,10 @@ if (!rootElement) {
   const root = createRoot(rootElement);
   console.log("✅ Root React créé");
 
-  root.render(<App />);
+  root.render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
   console.log("✅ Rendu React terminé");
 }
