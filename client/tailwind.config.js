@@ -1,8 +1,20 @@
 /** @type {import('tailwindcss').Config} */
+import tokens from "./src/theme/tokens.js";
+
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      // Palette de couleurs personnalisées (activent les classes primary/secondary/accent/...)
+      colors: {
+        primary: tokens.colors.primary,
+        secondary: tokens.colors.secondary,
+        accent: tokens.colors.accent,
+        success: tokens.colors.success,
+        error: tokens.colors.error,
+        warning: tokens.colors.warning,
+        info: tokens.colors.info,
+      },
       screens: {
         // Breakpoints optimisés pour différents modèles de téléphones
         xs: "320px", // Très petits écrans et anciens téléphones
