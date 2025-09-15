@@ -17,8 +17,8 @@ const sizeClassesMap = {
   lg: "px-6 py-3 text-lg",
 };
 
-// Composant générique Button
-const Button = forwardRef(
+// Composant générique interne
+const BaseButton = forwardRef(
   (
     {
       children,
@@ -69,14 +69,12 @@ const Button = forwardRef(
   }
 );
 
-Button.displayName = "Button";
-
 // Variantes spécialisées
 export const PrimaryButton = forwardRef((props, ref) => (
-  <Button ref={ref} variant="primary" {...props} />
+  <BaseButton ref={ref} variant="primary" {...props} />
 ));
 export const SecondaryButton = forwardRef((props, ref) => (
-  <Button ref={ref} variant="secondary" {...props} />
+  <BaseButton ref={ref} variant="secondary" {...props} />
 ));
 
-export default Button;
+export default BaseButton;
