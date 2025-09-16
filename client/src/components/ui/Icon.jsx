@@ -47,6 +47,7 @@ export const ICONS = {
   edit: "✏️",
   delete: "🗑️",
   save: "💾",
+  checkmark: "✅",
   download: "📥",
   upload: "📤",
   print: "🖨️",
