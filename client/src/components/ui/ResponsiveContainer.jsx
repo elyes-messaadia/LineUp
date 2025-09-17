@@ -56,11 +56,15 @@ const ResponsiveContainer = forwardRef(
     // Validation des props
     invariant(
       CONTAINER_SIZES[size],
-      `Invalid size prop "${size}". Must be one of: ${Object.keys(CONTAINER_SIZES).join(", ")}`
+      `Invalid size prop "${size}". Must be one of: ${Object.keys(
+        CONTAINER_SIZES
+      ).join(", ")}`
     );
     invariant(
       SPACING_VALUES[spacing],
-      `Invalid spacing prop "${spacing}". Must be one of: ${Object.keys(SPACING_VALUES).join(", ")}`
+      `Invalid spacing prop "${spacing}". Must be one of: ${Object.keys(
+        SPACING_VALUES
+      ).join(", ")}`
     );
 
     const combinedClasses = useMemo(() => {
@@ -74,7 +78,9 @@ const ResponsiveContainer = forwardRef(
         ${spacingClass}
         ${paddingClass}
         ${className}
-      `.replace(/\s+/g, " ").trim();
+      `
+        .replace(/\s+/g, " ")
+        .trim();
     }, [size, spacing, padding, className]);
 
     return (
