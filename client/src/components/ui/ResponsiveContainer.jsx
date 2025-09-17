@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { useTheme } from "../../theme/useTheme";
+import PropTypes from "prop-types";
 
 const ResponsiveContainer = forwardRef(
   (
@@ -13,9 +13,6 @@ const ResponsiveContainer = forwardRef(
     },
     ref
   ) => {
-    const theme = useTheme();
-    const { spacing: spacingTokens } = theme.tokens;
-
     const sizeClasses = {
       sm: "max-w-screen-sm",
       md: "max-w-screen-md",
@@ -33,8 +30,8 @@ const ResponsiveContainer = forwardRef(
     const paddingClasses = padding
       ? `
     px-4
-    sm:px-${spacingTokens[6]}
-    lg:px-${spacingTokens[8]}
+    sm:px-6
+    lg:px-8
   `
       : "";
 
@@ -56,5 +53,13 @@ const ResponsiveContainer = forwardRef(
 );
 
 ResponsiveContainer.displayName = "ResponsiveContainer";
+
+ResponsiveContainer.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+  size: PropTypes.oneOf(["sm", "md", "lg", "xl", "2xl"]),
+  spacing: PropTypes.oneOf(["sm", "md", "lg"]),
+  padding: PropTypes.bool,
+};
 
 export default ResponsiveContainer;
