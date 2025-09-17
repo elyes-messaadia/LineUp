@@ -10,24 +10,24 @@ const ResponsiveContainer = forwardRef(({
   ...props 
 }, ref) => {
   const theme = useTheme();
-  const { layout, spacing: spacingTokens } = theme.tokens;
+  const { spacing: spacingTokens } = theme.tokens;
   
   const sizeClasses = {
-    'sm': layout.container.maxWidth.sm,
-    'md': layout.container.maxWidth.md,
-    'lg': layout.container.maxWidth.lg,
-    'xl': layout.container.maxWidth.xl,
-    '2xl': layout.container.maxWidth['2xl'],
+    'sm': 'max-w-screen-sm',
+    'md': 'max-w-screen-md',
+    'lg': 'max-w-screen-lg',
+    'xl': 'max-w-screen-xl',
+    '2xl': 'max-w-screen-2xl',
   };
 
   const spacingClasses = {
-    'sm': `space-y-${spacingTokens[4]}`,
-    'md': `space-y-${spacingTokens[6]}`,
-    'lg': `space-y-${spacingTokens[8]}`,
+    'sm': 'space-y-4',
+    'md': 'space-y-6',
+    'lg': 'space-y-8',
   };
 
   const paddingClasses = padding ? `
-    px-${spacingTokens[4]}
+    px-4
     sm:px-${spacingTokens[6]}
     lg:px-${spacingTokens[8]}
   ` : '';
