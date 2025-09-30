@@ -7,7 +7,8 @@ $envFilesInGit = git ls-files | Select-String "\.env$"
 if ($envFilesInGit) {
     Write-Host "ALERTE: Fichiers .env trouves dans Git:" -ForegroundColor Red
     $envFilesInGit | ForEach-Object { Write-Host "   - $_" -ForegroundColor Red }
-} else {
+}
+else {
     Write-Host "OK: Aucun fichier .env dans Git" -ForegroundColor Green
 }
 
@@ -17,7 +18,8 @@ $localEnvFiles = Get-ChildItem -Path . -Recurse -Name "*.env" -Force | Where-Obj
 if ($localEnvFiles) {
     Write-Host "Fichiers .env locaux trouves:" -ForegroundColor Blue
     $localEnvFiles | ForEach-Object { Write-Host "   - $_" -ForegroundColor Blue }
-} else {
+}
+else {
     Write-Host "Aucun fichier .env local trouve" -ForegroundColor Blue
 }
 
