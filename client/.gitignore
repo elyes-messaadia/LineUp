@@ -1,9 +1,18 @@
-    # *env
-node_modules
+# Variables d'environnement - SÉCURITÉ CRITIQUE
 .env
+.env.*
+*.env
 .env.local
 .env.development
 .env.production
 .env.test
 .env.test.local
-.env.test.local
+!.env.example
+
+# Node modules
+node_modules
+
+# Fichiers sensibles
+config.json
+secrets.json
+*.key
