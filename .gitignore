@@ -28,11 +28,25 @@ dist-ssr
 *.sln
 *.sw?
 
-# env files (garde .env.example pour la doc)
+# Variables d'environnement (CRITIQUE SÉCURITÉ)
 .env
-.env.local
-.env.production
+.env.*
+*.env
+client/.env
+client/.env.*
 server/.env
+server/.env.*
+!.env.example
+!client/.env.example
+!server/.env.example
+
+# Fichiers de configuration sensibles
+config.json
+secrets.json
+*.key
+*.pem
+*.p12
+*.pfx
 
 # build
 dist/
