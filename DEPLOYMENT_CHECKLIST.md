@@ -2,17 +2,20 @@
 
 ## 📋 CHECKLIST DE DÉPLOIEMENT
 
-### ✅ PRÉPARÉ :
+### ✅ PRÉPARÉ
+
 - [x] Secrets générés (JWT, VAPID)
 - [x] Scripts de configuration créés
 - [x] Code pushé sur la branche main
 - [x] Frontend Netlify opérationnel (200 OK)
 
-### 🔴 À FAIRE MAINTENANT :
+### 🔴 À FAIRE MAINTENANT
 
 #### 1. **MongoDB Atlas** (CRITIQUE - FAIRE EN PREMIER)
-🔗 **URL** : https://cloud.mongodb.com/
+
+🔗 **URL** : <https://cloud.mongodb.com/>
 📋 **Actions** :
+
 - Se connecter à votre compte
 - Aller dans "Database Access"
 - Modifier l'utilisateur `elyesmessaadia`
@@ -20,8 +23,10 @@
 - OU créer un nouvel utilisateur
 
 #### 2. **Render.com Configuration**
-🔗 **URL** : https://dashboard.render.com/
+
+🔗 **URL** : <https://dashboard.render.com/>
 📋 **Actions** :
+
 - Aller dans votre service `lineup-backend`
 - Cliquer sur "Environment" dans le menu
 - Ajouter ces 8 variables :
@@ -38,7 +43,9 @@ VAPID_EMAIL=contact@lineup.app
 ```
 
 #### 3. **Monitoring du déploiement**
+
 Une fois les variables configurées sur Render :
+
 ```powershell
 .\monitor-render.ps1
 ```
@@ -55,16 +62,17 @@ Une fois les variables configurées sur Render :
 Quand le monitoring indique "DÉPLOIEMENT RÉUSSI", tester :
 
 1. **API Backend** :
-   - https://lineup-backend-xxak.onrender.com/health
+   - <https://lineup-backend-xxak.onrender.com/health>
    - Doit retourner : `{"status":"OK","cors":"enabled"}`
 
 2. **Application complète** :
-   - https://ligneup.netlify.app/
+   - <https://ligneup.netlify.app/>
    - Tester inscription/connexion
 
 ## 🆘 EN CAS DE PROBLÈME
 
 Si erreur 500 persiste après 15 minutes :
+
 1. Vérifier les logs Render
 2. Vérifier la connexion MongoDB
 3. Relancer : `.\test-deployment.ps1`

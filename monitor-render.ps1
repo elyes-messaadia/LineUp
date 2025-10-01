@@ -36,13 +36,16 @@ for ($i = 1; $i -le $maxAttempts; $i++) {
         Write-Host "Le backend est operationnel" -ForegroundColor Green
         break
         
-    } catch {
+    }
+    catch {
         $errorMsg = $_.Exception.Message
         if ($errorMsg -like "*500*") {
             Write-Host "⚠️ Erreur 500: Configuration probablement en cours..." -ForegroundColor Yellow
-        } elseif ($errorMsg -like "*timeout*") {
+        }
+        elseif ($errorMsg -like "*timeout*") {
             Write-Host "⏱️ Timeout: Service en cours de redemarrage..." -ForegroundColor Yellow
-        } else {
+        }
+        else {
             Write-Host "❌ Erreur: $errorMsg" -ForegroundColor Red
         }
         
