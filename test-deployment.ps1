@@ -11,7 +11,8 @@ try {
         $content = $backendResponse.Content | ConvertFrom-Json
         Write-Host "Backend Response: $($content | ConvertTo-Json)" -ForegroundColor Blue
     }
-} catch {
+}
+catch {
     Write-Host "Backend Error: $($_.Exception.Message)" -ForegroundColor Red
 }
 
@@ -20,7 +21,8 @@ Write-Host "`nTest du frontend Netlify..." -ForegroundColor Cyan
 try {
     $frontendResponse = Invoke-WebRequest -Uri "https://ligneup.netlify.app/" -Method Head -TimeoutSec 30
     Write-Host "Frontend Status: $($frontendResponse.StatusCode)" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "Frontend Error: $($_.Exception.Message)" -ForegroundColor Red
 }
 

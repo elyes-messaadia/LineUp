@@ -3,11 +3,13 @@
 ## 📋 NOUVELLES VARIABLES GÉNÉRÉES (2025-10-01)
 
 ### 🔑 JWT Secret
+
 ```
 JWT_SECRET=D|o_CX^R2I&!%c]+?cR$8S{UB%aG^&:NWn*%T-}^a()HA:t/O(-jDNm-HAJsu9_6
 ```
 
 ### 📱 Clés VAPID
+
 ```
 VAPID_PUBLIC_KEY=BGH1aJhSZ_jU0-dLqFvFNBFZNP23QeW2mep9xj1141MwxPPzp9D0bAWzltUlXfFFPrMzmfmZokem5KCDuRranNE
 VAPID_PRIVATE_KEY=UNZ4EVOeFDkYeT2pc_mLGyngDZ-SNNkNHowVWCZeN7g
@@ -16,7 +18,8 @@ VAPID_EMAIL=contact@lineup.app
 
 ## 🚀 CONFIGURATION RENDER.COM
 
-### Variables d'environnement à ajouter dans Render Dashboard :
+### Variables d'environnement à ajouter dans Render Dashboard
+
 ```
 MONGO_URI=mongodb+srv://NOUVEAU_USER:NOUVEAU_PASS@cluster0.vauvacv.mongodb.net/lineup
 JWT_SECRET=D|o_CX^R2I&!%c]+?cR$8S{UB%aG^&:NWn*%T-}^a()HA:t/O(-jDNm-HAJsu9_6
@@ -30,7 +33,8 @@ VAPID_EMAIL=contact@lineup.app
 
 ## 🌐 CONFIGURATION NETLIFY
 
-### Variables d'environnement :
+### Variables d'environnement
+
 ```
 VITE_API_URL=https://lineup-backend-xxak.onrender.com
 NODE_VERSION=18
@@ -39,7 +43,8 @@ VITE_SHOW_QUICK_LOGIN=true
 
 ## 🗄️ CONFIGURATION MONGODB ATLAS
 
-### Actions à effectuer :
+### Actions à effectuer
+
 1. Se connecter à [MongoDB Atlas](https://cloud.mongodb.com/)
 2. Aller dans Database Access
 3. Changer le mot de passe de l'utilisateur `elyesmessaadia`
@@ -48,7 +53,8 @@ VITE_SHOW_QUICK_LOGIN=true
 
 ## ✅ TESTS DE VÉRIFICATION
 
-### Tester le backend (après configuration) :
+### Tester le backend (après configuration)
+
 ```powershell
 # Test de base
 Invoke-WebRequest -Uri "https://lineup-backend-xxak.onrender.com/health"
@@ -57,7 +63,8 @@ Invoke-WebRequest -Uri "https://lineup-backend-xxak.onrender.com/health"
 Invoke-WebRequest -Uri "https://lineup-backend-xxak.onrender.com/"
 ```
 
-### Tester le frontend :
+### Tester le frontend
+
 ```powershell
 # Vérifier que le site charge
 Invoke-WebRequest -Uri "https://ligneup.netlify.app/"
