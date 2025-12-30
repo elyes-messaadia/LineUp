@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const logger = require("../utils/logger");
 require("dotenv").config();
 
-async function connectDB(uri = process.env.MONGO_URI) {
+async function connectDB(uri = process.env.MONGO_URI || process.env.MONGODB_URI) {
   try {
     // Options de connexion optimisées
     const options = {

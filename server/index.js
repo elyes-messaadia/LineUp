@@ -15,16 +15,12 @@ const { hmacFingerprint } = require("./utils/fingerprint");
 const httpLogger = require("./middlewares/httpLogger");
 
 // 🔍 Validation des variables d'environnement critiques
-const requiredEnvVars = ["MONGO_URI"];
-const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
-
-if (missingEnvVars.length > 0) {
-  logger.error({ missingEnvVars }, "Variables d'environnement manquantes");
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!mongoUri) {
+  logger.error("Variable d'environnement MONGO_URI ou MONGODB_URI manquante");
   if (process.env.NODE_ENV !== "production") {
     logger.info("💡 Créez un fichier .env avec:");
-    missingEnvVars.forEach((envVar) => {
-      logger.info(`   ${envVar}=your_value_here`);
-    });
+    logger.info("   MONGO_URI=your_mongodb_connection_string");
   }
 }
 
@@ -1294,7 +1290,7 @@ const startServer = async () => {
       logger.info(`✅ API LineUp en ligne sur port ${PORT}`);
       logger.info(`🌐 Environnement: ${process.env.NODE_ENV || "development"}`);
       logger.info(
-        `📊 MongoDB connecté: ${process.env.MONGO_URI ? "Oui" : "Non"}`
+        `📊 MongoDB connecté: ${mongoUri ? "Oui" : "Non"}`
       );
     });
 
