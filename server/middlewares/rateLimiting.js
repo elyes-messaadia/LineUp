@@ -5,14 +5,18 @@
  */
 
 const rateLimit = require("express-rate-limit");
-const RedisStore = require("rate-limit-redis");
-const redis = require("redis");
 const { logger } = require("../utils/logger");
 
 // Configuration Redis (optionnelle, utilise la mémoire par défaut)
 let redisClient;
+let RedisStore;
+
 try {
   if (process.env.REDIS_URL) {
+    // Import optionnel de Redis
+    RedisStore = require("rate-limit-redis");
+    const redis = require("redis");
+    
     redisClient = redis.createClient({ url: process.env.REDIS_URL });
     redisClient.on("error", (err) => {
       logger.warn("Redis client error:", err);
@@ -20,7 +24,9 @@ try {
     });
   }
 } catch (error) {
-  logger.warn("Redis connection failed, using memory store:", error.message);
+  logger.warn("Redis modules not available, using memory store:", error.message);
+  redisClient = null;
+  RedisStore = null;
 }
 
 /**
@@ -66,11 +72,15 @@ const createRateLimit = (options = {}) => {
   };
 
   // Utiliser Redis si disponible
-  if (redisClient) {
-    defaultOptions.store = new RedisStore({
-      client: redisClient,
-      prefix: "ratelimit:",
-    });
+  if (redisClient && RedisStore) {
+    try {
+      defaultOptions.store = new RedisStore({
+        client: redisClient,
+        prefix: "ratelimit:",
+      });
+    } catch (error) {
+      logger.warn("Failed to create RedisStore, using memory store:", error.message);
+    }
   }
 
   return rateLimit({ ...defaultOptions, ...options });
