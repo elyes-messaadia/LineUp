@@ -12,16 +12,12 @@ const { notifyNewTicket } = require("./controllers/notificationController");
 require("dotenv").config();
 
 // 🔍 Validation des variables d'environnement critiques
-// Utilisé par connectDB: MONGO_URI (et non MONGODB_URI)
-const requiredEnvVars = ['MONGO_URI'];
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-
-if (missingEnvVars.length > 0) {
-  console.error('❌ Variables d\'environnement manquantes:', missingEnvVars);
+// Vérification de la présence de MONGO_URI ou MONGODB_URI
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error('❌ Variable d\'environnement MONGO_URI ou MONGODB_URI manquante');
   console.log('💡 Créez un fichier .env avec:');
-  missingEnvVars.forEach(envVar => {
-    console.log(`   ${envVar}=your_value_here`);
-  });
+  console.log('   MONGO_URI=your_mongodb_connection_string');
 }
 
 if (!process.env.JWT_SECRET) {
