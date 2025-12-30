@@ -39,48 +39,44 @@ if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuration CORS - restreinte en production
-const allowedOrigins = new Set([
-  "https://ligneup.netlify.app",
-  "https://lineup.netlify.app",
-  "https://lineup-app.netlify.app",
-  "http://localhost:5174",
-  "http://127.0.0.1:5174",
-  "http://localhost:3000",
-]);
+// Configuration CORS - Mode permissif pour production Render
+const allowedOrigins = [
+  'https://ligneup.netlify.app',
+  'https://lineup.netlify.app',
+  'https://lineup-app.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://lineup-backend-xxak.onrender.com'
+];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile clients, server-to-server) only in non-production
-      if (!origin) {
-        if (process.env.NODE_ENV === "production") {
-          return callback(new Error("Origin header missing"), false);
-        }
-        return callback(null, true);
-      }
+// CORS simple et efficace
+app.use(cors({
+  origin: true, // Accepter toutes les origines temporairement pour debug
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
-      // In development accept localhost and any origin for convenience
-      if (process.env.NODE_ENV !== "production") {
-        return callback(null, true);
-      }
-
-      // In production, only allow explicit whitelist
-      if (allowedOrigins.has(origin) || origin.endsWith(".netlify.app")) {
-        return callback(null, true);
-      }
-
-      // Deny unknown origins
-      logger.warn({ origin }, "CORS: origin denied");
-      return callback(new Error("Not allowed by CORS"), false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-    maxAge: 600, // Cache les résultats du pre-flight pendant 10 minutes
-  })
-);
+// Headers CORS supplémentaires pour assurer la compatibilité
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  
+  // Répondre immédiatement aux requêtes OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // 🔗 Configuration proxy pour détecter les vraies IPs client
 // Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
