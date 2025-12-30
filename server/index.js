@@ -118,19 +118,25 @@ const {
 } = require("./middlewares/securityLogging");
 
 // Application des middlewares de sécurité dans l'ordre optimal
-app.use(securityHeaders); // Headers de sécurité (CSP, HSTS, etc.)
-app.use(generateNonce); // Génération des nonces pour CSP
-app.use(secureCookies); // Sécurisation des cookies
-app.use(securityLogger); // Logging de sécurité avec détection d'anomalies
-app.use(originValidation); // Validation des origines
-app.use(userAgentValidation); // Validation des User-Agents
-app.use(headerInjectionProtection); // Protection contre l'injection dans les headers
-app.use(timingAttackProtection); // Protection contre les attaques de timing
-app.use(bruteForceProtection()); // Protection contre la force brute
-app.use(dataChangeLogger); // Logging des modifications de données
-
-// Rate limiting général pour toutes les API
-app.use("/api/", apiRateLimit);
+// Mode allégé pour Render (plan gratuit - 512MB RAM)
+if (process.env.NODE_ENV === "production") {
+  // Seulement les middlewares essentiels en production
+  app.use(securityHeaders); 
+  app.use(originValidation);
+} else {
+  // Tous les middlewares en développement
+  app.use(securityHeaders);
+  app.use(generateNonce);
+  app.use(secureCookies);
+  app.use(securityLogger);
+  app.use(originValidation);
+  app.use(userAgentValidation);
+  app.use(headerInjectionProtection);
+  app.use(timingAttackProtection);
+  app.use(bruteForceProtection());
+  app.use(dataChangeLogger);
+  app.use("/api/", apiRateLimit);
+}
 
 // Charger et appliquer middlewares de sécurité (helmet, rate-limit, xss, mongo-sanitize)
 try {
