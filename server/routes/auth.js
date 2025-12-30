@@ -7,6 +7,14 @@ const { authenticateRequired: authenticate } = require("../middlewares/auth");
 const { generateToken, verifyToken } = require("../utils/jwtUtils");
 const webpush = require("web-push");
 
+// Importer les rate limiters
+const {
+  loginRateLimit,
+  registerRateLimit,
+  emailRateLimit,
+  strictRateLimit,
+} = require("../middlewares/rateLimiting");
+
 const router = express.Router();
 
 // Configuration Web Push
@@ -21,7 +29,7 @@ webpush.setVapidDetails(
  * POST /auth/register
  * ➤ Inscription pour les visiteurs et patients
  */
-router.post("/register", async (req, res) => {
+router.post("/register", registerRateLimit, async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone, roleName } = req.body;
 
@@ -103,7 +111,7 @@ router.post("/register", async (req, res) => {
  * POST /auth/login
  * ➤ Connexion pour tous les rôles
  */
-router.post("/login", async (req, res) => {
+router.post("/login", loginRateLimit, async (req, res) => {
   try {
     const { email, password } = req.body;
 

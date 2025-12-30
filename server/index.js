@@ -39,7 +39,10 @@ if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuration CORS - Mode permissif pour production Render
+// 🔗 Configuration proxy DOIT être en premier pour détecter les vraies IPs
+app.set("trust proxy", true);
+
+// 🌐 Configuration CORS - DOIT être appliquée en premier avant tous les autres middlewares
 const allowedOrigins = [
   'https://ligneup.netlify.app',
   'https://lineup.netlify.app',
@@ -50,43 +53,36 @@ const allowedOrigins = [
   'https://lineup-backend-xxak.onrender.com'
 ];
 
-// CORS simple et efficace
-app.use(cors({
-  origin: true, // Accepter toutes les origines temporairement pour debug
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
-
-// Headers CORS supplémentaires pour assurer la compatibilité
+// CORS ultra-permissif pour résoudre les problèmes en production
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   
-  // Répondre immédiatement aux requêtes OPTIONS
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+  // Toujours autoriser l'origine de la requête
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Range, X-Content-Range');
+  
+  // Répondre immédiatement aux requêtes OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  
   next();
 });
-
-// 🔗 Configuration proxy pour détecter les vraies IPs client
-// Nécessaire pour Netlify, Cloudflare, et autres CDN/proxies
-app.set("trust proxy", true);
 
 // Middleware de logging des requêtes HTTP
 app.use(httpLogger());
 
-// JSON body parsing with size limit to mitigate large payload attacks
-app.use(express.json({ limit: "10kb" }));
+// JSON body parsing - augmentation de la limite à 1mb
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // 🛡️ Middlewares de sécurité avancés
 const {
@@ -228,11 +224,8 @@ app.get("/debug-auth", authenticateOptional, (req, res) => {
 
 connectDB();
 
-// 🔐 Routes d'authentification centralisées avec rate limiting spécifique
-app.use("/auth/login", loginRateLimit); // Rate limiting pour les connexions
-app.use("/auth/register", registerRateLimit); // Rate limiting pour les inscriptions
-app.use("/auth/forgot-password", emailRateLimit); // Rate limiting pour les emails
-app.use("/auth/reset-password", strictRateLimit); // Rate limiting strict pour le reset
+// 🔐 Routes d'authentification centralisées avec rate limiting intégré
+// Les rate limiters sont appliqués dans le router lui-même pour éviter les conflits
 app.use("/auth", authRoutes);
 
 // 💬 Routes de conversations IA

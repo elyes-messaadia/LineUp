@@ -160,6 +160,11 @@ const provideCsrfToken = (req, res, next) => {
  * Validation des origines des requêtes
  */
 const originValidation = (req, res, next) => {
+  // En production, être permissif avec CORS car c'est géré au niveau de l'app
+  if (process.env.NODE_ENV === "production") {
+    return next();
+  }
+
   const allowedOrigins = [
     process.env.CLIENT_URL || "http://localhost:3000",
     process.env.FRONTEND_URL || "http://localhost:5174",
@@ -173,7 +178,7 @@ const originValidation = (req, res, next) => {
   const origin = req.get("Origin");
   const referer = req.get("Referer");
 
-  // En production, être plus permissif avec les domaines Netlify
+  // En développement, être plus strict
   const isNetlifyOrigin = origin && origin.endsWith('.netlify.app');
   
   // Vérifier l'origine pour les requêtes CORS
